@@ -1,0 +1,26 @@
+{
+    "name": "firestorecompiletool",
+    "version": "1.0.0",
+    "description": "",
+    "main": "./lib/index.js",
+    "scripts": {
+        "test": "yarn build && yarn start",
+        "build": "tsc",
+        "start": "node ./lib/index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "chalk": "^2.4.2",
+        "clear": "^0.1.0",
+        "commander": "^4.0.0",
+        "figlet": "^1.2.4",
+        "path": "^0.12.7"
+    },
+    "devDependencies": {
+        "@types/node": "^12.12.6",
+        "nodemon": "^1.19.4",
+        "ts-node": "^8.4.1",
+        "typescript": "^3.7.2"
+    }
+}

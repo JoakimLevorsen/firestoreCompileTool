@@ -1,0 +1,11 @@
+interface A {
+    foo: Number;
+    bar: String | Timestamp;
+}
+
+match /collection/{item} (
+    read: {
+        return if item is A;
+    },
+    write: true
+)
