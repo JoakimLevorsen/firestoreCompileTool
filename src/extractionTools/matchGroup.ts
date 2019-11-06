@@ -13,8 +13,13 @@ const extractRuleFromString = (input: string) =>
 // An if is composed of: check, logic is true, logic is false
 type ifIsType = [string, "is", Type | Interface];
 type ifIsValue = [string, "==", string];
-type IfClause = { check: ifIsType | ifIsValue; true: Logic; false?: Logic };
-type Logic = IfClause | boolean;
+export type ifCondition = ifIsType | ifIsValue;
+export type IfClause = {
+    check: ifCondition;
+    true: Logic;
+    false?: Logic;
+};
+export type Logic = IfClause | boolean;
 
 export type MatchGroup = {
     path: string[];
@@ -64,11 +69,17 @@ const extractMatch = (
             // Check if its a one liner, or a two liner
             const logic = extractLogicFromString(
                 ruleContent.replace(/[{}]/g, ""),
-                interfaces
+                interfaces,
+                pathComponents[0]
             );
             newMatchGroup.rules[ruleType] = logic;
         } else {
-            const logic = extractLogicFromString(ruleContent, interfaces, true);
+            const logic = extractLogicFromString(
+                ruleContent,
+                interfaces,
+                pathComponents[0],
+                true
+            );
             newMatchGroup.rules[ruleType] = logic;
         }
     }
@@ -81,6 +92,7 @@ const checkIsIfValidRegex = /^\s*(?:return){0,1}\s*if\s*([\w\.]+)\s+is\s+(\w+)/;
 const extractLogicFromString = (
     input: string,
     allInterfaces: { [id: string]: Interface },
+    path?: string,
     oneLiner = false
 ): Logic => {
     // Check if this is an if statement
@@ -95,7 +107,16 @@ const extractLogicFromString = (
             throw "Invalid if statement " + JSON.stringify(input);
         const [_, data, target] = match;
         // We set the type to an interface, and fallback to a type
-        const targetType = allInterfaces[target] || extractType(target);
+        const interfaceMatch = allInterfaces[target];
+        let dotInterfaceMatch: Interface = {};
+        // Since this is an interface, we add the dot notation so we get the actual value
+        if (interfaceMatch)
+            Object.keys(interfaceMatch).map(
+                key =>
+                    (dotInterfaceMatch[`resource.data.${key}`] =
+                        interfaceMatch[key])
+            );
+        const targetType = dotInterfaceMatch || extractType(target);
         if (!targetType) throw `Type ${JSON.stringify(target)} does not exist.`;
         const myIfStatement: ifIsType = [data, "is", targetType];
         if (iReturn) return { check: myIfStatement, true: true };
@@ -105,7 +126,8 @@ const extractLogicFromString = (
             true: true,
             false: extractLogicFromString(
                 input.replace(checkIsIfValidRegex, ""),
-                allInterfaces
+                allInterfaces,
+                path
             )
         };
         // If this is a oneliner, the word might just be true or false.
