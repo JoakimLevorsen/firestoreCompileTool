@@ -3,9 +3,9 @@ interface A {
     bar: String | Timestamp;
 }
 
-match /collection/{item} (
+match /collection/[item] {
     read: {
         return if item is A;
     },
-    write: true
-)
+    write: true;
+}

@@ -2,12 +2,23 @@ import { Type } from "./type";
 import { Interface } from "./interface";
 import { extractType } from ".";
 
-type RuleHeader = "read" | "write" | "create" | "update" | "delete";
-type RuleSet = { [Header in RuleHeader]?: Logic };
+export type RuleHeader =
+    | "read"
+    | "write"
+    | "create"
+    | "update"
+    | "delete";
+export type RuleSet = { [Header in RuleHeader]?: Logic };
 
-const allRules: RuleHeader[] = ["create", "delete", "read", "update", "write"];
+const allRules: RuleHeader[] = [
+    "create",
+    "delete",
+    "read",
+    "update",
+    "write"
+];
 // Check if input with no spaces is a rule.
-const extractRuleFromString = (input: string) =>
+export const extractRuleFromString = (input: string) =>
     allRules.find(r => r === input.replace(/\s/g, ""));
 
 // An if is composed of: check, logic is true, logic is false
@@ -69,15 +80,13 @@ const extractMatch = (
             // Check if its a one liner, or a two liner
             const logic = extractLogicFromString(
                 ruleContent.replace(/[{}]/g, ""),
-                interfaces,
-                pathComponents[0]
+                interfaces
             );
             newMatchGroup.rules[ruleType] = logic;
         } else {
             const logic = extractLogicFromString(
                 ruleContent,
                 interfaces,
-                pathComponents[0],
                 true
             );
             newMatchGroup.rules[ruleType] = logic;
@@ -89,10 +98,9 @@ const extractMatch = (
 const checkIsIfRegex = /^\s*(return){0,1}\s*if/;
 const checkIsIfValidRegex = /^\s*(?:return){0,1}\s*if\s*([\w\.]+)\s+is\s+(\w+)/;
 
-const extractLogicFromString = (
+export const extractLogicFromString = (
     input: string,
     allInterfaces: { [id: string]: Interface },
-    path?: string,
     oneLiner = false
 ): Logic => {
     // Check if this is an if statement
@@ -117,7 +125,8 @@ const extractLogicFromString = (
                         interfaceMatch[key])
             );
         const targetType = dotInterfaceMatch || extractType(target);
-        if (!targetType) throw `Type ${JSON.stringify(target)} does not exist.`;
+        if (!targetType)
+            throw `Type ${JSON.stringify(target)} does not exist.`;
         const myIfStatement: ifIsType = [data, "is", targetType];
         if (iReturn) return { check: myIfStatement, true: true };
 
@@ -126,8 +135,7 @@ const extractLogicFromString = (
             true: true,
             false: extractLogicFromString(
                 input.replace(checkIsIfValidRegex, ""),
-                allInterfaces,
-                path
+                allInterfaces
             )
         };
         // If this is a oneliner, the word might just be true or false.

@@ -29,19 +29,21 @@ interface Foo {
 Rules are defined as the following:
 
 ```
-match /foo/{bar} (
+match /foo/[bar] {
     read: {
-        return bar.data is Foo;
+        return if bar.data is Foo;
     },
     create, delete: {
-        return bar.data.id == auth.uid;
+        return if bar.data.id == auth.uid;
     },
-    match /fooBar/{foo} {
+    match /fooBar/[foo] {
         read: true,
-        write: foo is Foo
+        write: if foo is Foo
     }
-)
+}
 ```
+
+If a {block} is entered, return must be used, if not in a block it is optional.
 
 ## Global variables
 

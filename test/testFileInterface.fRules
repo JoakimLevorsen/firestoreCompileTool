@@ -1,0 +1,4 @@
+interface A {
+    foo: Number;
+    bar: String | Timestamp;
+}

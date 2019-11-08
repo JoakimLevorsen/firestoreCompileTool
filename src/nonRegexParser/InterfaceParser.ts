@@ -2,12 +2,11 @@ import {
     Interface,
     InterfaceData
 } from "../extractionTools/interface";
-import { charBlock } from ".";
+import { charBlock, WAIT } from ".";
 import { extractType } from "../extractionTools";
+import ParserError from "./ParserError";
 
-type WAIT = "WAIT";
-const WAIT: WAIT = "WAIT";
-
+// String indicates fail reason, "WAIT" indicates that operation will continue, and the type with data indicates that we finished.
 export default class InterfaceParser {
     interfaceName?: string;
     interface: Interface = {};
@@ -19,8 +18,12 @@ export default class InterfaceParser {
         | "building block" = "awaiting keyword";
 
     public addChar(
-        block: charBlock
-    ): false | WAIT | { type: "Interface"; data: InterfaceData } {
+        block: charBlock,
+        _: any
+    ):
+        | ParserError
+        | WAIT
+        | { type: "Interface"; data: InterfaceData } {
         switch (this.stage) {
             case "awaiting keyword":
                 if (
@@ -30,27 +33,49 @@ export default class InterfaceParser {
                     this.stage = "awaiting name";
                     return WAIT;
                 }
-                return false;
+                return new ParserError(
+                    "Keyword failed",
+                    block,
+                    InterfaceParser
+                );
             case "awaiting name":
                 if (block.type === "Keyword") {
                     this.interfaceName = block.value;
                     this.stage = "awaiting block";
                     return WAIT;
                 }
-                return false;
+                return new ParserError(
+                    "Name is not valid",
+                    block,
+                    InterfaceParser
+                );
             case "awaiting block":
                 if (block.type === "BlockOpen") {
                     this.stage = "building block";
                     return WAIT;
                 }
-                return false;
+                return new ParserError(
+                    "Expected block open, got",
+                    block,
+                    InterfaceParser
+                );
             case "building block":
                 // First we check if we've been closed
                 if (block.type === "BlockClose") {
                     // Are we currently building a property?
-                    if (this.nextProperty) return false;
+                    if (this.nextProperty)
+                        return new ParserError(
+                            "Block closed too early",
+                            block,
+                            InterfaceParser
+                        );
                     // Do we have a name?
-                    if (!this.interfaceName) return false;
+                    if (!this.interfaceName)
+                        return new ParserError(
+                            "Block closed with no name",
+                            block,
+                            InterfaceParser
+                        );
                     // Else things went good
                     return {
                         type: "Interface",
@@ -71,7 +96,11 @@ export default class InterfaceParser {
                             this.interface[this.nextProperty.name] ===
                             undefined
                         )
-                            return false;
+                            return new ParserError(
+                                "Block closed while we were building a variable",
+                                block,
+                                InterfaceParser
+                            );
                         this.nextProperty = undefined;
                         return WAIT;
                     }
@@ -82,7 +111,12 @@ export default class InterfaceParser {
                     if (block.type === "Keyword") {
                         const type = extractType(block.value);
                         // If we can't find the type, fail it.
-                        if (type === undefined) return false;
+                        if (type === undefined)
+                            return new ParserError(
+                                "Unexpected block type",
+                                block,
+                                InterfaceParser
+                            );
                         const currentValue = this.interface[
                             this.nextProperty.name
                         ];
@@ -103,7 +137,11 @@ export default class InterfaceParser {
                         return WAIT;
                     }
                     // Else the type is unknown and interface creation has failed.
-                    return false;
+                    return new ParserError(
+                        "Unexpected token 1",
+                        block,
+                        InterfaceParser
+                    );
                 }
                 // Have we started building a variable?
                 if (
@@ -114,14 +152,23 @@ export default class InterfaceParser {
                         this.nextProperty.optional = false;
                         return WAIT;
                     }
-                    return false;
+                    return new ParserError(
+                        "Unexpected token 2",
+                        block,
+                        InterfaceParser
+                    );
                 }
                 // Should we start a new variable?
                 if (block.type === "Keyword") {
                     this.nextProperty = { name: block.value };
+                    return WAIT;
                 }
                 // Else the value is unknown
-                return false;
+                return new ParserError(
+                    "Unexpected block type",
+                    block,
+                    InterfaceParser
+                );
         }
     }
 }
