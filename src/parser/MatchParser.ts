@@ -1,11 +1,10 @@
-import {
-    extractRuleFromString,
-    extractLogicFromString
-} from "../extractionTools/matchGroup";
 import { charBlock, WAIT } from ".";
-import { Interface } from "../extractionTools/interface";
+import { Interface } from "./InterfaceParser";
 import ParserError from "./ParserError";
-import RuleParser, { Rule } from "./RuleParser";
+import RuleParser, {
+    Rule,
+    extractRuleFromString
+} from "./RuleParser";
 import ExpressionParser from "./ExpressionParser";
 
 export type RuleHeader =

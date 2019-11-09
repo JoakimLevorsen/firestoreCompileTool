@@ -1,7 +1,7 @@
-import { Interface } from "../extractionTools/interface";
-import { Type, extractType } from "../extractionTools";
 import { charBlock, WAIT, charType } from ".";
 import ParserError from "./ParserError";
+import { Interface } from "./InterfaceParser";
+import { Type } from "./TypeParser";
 
 type ifIsType = [string, "is", Interface];
 type ifEqual = [string, "=" | "≠", Type | string];

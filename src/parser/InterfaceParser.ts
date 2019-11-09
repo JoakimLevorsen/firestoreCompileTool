@@ -1,10 +1,18 @@
-import {
-    Interface,
-    InterfaceData
-} from "../extractionTools/interface";
 import { charBlock, WAIT } from ".";
-import { extractType } from "../extractionTools";
+import extractType, { Type } from "./TypeParser";
 import ParserError from "./ParserError";
+
+export type Interface = {
+    [id: string]:
+        | { optional: boolean; value: Type; collection: false }
+        | {
+              optional: boolean;
+              values: Array<Type>;
+              collection: true;
+          };
+};
+
+export type InterfaceData = { name: string; interface: Interface };
 
 // String indicates fail reason, "WAIT" indicates that operation will continue, and the type with data indicates that we finished.
 export default class InterfaceParser {
@@ -81,7 +89,7 @@ export default class InterfaceParser {
                         type: "Interface",
                         data: {
                             name: this.interfaceName,
-                            content: this.interface
+                            interface: this.interface
                         }
                     };
                 }
@@ -117,23 +125,38 @@ export default class InterfaceParser {
                                 block,
                                 InterfaceParser
                             );
-                        const currentValue = this.interface[
+                        const currentProperty = this.interface[
                             this.nextProperty.name
                         ];
-                        if (currentValue === undefined)
-                            this.interface[
-                                this.nextProperty.name
-                            ] = type;
-                        else if (currentValue instanceof Array)
-                            this.interface[this.nextProperty.name] = [
-                                ...currentValue,
-                                type
-                            ];
-                        else
-                            this.interface[this.nextProperty.name] = [
-                                currentValue,
-                                type
-                            ];
+
+                        if (currentProperty === undefined)
+                            this.interface[this.nextProperty.name] = {
+                                optional: false,
+                                value: type,
+                                collection: false
+                            };
+                        else {
+                            const optional = currentProperty.optional;
+                            const currentValue = currentProperty.collection
+                                ? currentProperty.values
+                                : currentProperty.value;
+                            if (currentValue instanceof Array)
+                                this.interface[
+                                    this.nextProperty.name
+                                ] = {
+                                    optional,
+                                    collection: true,
+                                    values: [...currentValue, type]
+                                };
+                            else
+                                this.interface[
+                                    this.nextProperty.name
+                                ] = {
+                                    optional,
+                                    collection: true,
+                                    values: [currentValue, type]
+                                };
+                        }
                         return WAIT;
                     }
                     // Else the type is unknown and interface creation has failed.

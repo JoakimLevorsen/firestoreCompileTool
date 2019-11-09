@@ -1,8 +1,27 @@
-import { Interface } from "../extractionTools/interface";
 import IfParser, { IfBlock } from "./IfParser";
 import ExpressionParser, { Expression } from "./ExpressionParser";
 import { charBlock, WAIT } from ".";
 import ParserError from "./ParserError";
+import { Interface } from "./InterfaceParser";
+
+export type RuleHeader =
+    | "read"
+    | "write"
+    | "create"
+    | "update"
+    | "delete";
+export type RuleSet = { [Header in RuleHeader]?: Expression };
+
+const allRules: RuleHeader[] = [
+    "create",
+    "delete",
+    "read",
+    "update",
+    "write"
+];
+// Check if input with no spaces is a rule.
+export const extractRuleFromString = (input: string) =>
+    allRules.find(r => r === input.replace(/\s/g, ""));
 
 export type Rule = Expression | IfBlock;
 

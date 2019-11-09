@@ -4,7 +4,7 @@ import ExpressionParser, {
 } from "./ExpressionParser";
 import { charBlock, WAIT } from ".";
 import ParserError from "./ParserError";
-import { Interface } from "../extractionTools/interface";
+import { Interface } from "./InterfaceParser";
 
 export type IfBlock = {
     condition: ifCondition;

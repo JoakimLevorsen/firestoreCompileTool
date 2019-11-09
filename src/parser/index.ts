@@ -1,8 +1,7 @@
-import InterfaceParser from "./InterfaceParser";
+import InterfaceParser, { Interface } from "./InterfaceParser";
 import MatchParser, { MatchGroup } from "./matchParser";
 import ParserError from "./ParserError";
 import chalk from "chalk";
-import { Interface } from "../extractionTools/interface";
 
 export type Block = {
     interfaces: { [id: string]: Interface };
@@ -57,7 +56,7 @@ const parse = (input: string) => {
                 switch (p.type) {
                     case "Interface":
                         block.interfaces[p.data.name] =
-                            p.data.content;
+                            p.data.interface;
                         break;
                     case "Match":
                         block.matchGroups.push(p.data);

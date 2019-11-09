@@ -6,9 +6,8 @@ const figlet = require("figlet");
 const path = require("path");
 const program = require("commander");
 import * as fs from "fs";
-import extractBlock from "./extractionTools";
 import blockToRules from "./outputTools";
-import parse from "./nonRegexParser";
+import parse from "./parser";
 
 clear();
 console.log(chalk.red(figlet.textSync("hi")));

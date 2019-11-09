@@ -1,6 +1,6 @@
-import { Block } from "../nonRegexParser";
-import { Expression } from "../nonRegexParser/ExpressionParser";
-import { IfBlock } from "../nonRegexParser/IfParser";
+import { Block } from "../parser";
+import { Expression } from "../parser/ExpressionParser";
+import { IfBlock } from "../parser/IfParser";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -66,9 +66,9 @@ const expressionToString = (expression: Expression): string => {
         return interfaceKeys
             .map(iKey => {
                 const interfaceContent = compareTo[iKey];
-                if (interfaceContent instanceof Array) {
+                if (interfaceContent.collection) {
                     return (
-                        interfaceContent.reduce(
+                        interfaceContent.values.reduce(
                             (pV, v) =>
                                 pV === ""
                                     ? `(${targetData}.${iKey} is ${v.toLowerCase()}`
@@ -77,7 +77,7 @@ const expressionToString = (expression: Expression): string => {
                         ) + ")"
                     );
                 } else {
-                    return ` ${targetData}.${iKey} is ${interfaceContent.toLowerCase()} `;
+                    return ` ${targetData}.${iKey} is ${interfaceContent.value.toLowerCase()} `;
                 }
             })
             .reduce((pV, v) => `${pV} && ${v}`);
