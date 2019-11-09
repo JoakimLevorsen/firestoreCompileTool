@@ -12,7 +12,7 @@ import parse from "./nonRegexParser";
 
 clear();
 console.log(chalk.red(figlet.textSync("hi")));
-const file = fs.readFileSync("./test/testFile.fRules").toString();
+const file = fs.readFileSync("./test/testFile2.fRules").toString();
 
 // const Oldb = extractBlock(file);
 const b = parse(file);

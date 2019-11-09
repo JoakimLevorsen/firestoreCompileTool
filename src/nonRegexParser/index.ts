@@ -1,10 +1,15 @@
 import InterfaceParser from "./InterfaceParser";
-import { Block } from "../extractionTools";
-import MatchParser from "./matchParser";
+import MatchParser, { MatchGroup } from "./matchParser";
 import ParserError from "./ParserError";
 import chalk from "chalk";
+import { Interface } from "../extractionTools/interface";
 
-type charType =
+export type Block = {
+    interfaces: { [id: string]: Interface };
+    matchGroups: MatchGroup[];
+};
+
+export type charType =
     | "BlockOpen"
     | "BlockClose"
     | "IndexOpen"
@@ -14,7 +19,9 @@ type charType =
     | "Colon"
     | "SemiColon"
     | "Slash"
-    | "Comma";
+    | "Comma"
+    | "Equals"
+    | "NotEquals";
 
 export type charBlock =
     | { type: charType }
@@ -29,9 +36,11 @@ const parse = (input: string) => {
     let done = false;
     let remaining = input;
     let block: Block = { interfaces: {}, matchGroups: [] };
-    let myParsers = parsers.map(p => new p());
+    let myParsers = parsers.map(p => new p(block.interfaces));
+    const blockHistory: ReturnType<typeof extractNextBlock>[] = [];
     while (!done) {
         const nextBlock = extractNextBlock(remaining);
+        blockHistory.push(nextBlock);
         if (nextBlock === null) {
             done = true;
             break;
@@ -59,12 +68,16 @@ const parse = (input: string) => {
                         break;
                 }
                 // Then we reset the parsers since we are done with one iteration.
-                myParsers = parsers.map(p => new p());
+                myParsers = parsers.map(p => new p(block.interfaces));
                 // parserReset due to response
             }
         });
         // Did we run out of parsers?
         if (myParsers.length === 0) {
+            console.log(
+                "Token history is",
+                JSON.stringify(blockHistory)
+            );
             throw "Out of parsers";
         }
         if (
@@ -80,18 +93,17 @@ const parse = (input: string) => {
         }
         remaining = nextBlock.remaining;
     }
-    console.log(
-        "Returning block",
-        JSON.stringify({ block, done, remaining })
-    );
     return block;
 };
 
 const extractNextBlock = (
     input: string
 ): { block: charBlock; remaining: string } | null => {
-    // First we remove start spacing
-    const toConsider = input.replace(/^\s*/, "");
+    // First we remove start spacing and replace == with = since no assignment exists, and != with ≠.
+    const toConsider = input
+        .replace(/^\s*/, "")
+        .replace(/^==/, "=")
+        .replace(/^!=/, "≠");
     const nextTerm = toConsider.match(/^(?:\w+|[{};,:?|\/\[\]])/);
     if (nextTerm === null) {
         console.log(`${toConsider} returned null with regex`);
@@ -120,6 +132,10 @@ const extractNextBlock = (
             return { block: { type: "Slash" }, remaining };
         case ",":
             return { block: { type: "Comma" }, remaining };
+        case "=":
+            return { block: { type: "Equals" }, remaining };
+        case "≠":
+            return { block: { type: "NotEquals" }, remaining };
         default:
             // Is it a word?
             if (/^\w+(.*)$/.test(match)) {

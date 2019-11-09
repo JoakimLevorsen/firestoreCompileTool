@@ -5,7 +5,10 @@ interface A {
 
 match /collection/[item] {
     read, delete: {
-        return if item is A;
+        if (item.a == true) {
+            return item is A;
+        }
+        return item is A;
     },
-    write: true;
+    write: item is A;
 }

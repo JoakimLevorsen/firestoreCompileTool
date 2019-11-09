@@ -1,14 +1,25 @@
 import {
-    RuleSet,
-    MatchGroup,
-    RuleHeader,
     extractRuleFromString,
-    extractLogicFromString,
-    Logic
+    extractLogicFromString
 } from "../extractionTools/matchGroup";
 import { charBlock, WAIT } from ".";
 import { Interface } from "../extractionTools/interface";
 import ParserError from "./ParserError";
+import RuleParser, { Rule } from "./RuleParser";
+import ExpressionParser from "./ExpressionParser";
+
+export type RuleHeader =
+    | "read"
+    | "write"
+    | "create"
+    | "update"
+    | "delete";
+export type RuleSet = { [Header in RuleHeader]?: Rule };
+export type MatchGroup = {
+    path: string[];
+    pathVariables: string[];
+    rules: RuleSet;
+};
 
 export default class MatchParser {
     rulesWritten: RuleSet = {};
@@ -20,8 +31,17 @@ export default class MatchParser {
         | "awaiting path"
         | "building path"
         | "awaiting rule"
+        | "awaiting first rule word"
         | "building rule" = "awaiting keyword";
     ruleToBuildType: RuleHeader[] = [];
+    deepParser: RuleParser | ExpressionParser;
+    interfaces: { [id: string]: Interface };
+    twoBlockCloseInARow = false;
+
+    constructor(interfaces: { [id: string]: Interface }) {
+        this.interfaces = interfaces;
+        this.deepParser = new RuleParser(interfaces);
+    }
 
     private buildError = (block: charBlock) => (
         reason: string,
@@ -106,17 +126,72 @@ export default class MatchParser {
                     return WAIT;
                 }
                 if (block.type === "Colon") {
-                    // This means the block has started.
-                    this.stage = "building rule";
-                    this.ruleHasEncounteredABlock = false;
+                    // We wait for the first word of the new rule to se if it's a oneliner
+                    this.stage = "awaiting first rule word";
+                    return WAIT;
+                }
+                if (block.type === "BlockClose") {
+                    // Are we finishing a previous rule, or are we all done?
+                    if (!this.twoBlockCloseInARow) {
+                        this.twoBlockCloseInARow = true;
+                        return WAIT;
+                    }
+                    // This means we have completed all rules and can return our matchset.
+                    return {
+                        type: "Match",
+                        data: {
+                            rules: this.rulesWritten,
+                            path: this.path,
+                            pathVariables: this.pathComponents
+                        }
+                    };
+                }
+                if (block.type === "SemiColon") {
+                    // We ignore this for now
                     return WAIT;
                 }
                 return errorBuilder(
                     "Unknown token for rule",
                     this.stage
                 );
+            case "awaiting first rule word":
+                if (
+                    block.type !== "Keyword" &&
+                    block.type !== "BlockOpen"
+                )
+                    return errorBuilder("Expected keyword");
+                if (
+                    block.type === "BlockOpen" ||
+                    (block.type === "Keyword" &&
+                        (block.value === "if" ||
+                            block.value === "return"))
+                )
+                    this.deepParser = new RuleParser(this.interfaces);
+                else
+                    this.deepParser = new ExpressionParser(
+                        this.interfaces
+                    );
+                this.stage = "building rule";
+                // If the char was a block open, we return, otherwise we fall through to the next case.
+                if (block.type === "BlockOpen") return WAIT;
             case "building rule":
-                return this.buildingRule(block, interfaces);
+                const parserReturn = this.deepParser.addChar(block);
+                if (
+                    parserReturn === WAIT ||
+                    parserReturn instanceof ParserError
+                )
+                    return parserReturn;
+                // Now we have a new rule to add for each header.
+                this.ruleToBuildType.forEach(
+                    rule =>
+                        (this.rulesWritten[rule] = parserReturn.data)
+                );
+                // We head back to the await rule stage, since we don't know if more are comming.
+                this.stage = "awaiting rule";
+                // If this rule was a one liner, we've already passed a metaphorical blockClose
+                this.twoBlockCloseInARow =
+                    this.deepParser instanceof ExpressionParser;
+                return WAIT;
             default:
                 return errorBuilder(
                     "Unknown block type.",
@@ -131,86 +206,5 @@ export default class MatchParser {
             this.pathComponents.push(add);
         }
         this.path.push(add);
-    }
-
-    ruleHasEncounteredABlock = false;
-    logicStringBuilder = "";
-    private buildingRule(
-        block: charBlock,
-        interfaces: { [id: string]: Interface }
-    ): ParserError | WAIT | { type: "Match"; data: MatchGroup } {
-        console.log("Told to build rule for ", block);
-        const errorBuilder = this.buildError(block);
-        switch (block.type) {
-            case "BlockOpen":
-                if (!this.ruleHasEncounteredABlock) {
-                    this.ruleHasEncounteredABlock = true;
-                    return WAIT;
-                }
-                // Deeper blocks are a future feature
-                return errorBuilder(
-                    "Blocks are not yet allowed to exist within other blocks.",
-                    this.stage
-                );
-            case "BlockClose":
-                if (this.ruleHasEncounteredABlock) {
-                    // Add check if code has returned
-                    this.ruleHasEncounteredABlock = false;
-                    this.stage = "awaiting rule";
-                    return WAIT;
-                } else {
-                    return {
-                        type: "Match",
-                        data: {
-                            path: this.path,
-                            pathVariables: this.pathComponents,
-                            rules: this.rulesWritten
-                        }
-                    };
-                }
-                return errorBuilder(
-                    "Unexpected block close.",
-                    this.stage
-                );
-            case "Keyword":
-                console.log("Got keyword", JSON.stringify(block));
-                if (this.logicStringBuilder === "")
-                    this.logicStringBuilder = block.value;
-                else this.logicStringBuilder += " " + block.value;
-                return WAIT;
-            case "SemiColon":
-                console.log(
-                    "Got semicolon building logic for",
-                    JSON.stringify(this.logicStringBuilder)
-                );
-                // First we check if the previous statement was just a booklean
-                let logic: Logic;
-                if (
-                    this.logicStringBuilder === "true" ||
-                    this.logicStringBuilder === "false"
-                ) {
-                    if (this.logicStringBuilder === "true")
-                        logic = true;
-                    else logic = false;
-                } else {
-                    logic = extractLogicFromString(
-                        this.logicStringBuilder,
-                        interfaces,
-                        this.ruleHasEncounteredABlock
-                    );
-                }
-                this.logicStringBuilder = "";
-                this.ruleToBuildType.forEach(
-                    t => (this.rulesWritten[t] = logic)
-                );
-                // Then reset the rule type
-                this.ruleToBuildType = [];
-                return WAIT;
-            default:
-                return errorBuilder(
-                    "Unknown block type for building rule.",
-                    this.stage
-                );
-        }
     }
 }
