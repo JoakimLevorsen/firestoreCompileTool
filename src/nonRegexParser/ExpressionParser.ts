@@ -18,10 +18,8 @@ export default class ExpressionParser {
     conditionVal: string = "";
     operatior?: string;
     conditionFin?: string;
-    count = 0;
 
     constructor(interfaces: { [id: string]: Interface }) {
-        console.log("Expression parser created");
         this.allInterfaces = interfaces;
     }
 
@@ -34,11 +32,6 @@ export default class ExpressionParser {
         _?: any
     ): ParserError | WAIT | { type: "Expression"; data: Expression } {
         const builderError = this.buildError(block, this.stage);
-        console.log(
-            `Expression parser got ${JSON.stringify(
-                block
-            )} with hit ${this.count++} and stage: ${this.stage}`
-        );
         switch (this.stage) {
             case "awaiting conditionVal":
                 if (block.type !== "Keyword")
@@ -97,8 +90,8 @@ export default class ExpressionParser {
                     };
                 }
                 if (
-                    this.operatior === "=" ||
-                    this.operatior === "≠"
+                    this.operatior === "Equals" ||
+                    this.operatior === "NotEquals"
                 ) {
                     if (
                         block.value === "true" ||
@@ -109,7 +102,9 @@ export default class ExpressionParser {
                             type: "Expression",
                             data: [
                                 this.conditionVal,
-                                this.operatior,
+                                this.operatior === "Equals"
+                                    ? "="
+                                    : "≠",
                                 block.value
                             ]
                         };

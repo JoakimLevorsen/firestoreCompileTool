@@ -22,4 +22,6 @@ console.log("Block is", JSON.stringify(b));
 
 const rules = blockToRules(b);
 
+fs.writeFileSync("./test/output.fire", rules);
+
 console.log("Final is", rules);

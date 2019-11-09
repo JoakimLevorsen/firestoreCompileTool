@@ -1,12 +1,18 @@
-export type Type = "Number" | "String" | "Boolean" | "Geopint" | "Timestamp";
+export type Type =
+    | "Number"
+    | "String"
+    | "Bool"
+    | "Geopint"
+    | "Timestamp";
 export const allTypes: Array<Type> = [
-    "Boolean",
+    "Bool",
     "Geopint",
     "Number",
     "String",
     "Timestamp"
 ];
 
-const extractType = (input: string) => allTypes.find(t => t === input);
+const extractType = (input: string) =>
+    allTypes.find(t => t === input);
 
 export default extractType;

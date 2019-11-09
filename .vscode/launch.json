@@ -8,9 +8,11 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/lib/index.js",
+            "program": "${workspaceFolder}/src/index.ts",
             "skipFiles": ["<node_internals>/**"],
-            "preLaunchTask": "build"
+            "preLaunchTask": "typescript",
+            "protocol": "inspector",
+            "outFiles": ["${workspaceFolder}/lib/**/*.js"]
         }
     ]
 }

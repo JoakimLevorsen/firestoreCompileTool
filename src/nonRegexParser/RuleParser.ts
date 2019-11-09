@@ -24,7 +24,7 @@ export default class RuleParser {
 
     private buildError = (block: charBlock, stage: string) => (
         reason: string
-    ) => new ParserError(reason, block, IfParser, stage);
+    ) => new ParserError(reason, block, RuleParser, stage);
 
     public addChar(
         block: charBlock,
@@ -72,6 +72,10 @@ export default class RuleParser {
                 this.returnable = parserReturn2.data;
                 return WAIT;
             case "awating finish":
+                if (block.type === "SemiColon") {
+                    // We ignore this for now.
+                    return WAIT;
+                }
                 if (block.type === "BlockClose") {
                     if (this.returnable)
                         return {

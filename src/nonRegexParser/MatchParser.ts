@@ -172,8 +172,7 @@ export default class MatchParser {
                         this.interfaces
                     );
                 this.stage = "building rule";
-                // If the char was a block open, we return, otherwise we fall through to the next case.
-                if (block.type === "BlockOpen") return WAIT;
+            // We don't return since we want to fall into the next case.
             case "building rule":
                 const parserReturn = this.deepParser.addChar(block);
                 if (
@@ -188,6 +187,8 @@ export default class MatchParser {
                 );
                 // We head back to the await rule stage, since we don't know if more are comming.
                 this.stage = "awaiting rule";
+                // Reset the rule header
+                this.ruleToBuildType = [];
                 // If this rule was a one liner, we've already passed a metaphorical blockClose
                 this.twoBlockCloseInARow =
                     this.deepParser instanceof ExpressionParser;

@@ -3,10 +3,14 @@ interface A {
     bar: String | Timestamp;
 }
 
+interface B {
+    value: Bool;
+}
+
 match /collection/[item] {
     read, delete: {
-        if (item.a == true) {
-            return item is A;
+        if item.a == true {
+            return item is B;
         }
         return item is A;
     },

@@ -54,10 +54,6 @@ const parse = (input: string) => {
                 myParsers.splice(i, 1);
                 console.error(chalk.red(p.toString()));
             } else {
-                console.log(
-                    `Got ${p.type} payload`,
-                    JSON.stringify(p)
-                );
                 switch (p.type) {
                     case "Interface":
                         block.interfaces[p.data.name] =
@@ -84,10 +80,6 @@ const parse = (input: string) => {
             nextBlock.remaining === "" ||
             /^\s*$/.test(nextBlock.remaining)
         ) {
-            console.log(
-                "Finished interpretation due to remainging being",
-                nextBlock.remaining
-            );
             done = true;
             break;
         }
@@ -104,7 +96,9 @@ const extractNextBlock = (
         .replace(/^\s*/, "")
         .replace(/^==/, "=")
         .replace(/^!=/, "≠");
-    const nextTerm = toConsider.match(/^(?:\w+|[{};,:?|\/\[\]])/);
+    const nextTerm = toConsider.match(
+        /^(?:[\w\.]+|[{};,:?=≠|\/\[\]])/
+    );
     if (nextTerm === null) {
         console.log(`${toConsider} returned null with regex`);
         return null;
@@ -137,26 +131,10 @@ const extractNextBlock = (
         case "≠":
             return { block: { type: "NotEquals" }, remaining };
         default:
-            // Is it a word?
-            if (/^\w+(.*)$/.test(match)) {
-                const matchEnd = match.match(/^(\w+)(.*)$/);
-                if (matchEnd === null)
-                    throw "Unknown error" +
-                        JSON.stringify({ match, matchEnd });
-                // A char may be on the end of our keyword, so it is readded to the rest
-                const [_, value, extraChar] = matchEnd;
-                if (extraChar)
-                    return {
-                        block: { type: "Keyword", value },
-                        remaining: extraChar + remaining
-                    };
-                return {
-                    block: { type: "Keyword", value },
-                    remaining
-                };
-            }
-            throw "Unkown block " +
-                JSON.stringify({ match, toConsider });
+            return {
+                block: { type: "Keyword", value: match },
+                remaining
+            };
     }
 };
 

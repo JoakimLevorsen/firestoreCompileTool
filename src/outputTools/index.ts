@@ -7,29 +7,35 @@ service cloud.firestore {
 match /databases/{database}/documents {
 `;
 
-const footer = `}}`;
+const footer = `\t\n}\n}`;
 
 const blockToRules = (input: Block): string => {
-    const rules = input.matchGroups.map(({ rules, path }) => {
-        let output = "";
-        if (rules.create) {
-            output += ruleToString(rules.create, "create");
+    const rules = input.matchGroups.map(
+        ({ rules, path, pathVariables }) => {
+            let output = "";
+            if (rules.create) {
+                output += ruleToString(rules.create, "create");
+            }
+            if (rules.delete) {
+                output += ruleToString(rules.delete, "delete");
+            }
+            if (rules.read) {
+                output += ruleToString(rules.read, "read");
+            }
+            if (rules.update) {
+                output += ruleToString(rules.update, "update");
+            }
+            if (rules.write) {
+                output += ruleToString(rules.write, "write");
+            }
+            const matchPath = path.reduce((pV, v) => {
+                // If the path component is mentioned wrap it
+                if (pathVariables.includes(v)) return `${pV}/{${v}}`;
+                return `${pV}/${v}`;
+            }, "");
+            return `match ${matchPath} {\n${output}}`;
         }
-        if (rules.delete) {
-            output += ruleToString(rules.delete, "delete");
-        }
-        if (rules.read) {
-            output += ruleToString(rules.read, "read");
-        }
-        if (rules.update) {
-            output += ruleToString(rules.update, "update");
-        }
-        if (rules.write) {
-            output += ruleToString(rules.write, "write");
-        }
-        const matchPath = path.reduce((pV, v) => `${pV}/${v}`, "");
-        return `match ${matchPath} {${output}}`;
-    });
+    );
     return `${header}${rules}${footer}`;
 };
 
@@ -39,7 +45,7 @@ const ruleToString = (
 ): string => {
     const header = `allow ${ruleType}: if `;
     const content = expressionOrIfToString(item);
-    const footer = `;`;
+    const footer = `;\n`;
     return header + content + footer;
 };
 
@@ -65,16 +71,22 @@ const expressionToString = (expression: Expression): string => {
                         interfaceContent.reduce(
                             (pV, v) =>
                                 pV === ""
-                                    ? `(${targetData}.${iKey} is ${v}`
-                                    : `${pV} || ${targetData}.${iKey} is ${v}`,
+                                    ? `(${targetData}.${iKey} is ${v.toLowerCase()}`
+                                    : `${pV} || ${targetData}.${iKey} is ${v.toLowerCase()}`,
                             ""
                         ) + ")"
                     );
                 } else {
-                    return ` ${targetData}.${iKey} is ${interfaceContent} `;
+                    return ` ${targetData}.${iKey} is ${interfaceContent.toLowerCase()} `;
                 }
             })
             .reduce((pV, v) => `${pV} && ${v}`);
+    }
+    if (expression[1] === "=") {
+        return `${expression[0]} == ${expression[2]}`;
+    }
+    if (expression[1] === "≠") {
+        return `${expression[0]} != ${expression[2]}`;
     }
     return `${expression[0]} `;
 };
@@ -85,7 +97,7 @@ const ifBlockToString = (ifBlock: IfBlock): string => {
     const b = expressionOrIfToString(ifBlock.ifTrue);
     if (ifBlock.ifFalse) {
         const c = expressionOrIfToString(ifBlock.ifFalse);
-        return `((${stringCondition} && ${b}) || ${c})`;
+        return `((${stringCondition} && ${b}) || (${c}))`;
     }
     return `(${stringCondition} && ${b})`;
 };

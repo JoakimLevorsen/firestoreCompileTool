@@ -25,6 +25,7 @@ export default class IfParser {
     deepParser: ExpressionParser | IfParser;
     condition?: Expression;
     trueBlock?: IfBlock | Expression;
+    hasSeenOneBlockClose = false;
 
     constructor(interfaces: { [id: string]: Interface }) {
         this.allInterfaces = interfaces;
@@ -95,6 +96,8 @@ export default class IfParser {
                     return parserReturn2;
                 this.trueBlock = parserReturn2.data;
                 this.stage = "awaiting false";
+                this.hasSeenOneBlockClose = false;
+                return WAIT;
             case "awaiting false":
                 if (block.type === "Keyword") {
                     // This means a pseudo if is present. So we start the "false" part of the if
@@ -103,7 +106,16 @@ export default class IfParser {
                     );
                     // The lack of a break is intentional, since we'll fall into the next case
                     this.stage = "building false";
+                }
+                if (block.type === "SemiColon") {
+                    // We just ignore this for now
+                    return WAIT;
                 } else {
+                    // Two BlockCloses means we arent building a false block
+                    if (!this.hasSeenOneBlockClose) {
+                        this.hasSeenOneBlockClose = true;
+                        return WAIT;
+                    }
                     // This means we aren't building a false block, so we return the condition and the true
                     if (block.type === "BlockClose") {
                         if (
@@ -143,6 +155,7 @@ export default class IfParser {
                             ifFalse: parserReturn3.data
                         }
                     };
+
                 return builderError("Internal error");
         }
     }
