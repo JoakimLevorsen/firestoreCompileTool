@@ -1,40 +1,36 @@
+import { charBlock, WAIT } from ".";
 import ExpressionParser, {
     Expression,
     ifCondition
 } from "./ExpressionParser";
-import { charBlock, WAIT } from ".";
-import ParserError from "./ParserError";
 import { Interface } from "./InterfaceParser";
+import ParserError from "./ParserError";
 
-export type IfBlock = {
+export interface IfBlock {
     condition: ifCondition;
     ifTrue: Expression | IfBlock;
     ifFalse?: Expression | IfBlock;
-};
+}
 
 export default class IfParser {
-    stage:
+    private stage:
         | "awaiting keyword"
         | "awaiting condition"
         | "awaiting true"
         | "building true"
         | "awaiting false"
         | "building false" = "awaiting keyword";
-    buildingExpression = false;
-    allInterfaces: { [id: string]: Interface };
-    deepParser: ExpressionParser | IfParser;
-    condition?: Expression;
-    trueBlock?: IfBlock | Expression;
-    hasSeenOneBlockClose = false;
+    private buildingExpression = false;
+    private allInterfaces: { [id: string]: Interface };
+    private deepParser: ExpressionParser | IfParser;
+    private condition?: Expression;
+    private trueBlock?: IfBlock | Expression;
+    private hasSeenOneBlockClose = false;
 
     constructor(interfaces: { [id: string]: Interface }) {
         this.allInterfaces = interfaces;
         this.deepParser = new ExpressionParser(interfaces);
     }
-
-    private buildError = (block: charBlock, stage: string) => (
-        reason: string
-    ) => new ParserError(reason, block, IfParser, stage);
 
     // NOTE, this will return one block too late if no else part exists
     public addChar(
@@ -48,8 +44,9 @@ export default class IfParser {
         const builderError = this.buildError(block, this.stage);
         switch (this.stage) {
             case "awaiting keyword":
-                if (block.type !== "Keyword")
+                if (block.type !== "Keyword") {
                     return builderError("Expected keyword");
+                }
                 if (block.value === "return") {
                     this.buildingExpression = true;
                     this.stage = "awaiting condition";
@@ -68,12 +65,14 @@ export default class IfParser {
                     this.buildingExpression ||
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
-                )
+                ) {
                     return parserReturn;
+                }
                 // Since we aren't building an expression, we got our condition.
                 // We have to make sure the parser isn't an IfParser
-                if (parserReturn.type === "IfBlock")
+                if (parserReturn.type === "IfBlock") {
                     return builderError("Internal error");
+                }
                 this.condition = parserReturn.data;
                 this.stage = "awaiting true";
                 return WAIT;
@@ -92,8 +91,9 @@ export default class IfParser {
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
-                )
+                ) {
                     return parserReturn2;
+                }
                 this.trueBlock = parserReturn2.data;
                 this.stage = "awaiting false";
                 this.hasSeenOneBlockClose = false;
@@ -122,14 +122,15 @@ export default class IfParser {
                             this.condition &&
                             typeof this.condition !== "boolean" &&
                             this.trueBlock !== undefined
-                        )
+                        ) {
                             return {
-                                type: "IfBlock",
                                 data: {
                                     condition: this.condition,
                                     ifTrue: this.trueBlock
-                                }
+                                },
+                                type: "IfBlock"
                             };
+                        }
 
                         return builderError("Internal Error");
                     }
@@ -139,24 +140,30 @@ export default class IfParser {
                 if (
                     parserReturn3 === WAIT ||
                     parserReturn3 instanceof ParserError
-                )
+                ) {
                     return parserReturn3;
+                }
                 // Now we got our else block, so we can return.
                 if (
                     this.condition &&
                     typeof this.condition !== "boolean" &&
                     this.trueBlock
-                )
+                ) {
                     return {
-                        type: "IfBlock",
                         data: {
                             condition: this.condition,
-                            ifTrue: this.trueBlock,
-                            ifFalse: parserReturn3.data
-                        }
+                            ifFalse: parserReturn3.data,
+                            ifTrue: this.trueBlock
+                        },
+                        type: "IfBlock"
                     };
+                }
 
                 return builderError("Internal error");
         }
     }
+
+    private buildError = (block: charBlock, stage: string) => (
+        reason: string
+    ) => new ParserError(reason, block, IfParser, stage);
 }

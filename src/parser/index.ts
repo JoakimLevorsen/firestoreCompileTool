@@ -1,12 +1,12 @@
+import chalk from "chalk";
 import InterfaceParser, { Interface } from "./InterfaceParser";
 import MatchParser, { MatchGroup } from "./matchParser";
 import ParserError from "./ParserError";
-import chalk from "chalk";
 
-export type Block = {
+export interface Block {
     interfaces: { [id: string]: Interface };
     matchGroups: MatchGroup[];
-};
+}
 
 export type charType =
     | "BlockOpen"
@@ -34,9 +34,11 @@ const parsers = [InterfaceParser, MatchParser];
 const parse = (input: string) => {
     let done = false;
     let remaining = input;
-    let block: Block = { interfaces: {}, matchGroups: [] };
+    const block: Block = { interfaces: {}, matchGroups: [] };
     let myParsers = parsers.map(p => new p(block.interfaces));
-    const blockHistory: ReturnType<typeof extractNextBlock>[] = [];
+    const blockHistory: Array<
+        ReturnType<typeof extractNextBlock>
+    > = [];
     while (!done) {
         const nextBlock = extractNextBlock(remaining);
         blockHistory.push(nextBlock);
@@ -48,8 +50,9 @@ const parse = (input: string) => {
             p.addChar(nextBlock.block, block.interfaces)
         );
         parserResponses.forEach((p, i) => {
-            if (p === "WAIT") return;
-            else if (p instanceof ParserError) {
+            if (p === "WAIT") {
+                return;
+            } else if (p instanceof ParserError) {
                 myParsers.splice(i, 1);
                 console.error(chalk.red(p.toString()));
             } else {
@@ -63,7 +66,9 @@ const parse = (input: string) => {
                         break;
                 }
                 // Then we reset the parsers since we are done with one iteration.
-                myParsers = parsers.map(p => new p(block.interfaces));
+                myParsers = parsers.map(
+                    parser => new parser(block.interfaces)
+                );
                 // parserReset due to response
             }
         });
@@ -73,7 +78,7 @@ const parse = (input: string) => {
                 "Token history is",
                 JSON.stringify(blockHistory)
             );
-            throw "Out of parsers";
+            throw new Error("Out of parsers");
         }
         if (
             nextBlock.remaining === "" ||
@@ -136,7 +141,5 @@ const extractNextBlock = (
             };
     }
 };
-
-const extractChar = (input: string, remaining: string) => {};
 
 export default parse;

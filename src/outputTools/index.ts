@@ -10,7 +10,7 @@ match /databases/{database}/documents {
 const footer = `\t\n}\n}`;
 
 const blockToRules = (input: Block): string => {
-    const rules = input.matchGroups.map(
+    const ruleContent = input.matchGroups.map(
         ({ rules, path, pathVariables }) => {
             let output = "";
             if (rules.create) {
@@ -36,28 +36,30 @@ const blockToRules = (input: Block): string => {
             return `match ${matchPath} {\n${output}}`;
         }
     );
-    return `${header}${rules}${footer}`;
+    return `${header}${ruleContent}${footer}`;
 };
 
 const ruleToString = (
     item: Expression | IfBlock,
     ruleType: string
 ): string => {
-    const header = `allow ${ruleType}: if `;
+    const ruleHeader = `allow ${ruleType}: if `;
     const content = expressionOrIfToString(item);
-    const footer = `;\n`;
-    return header + content + footer;
+    const ruleFooter = `;\n`;
+    return ruleHeader + content + ruleFooter;
 };
 
 const expressionOrIfToString = (item: Expression | IfBlock) => {
-    if (typeof item === "object" && !(item instanceof Array))
+    if (typeof item === "object" && !(item instanceof Array)) {
         return ifBlockToString(item);
+    }
     return expressionToString(item);
 };
 
 const expressionToString = (expression: Expression): string => {
-    if (typeof expression === "boolean")
+    if (typeof expression === "boolean") {
         return `${expression === true}`;
+    }
     // We check index 1 for the operator
     if (expression[1] === "is") {
         const [target, _, compareTo] = expression;

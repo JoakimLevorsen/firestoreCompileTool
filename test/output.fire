@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+match /databases/{database}/documents {
+match /collection/{item} {
+allow delete: if ((item.a == true &&  item.data.value is bool ) || ( item.data.foo is number  && (item.data.bar is string || item.data.bar is timestamp)));
+allow read: if ((item.a == true &&  item.data.value is bool ) || ( item.data.foo is number  && (item.data.bar is string || item.data.bar is timestamp)));
+allow write: if  item.data.foo is number  && (item.data.bar is string || item.data.bar is timestamp);
+}	
+}
+}

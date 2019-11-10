@@ -5,12 +5,15 @@
     "main": "./lib/index.js",
     "scripts": {
         "test": "yarn build && yarn start",
-        "build": "tsc",
+        "build": "tsc && npm run lint",
+        "lint": "tslint -c tslint.json 'src/**/*.ts'",
         "start": "node ./lib/index.js"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@types/clear": "^0.1.0",
+        "@types/figlet": "^1.2.0",
         "chalk": "^2.4.2",
         "clear": "^0.1.0",
         "commander": "^4.0.0",
@@ -18,9 +21,10 @@
         "path": "^0.12.7"
     },
     "devDependencies": {
-        "@types/node": "^12.12.6",
+        "@types/node": "^12.12.7",
         "nodemon": "^1.19.4",
         "ts-node": "^8.4.1",
+        "tslint": "^5.20.1",
         "typescript": "^3.7.2"
     }
 }

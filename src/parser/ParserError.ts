@@ -1,14 +1,16 @@
 import { charBlock } from ".";
 
 export default class ParserError {
-    reason: string;
-    block: charBlock;
-    parser: Function;
-    stage: string | undefined;
+    private reason: string;
+    private block: charBlock;
+    // tslint:disable-next-line: ban-types
+    private parser: Function;
+    private stage: string | undefined;
 
     constructor(
         reason: string,
         block: charBlock,
+        // tslint:disable-next-line: ban-types
         parser: Function,
         stage?: string
     ) {
@@ -18,7 +20,7 @@ export default class ParserError {
         this.stage = stage;
     }
 
-    toString(): string {
+    public toString(): string {
         if (this.stage) {
             return `${this.parser.name} failure: due to ${
                 this.reason

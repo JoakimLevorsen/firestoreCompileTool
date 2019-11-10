@@ -1,25 +1,29 @@
 import { charBlock, WAIT } from ".";
-import extractType, { Type } from "./TypeParser";
 import ParserError from "./ParserError";
+import extractType, { Type } from "./TypeParser";
 
-export type Interface = {
+export interface Interface {
     [id: string]:
         | { optional: boolean; value: Type; collection: false }
         | {
               optional: boolean;
-              values: Array<Type>;
+              values: Type[];
               collection: true;
           };
-};
+}
 
-export type InterfaceData = { name: string; interface: Interface };
+export interface InterfaceData {
+    name: string;
+    interface: Interface;
+}
 
-// String indicates fail reason, "WAIT" indicates that operation will continue, and the type with data indicates that we finished.
+// String indicates fail reason, "WAIT" indicates that operation will continue,
+// and the type with data indicates that we finished.
 export default class InterfaceParser {
-    interfaceName?: string;
-    interface: Interface = {};
-    nextProperty?: { name: string; optional?: boolean };
-    stage:
+    private interfaceName?: string;
+    private interface: Interface = {};
+    private nextProperty?: { name: string; optional?: boolean };
+    private stage:
         | "awaiting keyword"
         | "awaiting name"
         | "awaiting block"
@@ -71,26 +75,28 @@ export default class InterfaceParser {
                 // First we check if we've been closed
                 if (block.type === "BlockClose") {
                     // Are we currently building a property?
-                    if (this.nextProperty)
+                    if (this.nextProperty) {
                         return new ParserError(
                             "Block closed too early",
                             block,
                             InterfaceParser
                         );
+                    }
                     // Do we have a name?
-                    if (!this.interfaceName)
+                    if (!this.interfaceName) {
                         return new ParserError(
                             "Block closed with no name",
                             block,
                             InterfaceParser
                         );
+                    }
                     // Else things went good
                     return {
-                        type: "Interface",
                         data: {
-                            name: this.interfaceName,
-                            interface: this.interface
-                        }
+                            interface: this.interface,
+                            name: this.interfaceName
+                        },
+                        type: "Interface"
                     };
                 }
                 // Are we currently building a variable?
@@ -103,59 +109,64 @@ export default class InterfaceParser {
                         if (
                             this.interface[this.nextProperty.name] ===
                             undefined
-                        )
+                        ) {
                             return new ParserError(
                                 "Block closed while we were building a variable",
                                 block,
                                 InterfaceParser
                             );
+                        }
                         this.nextProperty = undefined;
                         return WAIT;
                     }
                     // If we got a | we just ignore it for now, add checks later
                     // TODO
-                    if (block.type === "Or") return WAIT;
+                    if (block.type === "Or") {
+                        return WAIT;
+                    }
                     // If we got a keyword it must be a type we'll ad to the interface.
                     if (block.type === "Keyword") {
                         const type = extractType(block.value);
                         // If we can't find the type, fail it.
-                        if (type === undefined)
+                        if (type === undefined) {
                             return new ParserError(
                                 "Unexpected block type",
                                 block,
                                 InterfaceParser
                             );
+                        }
                         const currentProperty = this.interface[
                             this.nextProperty.name
                         ];
 
-                        if (currentProperty === undefined)
+                        if (currentProperty === undefined) {
                             this.interface[this.nextProperty.name] = {
+                                collection: false,
                                 optional: false,
-                                value: type,
-                                collection: false
+                                value: type
                             };
-                        else {
+                        } else {
                             const optional = currentProperty.optional;
                             const currentValue = currentProperty.collection
                                 ? currentProperty.values
                                 : currentProperty.value;
-                            if (currentValue instanceof Array)
+                            if (currentValue instanceof Array) {
                                 this.interface[
                                     this.nextProperty.name
                                 ] = {
-                                    optional,
                                     collection: true,
+                                    optional,
                                     values: [...currentValue, type]
                                 };
-                            else
+                            } else {
                                 this.interface[
                                     this.nextProperty.name
                                 ] = {
-                                    optional,
                                     collection: true,
+                                    optional,
                                     values: [currentValue, type]
                                 };
+                            }
                         }
                         return WAIT;
                     }

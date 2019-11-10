@@ -1,6 +1,6 @@
-import { charBlock, WAIT, charType } from ".";
-import ParserError from "./ParserError";
+import { charBlock, WAIT } from ".";
 import { Interface } from "./InterfaceParser";
+import ParserError from "./ParserError";
 import { Type } from "./TypeParser";
 
 type ifIsType = [string, "is", Interface];
@@ -10,22 +10,18 @@ export type ifCondition = ifIsType | ifEqual;
 export type Expression = boolean | ifCondition;
 
 export default class ExpressionParser {
-    stage:
+    private stage:
         | "awaiting conditionVal"
         | "awaiting oprerator"
         | "awaiting conditionFin" = "awaiting conditionVal";
-    allInterfaces: { [id: string]: Interface };
-    conditionVal: string = "";
-    operatior?: string;
-    conditionFin?: string;
+    private allInterfaces: { [id: string]: Interface };
+    private conditionVal: string = "";
+    private operatior?: string;
+    private conditionFin?: string;
 
     constructor(interfaces: { [id: string]: Interface }) {
         this.allInterfaces = interfaces;
     }
-
-    private buildError = (block: charBlock, stage: string) => (
-        reason: string
-    ) => new ParserError(reason, block, ExpressionParser, stage);
 
     public addChar(
         block: charBlock,
@@ -34,15 +30,17 @@ export default class ExpressionParser {
         const builderError = this.buildError(block, this.stage);
         switch (this.stage) {
             case "awaiting conditionVal":
-                if (block.type !== "Keyword")
+                if (block.type !== "Keyword") {
                     return builderError("Expected keyword");
+                }
                 if (
                     block.value === "true" ||
                     block.value === "false"
                 ) {
                     // We got a value, so we just return that
-                    if (block.value === "true")
+                    if (block.value === "true") {
                         return { type: "Expression", data: true };
+                    }
                     return { type: "Expression", data: false };
                 }
                 // Then we assume that the block is an item
@@ -59,11 +57,12 @@ export default class ExpressionParser {
                     this.stage = "awaiting conditionFin";
                     return WAIT;
                 }
-                if (block.type !== "Keyword")
+                if (block.type !== "Keyword") {
                     return builderError(
                         "Unexpected block type, condition is " +
                             this.conditionVal
                     );
+                }
                 // We now check for the valid keywords
                 if (block.value === "is") {
                     this.operatior = block.value;
@@ -72,21 +71,24 @@ export default class ExpressionParser {
                 }
                 return builderError("Unknown operator");
             case "awaiting conditionFin":
-                if (block.type !== "Keyword")
+                if (block.type !== "Keyword") {
                     return builderError("Expected keyword");
-                if (!this.operatior)
+                }
+                if (!this.operatior) {
                     return builderError("Internal error");
+                }
                 // Depending on the operator our next path changes.
                 if (this.operatior === "is") {
-                    if (!this.allInterfaces[block.value])
+                    if (!this.allInterfaces[block.value]) {
                         return builderError("Unknown interface");
+                    }
                     return {
-                        type: "Expression",
                         data: [
                             this.conditionVal,
                             "is",
                             this.allInterfaces[block.value]
-                        ]
+                        ],
+                        type: "Expression"
                     };
                 }
                 if (
@@ -99,14 +101,14 @@ export default class ExpressionParser {
                     ) {
                         // We got a value, so we just return that
                         return {
-                            type: "Expression",
                             data: [
                                 this.conditionVal,
                                 this.operatior === "Equals"
                                     ? "="
                                     : "≠",
                                 block.value
-                            ]
+                            ],
+                            type: "Expression"
                         };
                     }
                 }
@@ -114,4 +116,8 @@ export default class ExpressionParser {
                 return builderError("Non valid comparison type");
         }
     }
+
+    private buildError = (block: charBlock, stage: string) => (
+        reason: string
+    ) => new ParserError(reason, block, ExpressionParser, stage);
 }

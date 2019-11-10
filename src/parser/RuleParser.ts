@@ -1,8 +1,8 @@
-import IfParser, { IfBlock } from "./IfParser";
-import ExpressionParser, { Expression } from "./ExpressionParser";
 import { charBlock, WAIT } from ".";
-import ParserError from "./ParserError";
+import ExpressionParser, { Expression } from "./ExpressionParser";
+import IfParser, { IfBlock } from "./IfParser";
 import { Interface } from "./InterfaceParser";
+import ParserError from "./ParserError";
 
 export type RuleHeader =
     | "read"
@@ -26,24 +26,20 @@ export const extractRuleFromString = (input: string) =>
 export type Rule = Expression | IfBlock;
 
 export default class RuleParser {
-    stage:
+    private stage:
         | "awating start"
         | "building oneLiner"
         | "building rule"
         | "awating finish" = "awating start";
-    interfaces: { [id: string]: Interface };
-    deepParser: IfParser | ExpressionParser;
-    returnable?: IfBlock;
+    private interfaces: { [id: string]: Interface };
+    private deepParser: IfParser | ExpressionParser;
+    private returnable?: IfBlock;
 
     constructor(interfaces: { [id: string]: Interface }) {
         this.interfaces = interfaces;
         // We assume we'll get a block
         this.deepParser = new IfParser(interfaces);
     }
-
-    private buildError = (block: charBlock, stage: string) => (
-        reason: string
-    ) => new ParserError(reason, block, RuleParser, stage);
 
     public addChar(
         block: charBlock,
@@ -71,22 +67,26 @@ export default class RuleParser {
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
-                )
+                ) {
                     return parserReturn;
+                }
                 return { type: "Rule", data: parserReturn.data };
             case "building rule":
                 const parserReturn2 = this.deepParser.addChar(block);
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
-                )
+                ) {
                     return parserReturn2;
-                // If this parserReturn is not an expression and does have an else, we can't return now since we need to catch the last }
+                }
+                // If this parserReturn is not an expression and does have an else,
+                // we can't return now since we need to catch the last }
                 if (
                     parserReturn2.type === "Expression" ||
                     parserReturn2.data.ifFalse === undefined
-                )
+                ) {
                     return { type: "Rule", data: parserReturn2.data };
+                }
                 this.stage = "awating finish";
                 this.returnable = parserReturn2.data;
                 return WAIT;
@@ -96,14 +96,21 @@ export default class RuleParser {
                     return WAIT;
                 }
                 if (block.type === "BlockClose") {
-                    if (this.returnable)
+                    if (this.returnable) {
                         return {
-                            type: "Rule",
-                            data: this.returnable
+                            data: this.returnable,
+                            type: "Rule"
                         };
+                    }
                     return builderError("Internal error");
                 }
                 return builderError("Unexpected token");
         }
     }
+
+    private buildError = (block: charBlock, stage: string) => (
+        reason: string
+    ) => {
+        return new ParserError(reason, block, RuleParser, stage);
+    };
 }

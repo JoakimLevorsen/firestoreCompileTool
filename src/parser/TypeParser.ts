@@ -4,7 +4,7 @@ export type Type =
     | "Bool"
     | "Geopint"
     | "Timestamp";
-export const allTypes: Array<Type> = [
+export const allTypes: Type[] = [
     "Bool",
     "Geopint",
     "Number",
