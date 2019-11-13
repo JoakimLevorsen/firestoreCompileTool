@@ -6,7 +6,7 @@
     "scripts": {
         "test": "yarn build && yarn start",
         "build": "tsc && npm run lint",
-        "lint": "tslint -c tslint.json 'src/**/*.ts'",
+        "lint": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
         "start": "node ./lib/index.js"
     },
     "author": "",
@@ -22,9 +22,11 @@
     },
     "devDependencies": {
         "@types/node": "^12.12.7",
+        "eslint-config-prettier": "^6.5.0",
+        "eslint-plugin-prettier": "^3.1.1",
         "nodemon": "^1.19.4",
+        "prettier": "^1.19.1",
         "ts-node": "^8.4.1",
-        "tslint": "^5.20.1",
         "typescript": "^3.7.2"
     }
 }

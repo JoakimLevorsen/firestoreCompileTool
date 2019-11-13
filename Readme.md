@@ -28,13 +28,13 @@ interface Foo {
 
 Expressions are made to express opinion and are created using operators.
 For now the following expressions exist:
-|Expression|Meaning|
-|-|-|
-|A is B|Does A have all fields of interface B|
-|A only B|Does A have only fields present in B, but not nessesarily all of them|
-|A isOnly B|Does A fit the interface B perfectly|
-|A == B|Is A equal to the value B|
-|A != B|Is A not equal to the value B|
+| Expression | Meaning |
+| ---------- | ------- |
+| A is B | Does A have all fields of interface B |
+| A only B | Does A have only fields present in B, but not nessesarily all of them |
+| A isOnly B | Does A fit the interface B perfectly |
+| A == B | Is A equal to the value B |
+| A != B | Is A not equal to the value B |
 
 ## Rules
 
@@ -81,6 +81,26 @@ Rule blocks use the return keyword to indicate they're done with branching and w
 
 ## Global variables
 
-| name | firestore rules equivalent |
-| ---- | -------------------------- |
-| auth | request.auth               |
+| name   | firestore rules equivalent |
+| ------ | -------------------------- |
+| `auth` | request.auth               |
+
+## Rule variables
+
+### Available for rule.
+
+| name      | firestore rules equivalent |
+| --------- | -------------------------- |
+| `[*]`     | resource                   |
+| `request` | request                    |
+
+### Resource
+
+The name of the resource is equal to the last part of the path for the match block.
+Fields:
+
+| name      | Meaning                                       |
+| --------- | --------------------------------------------- |
+| `id`      | The document ID                               |
+| `docPath` | The path of the document                      |
+| `\*`      | Any other property is treated as `doc.data.*` |
