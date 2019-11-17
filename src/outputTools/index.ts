@@ -1,6 +1,5 @@
 import { Block } from "../parser";
-import { Expression } from "../parser/ExpressionParser";
-import { IfBlock } from "../parser/IfParser";
+import { Expression, IfBlock } from "../types";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -68,9 +67,9 @@ const expressionToString = (expression: Expression): string => {
         return interfaceKeys
             .map(iKey => {
                 const interfaceContent = compareTo[iKey];
-                if (interfaceContent.collection) {
+                if (interfaceContent.multiType) {
                     return (
-                        interfaceContent.values.reduce(
+                        interfaceContent.value.reduce(
                             (pV, v) =>
                                 pV === ""
                                     ? `(${targetData}.${iKey} is ${v.toLowerCase()}`
