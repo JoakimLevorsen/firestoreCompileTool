@@ -16,3 +16,11 @@ export {
     RuleSet
 } from "./Rule";
 export { isMatchGroup, MatchGroup } from "./MatchGroup";
+export {
+    Block,
+    isBlock,
+    isToken,
+    isTokenType,
+    Token,
+    TokenType
+} from "./Token";

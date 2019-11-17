@@ -1,5 +1,5 @@
-import { charBlock, WAIT } from ".";
-import { Expression, IfBlock, Interface } from "../types";
+import { WAIT } from ".";
+import { Expression, IfBlock, Interface, Token } from "../types";
 import ExpressionParser from "./ExpressionParser";
 import ParserError from "./ParserError";
 
@@ -23,34 +23,34 @@ export default class IfParser {
         this.deepParser = new ExpressionParser(interfaces);
     }
 
-    // NOTE, this will return one block too late if no else part exists
-    public addChar(
-        block: charBlock,
+    // NOTE, this will return one token too late if no else part exists
+    public addToken(
+        token: Token,
         _?: any
     ):
         | ParserError
         | WAIT
         | { type: "IfBlock"; data: IfBlock }
         | { type: "Expression"; data: Expression } {
-        const builderError = this.buildError(block, this.stage);
+        const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "awaiting keyword":
-                if (block.type !== "Keyword") {
+                if (token.type !== "Keyword") {
                     return builderError("Expected keyword");
                 }
-                if (block.value === "return") {
+                if (token.value === "return") {
                     this.buildingExpression = true;
                     this.stage = "awaiting condition";
                     return WAIT;
                 }
-                if (block.value === "if") {
+                if (token.value === "if") {
                     this.buildingExpression = false;
                     this.stage = "awaiting condition";
                     return WAIT;
                 }
                 return builderError("Unknown keyword");
             case "awaiting condition":
-                const parserReturn = this.deepParser.addChar(block);
+                const parserReturn = this.deepParser.addToken(token);
                 // If we're only building an expression, we can return whatever the parser gave.
                 if (
                     this.buildingExpression ||
@@ -68,7 +68,7 @@ export default class IfParser {
                 this.stage = "awaiting true";
                 return WAIT;
             case "awaiting true":
-                if (block.type === "BlockOpen") {
+                if (token.type === "BlockOpen") {
                     this.stage = "building true";
                     // Then we reset the parser
                     this.deepParser = new IfParser(
@@ -78,7 +78,7 @@ export default class IfParser {
                 }
                 return builderError("Unexpected token");
             case "building true":
-                const parserReturn2 = this.deepParser.addChar(block);
+                const parserReturn2 = this.deepParser.addToken(token);
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
@@ -90,7 +90,7 @@ export default class IfParser {
                 this.hasSeenOneBlockClose = false;
                 return WAIT;
             case "awaiting false":
-                if (block.type === "Keyword") {
+                if (token.type === "Keyword") {
                     // This means a pseudo if is present. So we start the "false" part of the if
                     this.deepParser = new IfParser(
                         this.allInterfaces
@@ -98,17 +98,17 @@ export default class IfParser {
                     // The lack of a break is intentional, since we'll fall into the next case
                     this.stage = "building false";
                 }
-                if (block.type === "SemiColon") {
+                if (token.type === "SemiColon") {
                     // We just ignore this for now
                     return WAIT;
                 } else {
-                    // Two BlockCloses means we arent building a false block
+                    // Two BlockCloses means we arent building a false token
                     if (!this.hasSeenOneBlockClose) {
                         this.hasSeenOneBlockClose = true;
                         return WAIT;
                     }
-                    // This means we aren't building a false block, so we return the condition and the true
-                    if (block.type === "BlockClose") {
+                    // This means we aren't building a false token, so we return the condition and the true
+                    if (token.type === "BlockClose") {
                         if (
                             this.condition &&
                             typeof this.condition !== "boolean" &&
@@ -127,14 +127,14 @@ export default class IfParser {
                     }
                 }
             case "building false":
-                const parserReturn3 = this.deepParser.addChar(block);
+                const parserReturn3 = this.deepParser.addToken(token);
                 if (
                     parserReturn3 === WAIT ||
                     parserReturn3 instanceof ParserError
                 ) {
                     return parserReturn3;
                 }
-                // Now we got our else block, so we can return.
+                // Now we got our else token, so we can return.
                 if (
                     this.condition &&
                     typeof this.condition !== "boolean" &&
@@ -154,7 +154,7 @@ export default class IfParser {
         }
     }
 
-    private buildError = (block: charBlock, stage: string) => (
+    private buildError = (token: Token, stage: string) => (
         reason: string
-    ) => new ParserError(reason, block, IfParser, stage);
+    ) => new ParserError(reason, token, IfParser, stage);
 }

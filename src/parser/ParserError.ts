@@ -1,21 +1,21 @@
-import { charBlock } from ".";
+import { Token } from "../types";
 
 export default class ParserError {
     private reason: string;
-    private block: charBlock;
+    private token: Token;
     // tslint:disable-next-line: ban-types
     private parser: Function;
     private stage: string | undefined;
 
     constructor(
         reason: string,
-        block: charBlock,
+        token: Token,
         // tslint:disable-next-line: ban-types
         parser: Function,
         stage?: string
     ) {
         this.reason = reason;
-        this.block = block;
+        this.token = token;
         this.parser = parser;
         this.stage = stage;
     }
@@ -24,10 +24,10 @@ export default class ParserError {
         if (this.stage) {
             return `${this.parser.name} failure: due to ${
                 this.reason
-            } on ${JSON.stringify(this.block)} during ${this.stage}`;
+            } on ${JSON.stringify(this.token)} during ${this.stage}`;
         }
         return `${this.parser.name} failure: due to ${
             this.reason
-        } on ${JSON.stringify(this.block)}`;
+        } on ${JSON.stringify(this.token)}`;
     }
 }

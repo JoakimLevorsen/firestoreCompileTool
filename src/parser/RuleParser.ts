@@ -1,5 +1,11 @@
-import { charBlock, WAIT } from ".";
-import { IfBlock, Interface, Rule, RuleHeader } from "../types";
+import { WAIT } from ".";
+import {
+    IfBlock,
+    Interface,
+    Rule,
+    RuleHeader,
+    Token
+} from "../types";
 import ExpressionParser from "./ExpressionParser";
 import IfParser from "./IfParser";
 import ParserError from "./ParserError";
@@ -31,19 +37,19 @@ export default class RuleParser {
         this.deepParser = new IfParser(interfaces);
     }
 
-    public addChar(
-        block: charBlock,
+    public addToken(
+        token: Token,
         _?: any
     ): ParserError | WAIT | { type: "Rule"; data: Rule } {
-        const builderError = this.buildError(block, this.stage);
+        const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "awating start":
-                if (block.type === "BlockOpen") {
+                if (token.type === "BlockOpen") {
                     // This means we're dealing with a normal rule block.
                     this.stage = "building rule";
                     return WAIT;
                 }
-                if (block.type === "Keyword") {
+                if (token.type === "Keyword") {
                     // This is a one liner, so change the parser
                     this.deepParser = new ExpressionParser(
                         this.interfaces
@@ -53,7 +59,7 @@ export default class RuleParser {
                 }
                 return builderError("Unexpected token");
             case "building oneLiner":
-                const parserReturn = this.deepParser.addChar(block);
+                const parserReturn = this.deepParser.addToken(token);
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
@@ -62,7 +68,7 @@ export default class RuleParser {
                 }
                 return { type: "Rule", data: parserReturn.data };
             case "building rule":
-                const parserReturn2 = this.deepParser.addChar(block);
+                const parserReturn2 = this.deepParser.addToken(token);
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
@@ -81,11 +87,11 @@ export default class RuleParser {
                 this.returnable = parserReturn2.data;
                 return WAIT;
             case "awating finish":
-                if (block.type === "SemiColon") {
+                if (token.type === "SemiColon") {
                     // We ignore this for now.
                     return WAIT;
                 }
-                if (block.type === "BlockClose") {
+                if (token.type === "BlockClose") {
                     if (this.returnable) {
                         return {
                             data: this.returnable,
@@ -98,9 +104,9 @@ export default class RuleParser {
         }
     }
 
-    private buildError = (block: charBlock, stage: string) => (
+    private buildError = (token: Token, stage: string) => (
         reason: string
     ) => {
-        return new ParserError(reason, block, RuleParser, stage);
+        return new ParserError(reason, token, RuleParser, stage);
     };
 }

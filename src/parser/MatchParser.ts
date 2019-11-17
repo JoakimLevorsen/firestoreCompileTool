@@ -1,8 +1,14 @@
-import { charBlock, WAIT } from ".";
+import { WAIT } from ".";
 import ParserError from "./ParserError";
 import RuleParser, { extractRuleFromString } from "./RuleParser";
 import ExpressionParser from "./ExpressionParser";
-import { Interface, MatchGroup, RuleHeader, RuleSet } from "../types";
+import {
+    Interface,
+    MatchGroup,
+    Token,
+    RuleHeader,
+    RuleSet
+} from "../types";
 
 export default class MatchParser {
     rulesWritten: RuleSet = {};
@@ -26,32 +32,32 @@ export default class MatchParser {
         this.deepParser = new RuleParser(interfaces);
     }
 
-    private buildError = (block: charBlock) => (
+    private buildError = (token: Token) => (
         reason: string,
         stage?: string
-    ) => new ParserError(reason, block, MatchParser, stage);
+    ) => new ParserError(reason, token, MatchParser, stage);
 
-    public addChar(
-        block: charBlock,
+    public addToken(
+        token: Token,
         interfaces: { [id: string]: Interface }
     ): ParserError | WAIT | { type: "Match"; data: MatchGroup } {
-        const errorBuilder = this.buildError(block);
+        const errorBuilder = this.buildError(token);
         switch (this.stage) {
             case "awaiting keyword":
                 if (
-                    block.type === "Keyword" &&
-                    block.value === "match"
+                    token.type === "Keyword" &&
+                    token.value === "match"
                 ) {
                     this.stage = "awaiting path";
                     return WAIT;
                 }
                 return errorBuilder("Keyword failed", this.stage);
             case "awaiting path":
-                if (block.type === "Keyword") {
-                    this.addToPath(block.value);
+                if (token.type === "Keyword") {
+                    this.addToPath(token.value);
                     return WAIT;
                 }
-                if (block.type === "Slash") {
+                if (token.type === "Slash") {
                     // TODO
                     // Add more checks later
                     if (this.addingPathComponent)
@@ -61,15 +67,15 @@ export default class MatchParser {
                         );
                     return WAIT;
                 }
-                if (block.type === "BlockOpen") {
+                if (token.type === "BlockOpen") {
                     if (!this.addingPathComponent) {
                         // We assume the path is done if not adding path component.
-                        // this.stage = "awaiting block";
+                        // this.stage = "awaiting token";
                         this.stage = "awaiting rule";
                         return WAIT;
                     }
                 }
-                if (block.type === "IndexOpen") {
+                if (token.type === "IndexOpen") {
                     if (this.addingPathComponent)
                         return errorBuilder(
                             "Can't open path component, when previous wasn't finished",
@@ -78,7 +84,7 @@ export default class MatchParser {
                     this.addingPathComponent = true;
                     return WAIT;
                 }
-                if (block.type === "IndexClose") {
+                if (token.type === "IndexClose") {
                     this.addingPathComponent = false;
                     return WAIT;
                 }
@@ -97,23 +103,23 @@ export default class MatchParser {
             //         this.stage
             //     );
             case "awaiting rule":
-                if (block.type === "Keyword") {
-                    const rule = extractRuleFromString(block.value);
+                if (token.type === "Keyword") {
+                    const rule = extractRuleFromString(token.value);
                     if (rule === undefined)
-                        throw `Unknown rule type ${block.value}`;
+                        throw `Unknown rule type ${token.value}`;
                     this.ruleToBuildType.push(rule);
                     return WAIT;
                 }
-                if (block.type === "Comma") {
+                if (token.type === "Comma") {
                     // We ignore this now, fix in future.
                     return WAIT;
                 }
-                if (block.type === "Colon") {
+                if (token.type === "Colon") {
                     // We wait for the first word of the new rule to se if it's a oneliner
                     this.stage = "awaiting first rule word";
                     return WAIT;
                 }
-                if (block.type === "BlockClose") {
+                if (token.type === "BlockClose") {
                     // Are we finishing a previous rule, or are we all done?
                     if (!this.twoBlockCloseInARow) {
                         this.twoBlockCloseInARow = true;
@@ -129,7 +135,7 @@ export default class MatchParser {
                         }
                     };
                 }
-                if (block.type === "SemiColon") {
+                if (token.type === "SemiColon") {
                     // We ignore this for now
                     return WAIT;
                 }
@@ -139,15 +145,15 @@ export default class MatchParser {
                 );
             case "awaiting first rule word":
                 if (
-                    block.type !== "Keyword" &&
-                    block.type !== "BlockOpen"
+                    token.type !== "Keyword" &&
+                    token.type !== "BlockOpen"
                 )
                     return errorBuilder("Expected keyword");
                 if (
-                    block.type === "BlockOpen" ||
-                    (block.type === "Keyword" &&
-                        (block.value === "if" ||
-                            block.value === "return"))
+                    token.type === "BlockOpen" ||
+                    (token.type === "Keyword" &&
+                        (token.value === "if" ||
+                            token.value === "return"))
                 )
                     this.deepParser = new RuleParser(this.interfaces);
                 else
@@ -157,7 +163,7 @@ export default class MatchParser {
                 this.stage = "building rule";
             // We don't return since we want to fall into the next case.
             case "building rule":
-                const parserReturn = this.deepParser.addChar(block);
+                const parserReturn = this.deepParser.addToken(token);
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError

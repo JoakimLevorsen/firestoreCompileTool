@@ -1,5 +1,5 @@
-import { charBlock, WAIT } from ".";
-import { Interface, InterfaceData } from "../types";
+import { WAIT } from ".";
+import { Interface, InterfaceData, Token } from "../types";
 import ParserError from "./ParserError";
 import extractType from "./TypeParser";
 
@@ -15,8 +15,8 @@ export default class InterfaceParser {
         | "awaiting block"
         | "building block" = "awaiting keyword";
 
-    public addChar(
-        block: charBlock,
+    public addToken(
+        token: Token,
         _: any
     ):
         | ParserError
@@ -25,46 +25,46 @@ export default class InterfaceParser {
         switch (this.stage) {
             case "awaiting keyword":
                 if (
-                    block.type === "Keyword" &&
-                    block.value === "interface"
+                    token.type === "Keyword" &&
+                    token.value === "interface"
                 ) {
                     this.stage = "awaiting name";
                     return WAIT;
                 }
                 return new ParserError(
                     "Keyword failed",
-                    block,
+                    token,
                     InterfaceParser
                 );
             case "awaiting name":
-                if (block.type === "Keyword") {
-                    this.interfaceName = block.value;
+                if (token.type === "Keyword") {
+                    this.interfaceName = token.value;
                     this.stage = "awaiting block";
                     return WAIT;
                 }
                 return new ParserError(
                     "Name is not valid",
-                    block,
+                    token,
                     InterfaceParser
                 );
             case "awaiting block":
-                if (block.type === "BlockOpen") {
+                if (token.type === "BlockOpen") {
                     this.stage = "building block";
                     return WAIT;
                 }
                 return new ParserError(
-                    "Expected block open, got",
-                    block,
+                    "Expected token open, got",
+                    token,
                     InterfaceParser
                 );
             case "building block":
                 // First we check if we've been closed
-                if (block.type === "BlockClose") {
+                if (token.type === "BlockClose") {
                     // Are we currently building a property?
                     if (this.nextProperty) {
                         return new ParserError(
                             "Block closed too early",
-                            block,
+                            token,
                             InterfaceParser
                         );
                     }
@@ -72,7 +72,7 @@ export default class InterfaceParser {
                     if (!this.interfaceName) {
                         return new ParserError(
                             "Block closed with no name",
-                            block,
+                            token,
                             InterfaceParser
                         );
                     }
@@ -91,14 +91,14 @@ export default class InterfaceParser {
                     this.nextProperty.optional !== undefined
                 ) {
                     // If we got a semiColon and one type has been added, we are done.
-                    if (block.type === "SemiColon") {
+                    if (token.type === "SemiColon") {
                         if (
                             this.interface[this.nextProperty.name] ===
                             undefined
                         ) {
                             return new ParserError(
                                 "Block closed while we were building a variable",
-                                block,
+                                token,
                                 InterfaceParser
                             );
                         }
@@ -107,17 +107,17 @@ export default class InterfaceParser {
                     }
                     // If we got a | we just ignore it for now, add checks later
                     // TODO
-                    if (block.type === "Or") {
+                    if (token.type === "Or") {
                         return WAIT;
                     }
                     // If we got a keyword it must be a type we'll ad to the interface.
-                    if (block.type === "Keyword") {
-                        const type = extractType(block.value);
+                    if (token.type === "Keyword") {
+                        const type = extractType(token.value);
                         // If we can't find the type, fail it.
                         if (type === undefined) {
                             return new ParserError(
                                 "Unexpected block type",
-                                block,
+                                token,
                                 InterfaceParser
                             );
                         }
@@ -158,7 +158,7 @@ export default class InterfaceParser {
                     // Else the type is unknown and interface creation has failed.
                     return new ParserError(
                         "Unexpected token 1",
-                        block,
+                        token,
                         InterfaceParser
                     );
                 }
@@ -167,25 +167,25 @@ export default class InterfaceParser {
                     this.nextProperty &&
                     this.nextProperty.optional === undefined
                 ) {
-                    if (block.type === "Colon") {
+                    if (token.type === "Colon") {
                         this.nextProperty.optional = false;
                         return WAIT;
                     }
                     return new ParserError(
                         "Unexpected token 2",
-                        block,
+                        token,
                         InterfaceParser
                     );
                 }
                 // Should we start a new variable?
-                if (block.type === "Keyword") {
-                    this.nextProperty = { name: block.value };
+                if (token.type === "Keyword") {
+                    this.nextProperty = { name: token.value };
                     return WAIT;
                 }
                 // Else the value is unknown
                 return new ParserError(
-                    "Unexpected block type",
-                    block,
+                    "Unexpected token type",
+                    token,
                     InterfaceParser
                 );
         }

@@ -1,31 +1,8 @@
 import chalk from "chalk";
-import { Interface, MatchGroup } from "../types";
+import { Block, Token } from "../types";
 import InterfaceParser from "./InterfaceParser";
 import MatchParser from "./matchParser";
 import ParserError from "./ParserError";
-
-export interface Block {
-    interfaces: { [id: string]: Interface };
-    matchGroups: MatchGroup[];
-}
-
-export type charType =
-    | "BlockOpen"
-    | "BlockClose"
-    | "IndexOpen"
-    | "IndexClose"
-    | "Dot"
-    | "Or"
-    | "Colon"
-    | "SemiColon"
-    | "Slash"
-    | "Comma"
-    | "Equals"
-    | "NotEquals";
-
-export type charBlock =
-    | { type: charType }
-    | { type: "Keyword"; value: string };
 
 export type WAIT = "WAIT";
 export const WAIT: WAIT = "WAIT";
@@ -48,7 +25,7 @@ const parse = (input: string) => {
             break;
         }
         const parserResponses = myParsers.map(p =>
-            p.addChar(nextBlock.block, block.interfaces)
+            p.addToken(nextBlock.token, block.interfaces)
         );
         parserResponses.forEach((p, i) => {
             if (p === "WAIT") {
@@ -95,7 +72,7 @@ const parse = (input: string) => {
 
 export const extractNextBlock = (
     input: string
-): { block: charBlock; remaining: string } | null => {
+): { token: Token; remaining: string } | null => {
     // First we remove start spacing and replace == with = since no assignment exists, and != with ≠.
     const toConsider = input
         .replace(/^\s*/, "")
@@ -112,33 +89,33 @@ export const extractNextBlock = (
     const remaining = toConsider.replace(match, "");
     switch (match) {
         case "{":
-            return { block: { type: "BlockOpen" }, remaining };
+            return { token: { type: "BlockOpen" }, remaining };
         case "}":
-            return { block: { type: "BlockClose" }, remaining };
+            return { token: { type: "BlockClose" }, remaining };
         case "[":
-            return { block: { type: "IndexOpen" }, remaining };
+            return { token: { type: "IndexOpen" }, remaining };
         case "]":
-            return { block: { type: "IndexClose" }, remaining };
+            return { token: { type: "IndexClose" }, remaining };
         case ".":
-            return { block: { type: "Dot" }, remaining };
+            return { token: { type: "Dot" }, remaining };
         case "|":
-            return { block: { type: "Or" }, remaining };
+            return { token: { type: "Or" }, remaining };
         case ":":
-            return { block: { type: "Colon" }, remaining };
+            return { token: { type: "Colon" }, remaining };
         case ";":
-            return { block: { type: "SemiColon" }, remaining };
+            return { token: { type: "SemiColon" }, remaining };
         case "/":
-            return { block: { type: "Slash" }, remaining };
+            return { token: { type: "Slash" }, remaining };
         case ",":
-            return { block: { type: "Comma" }, remaining };
+            return { token: { type: "Comma" }, remaining };
         case "=":
-            return { block: { type: "Equals" }, remaining };
+            return { token: { type: "Equals" }, remaining };
         case "≠":
-            return { block: { type: "NotEquals" }, remaining };
+            return { token: { type: "NotEquals" }, remaining };
         default:
             return {
-                block: { type: "Keyword", value: match },
-                remaining
+                remaining,
+                token: { type: "Keyword", value: match }
             };
     }
 };

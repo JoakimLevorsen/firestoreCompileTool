@@ -1,5 +1,4 @@
-import { Block } from "../parser";
-import { Expression, IfBlock } from "../types";
+import { Block, Expression, IfBlock } from "../types";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -29,7 +28,9 @@ const blockToRules = (input: Block): string => {
             }
             const matchPath = path.reduce((pV, v) => {
                 // If the path component is mentioned wrap it
-                if (pathVariables.includes(v)) return `${pV}/{${v}}`;
+                if (pathVariables.includes(v)) {
+                    return `${pV}/{${v}}`;
+                }
                 return `${pV}/${v}`;
             }, "");
             return `match ${matchPath} {\n${output}}`;
