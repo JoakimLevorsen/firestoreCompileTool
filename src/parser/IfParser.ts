@@ -1,16 +1,7 @@
 import { charBlock, WAIT } from ".";
-import ExpressionParser, {
-    Expression,
-    ifCondition
-} from "./ExpressionParser";
-import { Interface } from "./InterfaceParser";
+import { Expression, IfBlock, Interface } from "../types";
+import ExpressionParser from "./ExpressionParser";
 import ParserError from "./ParserError";
-
-export interface IfBlock {
-    condition: ifCondition;
-    ifTrue: Expression | IfBlock;
-    ifFalse?: Expression | IfBlock;
-}
 
 export default class IfParser {
     private stage:

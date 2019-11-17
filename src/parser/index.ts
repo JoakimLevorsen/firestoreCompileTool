@@ -1,6 +1,7 @@
 import chalk from "chalk";
-import InterfaceParser, { Interface } from "./InterfaceParser";
-import MatchParser, { MatchGroup } from "./matchParser";
+import { Interface, MatchGroup } from "../types";
+import InterfaceParser from "./InterfaceParser";
+import MatchParser from "./matchParser";
 import ParserError from "./ParserError";
 
 export interface Block {

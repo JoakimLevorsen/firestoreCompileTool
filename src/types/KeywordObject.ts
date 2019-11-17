@@ -1,76 +1,54 @@
-import { AllTypes, Type } from "../parser/TypeParser";
-import { Interface } from "../parser/InterfaceParser";
+import { Interface, InterfaceContent, isInterface, Type } from ".";
 
 type ANY_CHILD = "ANY_CHILD";
 type FUNCTION = "FUNCTION";
 type OBJECT = "OBJECT";
-// interface SUB_OBJECT {
-//     [id: string ]: SUB_OBJECT | FUNCTION | ANY_CHILD | Type;
-// }
-// interface FirestoreDocument {
-//     [id: string] : Type | FirestoreCollection
-// }
-// interface FirestoreCollection {
-//     [id: string]: FirestoreDocument
-// }
 
-// type Auth = {uid: AllTypes["String"]}
-
-// type Resource = {
-//     data?: FirestoreDocument,
-//     auth: Auth,
-//     exists: AllTypes["Bool"]
-// }
-
-// type Request = {
-//     resource: Resource,
-// }
-
-// interface GlobalScope {
-//     resource: Resource,
-//     request: Request
-// }
-
-type ScopeType = {
+interface ScopeType {
     type: Type | ANY_CHILD | FUNCTION | OBJECT;
     optional: boolean;
     subScope?: { [id: string]: ScopeType };
     data?: ANY_CHILD;
     ANY_STRING?: ANY_CHILD | ScopeType;
-};
+}
 
 const isScopeType = (input: any): input is ScopeType => {
-    if (typeof input !== "object") return false;
-    if (!input.type || typeof input.type !== "string") return false;
-    if (
-        input.optional == undefined ||
-        typeof input.type !== "boolean"
-    )
+    if (typeof input !== "object") {
         return false;
+    }
+    if (!input.type || typeof input.type !== "string") {
+        return false;
+    }
+    if (
+        input.optional === undefined ||
+        typeof input.optional !== "boolean"
+    ) {
+        return false;
+    }
     return true;
 };
 
 const data: ScopeType = {
-    type: "OBJECT",
+    data: "ANY_CHILD",
     optional: false,
-    data: "ANY_CHILD"
+    type: "OBJECT"
 };
 
 const Resource: ScopeType = {
-    type: "OBJECT",
+    ANY_STRING: data,
     optional: false,
     subScope: {
         data
     },
-    ANY_STRING: data
+    type: "OBJECT"
 };
 
 const Request: ScopeType = {
-    type: "OBJECT",
     optional: false,
     subScope: {
         resource: Resource
-    }
+    },
+    type: "OBJECT"
 };
 
 const GlobalScope: { [id: string]: ScopeType } = {
@@ -87,27 +65,66 @@ export default class KeywordObject {
         if (
             !/^([\w+\.])+$/.test(keyword + ".") ||
             keyword.length === 0
-        )
-            throw "Invalid keyword structure";
+        ) {
+            throw new Error("Invalid keyword structure");
+        }
         const objectComponents = keyword.split(".");
-        let currentTarget: ScopeType | Type | Interface | null = null;
+        let currentTarget:
+            | ScopeType
+            | Type
+            | Type[]
+            | ANY_CHILD
+            | Interface
+            | null = null;
         for (const obj of objectComponents) {
-            if (!currentTarget) {
+            if (currentTarget !== null) {
+                if (typeof currentTarget === "string") {
+                    // We check if the currentTarget has children
+                    switch (currentTarget) {
+                        case "ANY_CHILD":
+                        case "Map":
+                        case "Array":
+                            currentTarget = "ANY_CHILD";
+                            break;
+                        default:
+                            throw new Error(
+                                `Type ${currentTarget} does not have children`
+                            );
+                    }
+                } else if (isScopeType(currentTarget)) {
+                    // We check if the scope has the child
+                    if (
+                        currentTarget.subScope &&
+                        currentTarget.subScope[obj]
+                    ) {
+                        currentTarget = currentTarget.subScope[obj];
+                    } else if (
+                        currentTarget.data ||
+                        currentTarget.ANY_STRING
+                    ) {
+                        currentTarget = "ANY_CHILD";
+                    }
+                } else if (isInterface(currentTarget)) {
+                    // The current target is an interface, so we check if the interface contains the value.
+                    const interfaceValue:
+                        | InterfaceContent
+                        | undefined = currentTarget[obj];
+                    if (interfaceValue) {
+                        currentTarget = interfaceValue.value;
+                    } else {
+                        throw new Error(
+                            `Interface ${currentTarget} does not contain a value for the key ${obj}`
+                        );
+                    }
+                }
+            } else {
                 if (GlobalScope[obj]) {
                     currentTarget = GlobalScope[obj];
                 } else if (interfaces && interfaces[obj]) {
                     currentTarget = interfaces[obj];
-                } else throw "Unknown keyword";
-            } else {
-                if (typeof currentTarget === "string") {
-                    currentTarget === "ANY_CHILD";
-                } else if (isScopeType(currentTarget)) {
-                    currentTarget;
-                } else if (typeof currentTarget === "object") {
-                    if (currentTarget[obj]) {
-                        currentTarget = currentTarget[obj];
-                    }
-                } else throw "Unknown error";
+                } else {
+                    throw new Error("Unknown keyword");
+                }
             }
         }
     }

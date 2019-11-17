@@ -1,16 +1,8 @@
 import { charBlock, WAIT } from ".";
-import ExpressionParser, { Expression } from "./ExpressionParser";
-import IfParser, { IfBlock } from "./IfParser";
-import { Interface } from "./InterfaceParser";
+import { IfBlock, Interface, Rule, RuleHeader } from "../types";
+import ExpressionParser from "./ExpressionParser";
+import IfParser from "./IfParser";
 import ParserError from "./ParserError";
-
-export type RuleHeader =
-    | "read"
-    | "write"
-    | "create"
-    | "update"
-    | "delete";
-export type RuleSet = { [Header in RuleHeader]?: Expression };
 
 const allRules: RuleHeader[] = [
     "create",
@@ -22,8 +14,6 @@ const allRules: RuleHeader[] = [
 // Check if input with no spaces is a rule.
 export const extractRuleFromString = (input: string) =>
     allRules.find(r => r === input.replace(/\s/g, ""));
-
-export type Rule = Expression | IfBlock;
 
 export default class RuleParser {
     private stage:

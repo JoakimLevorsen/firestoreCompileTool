@@ -1,21 +1,7 @@
 import { charBlock, WAIT } from ".";
+import { Interface, InterfaceData } from "../types";
 import ParserError from "./ParserError";
-import extractType, { Type } from "./TypeParser";
-
-export interface Interface {
-    [id: string]:
-        | { optional: boolean; value: Type; collection: false }
-        | {
-              optional: boolean;
-              values: Type[];
-              collection: true;
-          };
-}
-
-export interface InterfaceData {
-    name: string;
-    interface: Interface;
-}
+import extractType from "./TypeParser";
 
 // String indicates fail reason, "WAIT" indicates that operation will continue,
 // and the type with data indicates that we finished.
@@ -141,30 +127,29 @@ export default class InterfaceParser {
 
                         if (currentProperty === undefined) {
                             this.interface[this.nextProperty.name] = {
-                                collection: false,
+                                multiType: false,
                                 optional: false,
                                 value: type
                             };
                         } else {
                             const optional = currentProperty.optional;
-                            const currentValue = currentProperty.collection
-                                ? currentProperty.values
-                                : currentProperty.value;
+                            const currentValue =
+                                currentProperty.value;
                             if (currentValue instanceof Array) {
                                 this.interface[
                                     this.nextProperty.name
                                 ] = {
-                                    collection: true,
+                                    multiType: true,
                                     optional,
-                                    values: [...currentValue, type]
+                                    value: [...currentValue, type]
                                 };
                             } else {
                                 this.interface[
                                     this.nextProperty.name
                                 ] = {
-                                    collection: true,
+                                    multiType: true,
                                     optional,
-                                    values: [currentValue, type]
+                                    value: [currentValue, type]
                                 };
                             }
                         }

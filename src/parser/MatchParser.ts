@@ -1,24 +1,8 @@
 import { charBlock, WAIT } from ".";
-import { Interface } from "./InterfaceParser";
 import ParserError from "./ParserError";
-import RuleParser, {
-    Rule,
-    extractRuleFromString
-} from "./RuleParser";
+import RuleParser, { extractRuleFromString } from "./RuleParser";
 import ExpressionParser from "./ExpressionParser";
-
-export type RuleHeader =
-    | "read"
-    | "write"
-    | "create"
-    | "update"
-    | "delete";
-export type RuleSet = { [Header in RuleHeader]?: Rule };
-export type MatchGroup = {
-    path: string[];
-    pathVariables: string[];
-    rules: RuleSet;
-};
+import { Interface, MatchGroup, RuleHeader, RuleSet } from "../types";
 
 export default class MatchParser {
     rulesWritten: RuleSet = {};

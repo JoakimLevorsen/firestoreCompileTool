@@ -1,13 +1,6 @@
 import { charBlock, WAIT } from ".";
-import { Interface } from "./InterfaceParser";
+import { Expression, Interface } from "../types";
 import ParserError from "./ParserError";
-import { Type } from "./TypeParser";
-
-type ifIsType = [string, "is", Interface];
-type ifEqual = [string, "=" | "≠", Type | string];
-export type ifCondition = ifIsType | ifEqual;
-
-export type Expression = boolean | ifCondition;
 
 export default class ExpressionParser {
     private stage:
