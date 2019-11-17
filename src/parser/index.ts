@@ -36,9 +36,9 @@ const parse = (input: string) => {
     let remaining = input;
     const block: Block = { interfaces: {}, matchGroups: [] };
     let myParsers = parsers.map(p => new p(block.interfaces));
-    const blockHistory: Array<
-        ReturnType<typeof extractNextBlock>
-    > = [];
+    const blockHistory: Array<ReturnType<
+        typeof extractNextBlock
+    >> = [];
     while (!done) {
         const nextBlock = extractNextBlock(remaining);
         blockHistory.push(nextBlock);
@@ -92,7 +92,7 @@ const parse = (input: string) => {
     return block;
 };
 
-const extractNextBlock = (
+export const extractNextBlock = (
     input: string
 ): { block: charBlock; remaining: string } | null => {
     // First we remove start spacing and replace == with = since no assignment exists, and != with ≠.
