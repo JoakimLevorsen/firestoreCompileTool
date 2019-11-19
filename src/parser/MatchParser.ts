@@ -2,15 +2,10 @@ import { WAIT } from ".";
 import ParserError from "./ParserError";
 import RuleParser, { extractRuleFromString } from "./RuleParser";
 import ExpressionParser from "./ExpressionParser";
-import {
-    Interface,
-    MatchGroup,
-    Token,
-    RuleHeader,
-    RuleSet
-} from "../types";
+import { MatchGroup, Token, RuleHeader, RuleSet } from "../types";
+import BaseParser from "./BaseParser";
 
-export default class MatchParser {
+export default class MatchParser extends BaseParser {
     rulesWritten: RuleSet = {};
     path: string[] = [];
     pathComponents: string[] = [];
@@ -23,23 +18,15 @@ export default class MatchParser {
         | "awaiting first rule word"
         | "building rule" = "awaiting keyword";
     ruleToBuildType: RuleHeader[] = [];
-    deepParser: RuleParser | ExpressionParser;
-    interfaces: { [id: string]: Interface };
+    deepParser!: RuleParser | ExpressionParser;
     twoBlockCloseInARow = false;
 
-    constructor(interfaces: { [id: string]: Interface }) {
-        this.interfaces = interfaces;
-        this.deepParser = new RuleParser(interfaces);
+    public postConstructor() {
+        this.deepParser = this.spawn(RuleParser);
     }
 
-    private buildError = (token: Token) => (
-        reason: string,
-        stage?: string
-    ) => new ParserError(reason, token, MatchParser, stage);
-
     public addToken(
-        token: Token,
-        interfaces: { [id: string]: Interface }
+        token: Token
     ): ParserError | WAIT | { type: "Match"; data: MatchGroup } {
         const errorBuilder = this.buildError(token);
         switch (this.stage) {
@@ -60,11 +47,12 @@ export default class MatchParser {
                 if (token.type === "Slash") {
                     // TODO
                     // Add more checks later
-                    if (this.addingPathComponent)
+                    if (this.addingPathComponent) {
                         return errorBuilder(
                             "Slash added prematurely.",
                             this.stage
                         );
+                    }
                     return WAIT;
                 }
                 if (token.type === "BlockOpen") {
@@ -76,11 +64,12 @@ export default class MatchParser {
                     }
                 }
                 if (token.type === "IndexOpen") {
-                    if (this.addingPathComponent)
+                    if (this.addingPathComponent) {
                         return errorBuilder(
                             "Can't open path component, when previous wasn't finished",
                             this.stage
                         );
+                    }
                     this.addingPathComponent = true;
                     return WAIT;
                 }
@@ -105,8 +94,11 @@ export default class MatchParser {
             case "awaiting rule":
                 if (token.type === "Keyword") {
                     const rule = extractRuleFromString(token.value);
-                    if (rule === undefined)
-                        throw `Unknown rule type ${token.value}`;
+                    if (rule === undefined) {
+                        throw new Error(
+                            `Unknown rule type ${token.value}`
+                        );
+                    }
                     this.ruleToBuildType.push(rule);
                     return WAIT;
                 }
@@ -147,19 +139,19 @@ export default class MatchParser {
                 if (
                     token.type !== "Keyword" &&
                     token.type !== "BlockOpen"
-                )
+                ) {
                     return errorBuilder("Expected keyword");
+                }
                 if (
                     token.type === "BlockOpen" ||
                     (token.type === "Keyword" &&
                         (token.value === "if" ||
                             token.value === "return"))
-                )
-                    this.deepParser = new RuleParser(this.interfaces);
-                else
-                    this.deepParser = new ExpressionParser(
-                        this.interfaces
-                    );
+                ) {
+                    this.deepParser = this.spawn(RuleParser);
+                } else {
+                    this.deepParser = this.spawn(ExpressionParser);
+                }
                 this.stage = "building rule";
             // We don't return since we want to fall into the next case.
             case "building rule":
@@ -167,8 +159,9 @@ export default class MatchParser {
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
-                )
+                ) {
                     return parserReturn;
+                }
                 // Now we have a new rule to add for each header.
                 this.ruleToBuildType.forEach(
                     rule =>
@@ -189,6 +182,11 @@ export default class MatchParser {
                 );
         }
     }
+
+    private buildError = (token: Token) => (
+        reason: string,
+        stage?: string
+    ) => new ParserError(reason, token, MatchParser, stage);
 
     private addToPath(add: string) {
         if (this.addingPathComponent) {

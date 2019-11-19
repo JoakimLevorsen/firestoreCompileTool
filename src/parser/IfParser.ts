@@ -1,9 +1,10 @@
 import { WAIT } from ".";
-import { Expression, IfBlock, Interface, Token } from "../types";
+import { Expression, IfBlock, Token } from "../types";
+import BaseParser from "./BaseParser";
 import ExpressionParser from "./ExpressionParser";
 import ParserError from "./ParserError";
 
-export default class IfParser {
+export default class IfParser extends BaseParser {
     private stage:
         | "awaiting keyword"
         | "awaiting condition"
@@ -12,21 +13,18 @@ export default class IfParser {
         | "awaiting false"
         | "building false" = "awaiting keyword";
     private buildingExpression = false;
-    private allInterfaces: { [id: string]: Interface };
-    private deepParser: ExpressionParser | IfParser;
+    private deepParser!: ExpressionParser | IfParser;
     private condition?: Expression;
     private trueBlock?: IfBlock | Expression;
     private hasSeenOneBlockClose = false;
 
-    constructor(interfaces: { [id: string]: Interface }) {
-        this.allInterfaces = interfaces;
-        this.deepParser = new ExpressionParser(interfaces);
+    public postConstructor() {
+        this.deepParser = this.spawn(ExpressionParser);
     }
 
     // NOTE, this will return one token too late if no else part exists
     public addToken(
-        token: Token,
-        _?: any
+        token: Token
     ):
         | ParserError
         | WAIT
@@ -71,9 +69,7 @@ export default class IfParser {
                 if (token.type === "BlockOpen") {
                     this.stage = "building true";
                     // Then we reset the parser
-                    this.deepParser = new IfParser(
-                        this.allInterfaces
-                    );
+                    this.deepParser = this.spawn(IfParser);
                     return WAIT;
                 }
                 return builderError("Unexpected token");
@@ -92,9 +88,7 @@ export default class IfParser {
             case "awaiting false":
                 if (token.type === "Keyword") {
                     // This means a pseudo if is present. So we start the "false" part of the if
-                    this.deepParser = new IfParser(
-                        this.allInterfaces
-                    );
+                    this.deepParser = this.spawn(IfParser);
                     // The lack of a break is intentional, since we'll fall into the next case
                     this.stage = "building false";
                 }

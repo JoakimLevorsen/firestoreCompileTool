@@ -1,11 +1,12 @@
 import { WAIT } from ".";
 import { Interface, InterfaceData, Token } from "../types";
+import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
 import extractType from "./TypeParser";
 
 // String indicates fail reason, "WAIT" indicates that operation will continue,
 // and the type with data indicates that we finished.
-export default class InterfaceParser {
+export default class InterfaceParser extends BaseParser {
     private interfaceName?: string;
     private interface: Interface = {};
     private nextProperty?: { name: string; optional?: boolean };
@@ -15,9 +16,11 @@ export default class InterfaceParser {
         | "awaiting block"
         | "building block" = "awaiting keyword";
 
+    // tslint:disable-next-line: no-empty
+    public postConstructor() {}
+
     public addToken(
-        token: Token,
-        _: any
+        token: Token
     ):
         | ParserError
         | WAIT

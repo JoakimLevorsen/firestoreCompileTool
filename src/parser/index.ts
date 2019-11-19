@@ -25,7 +25,7 @@ const parse = (input: string) => {
             break;
         }
         const parserResponses = myParsers.map(p =>
-            p.addToken(nextBlock.token, block.interfaces)
+            p.addToken(nextBlock.token)
         );
         parserResponses.forEach((p, i) => {
             if (p === "WAIT") {

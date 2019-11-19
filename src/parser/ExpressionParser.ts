@@ -1,24 +1,20 @@
 import { WAIT } from ".";
-import { Expression, Interface, Token } from "../types";
+import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
 
-export default class ExpressionParser {
+export default class ExpressionParser extends BaseParser {
     private stage:
         | "awaiting conditionVal"
         | "awaiting oprerator"
         | "awaiting conditionFin" = "awaiting conditionVal";
-    private allInterfaces: { [id: string]: Interface };
-    private conditionVal: string = "";
+    private conditionVal?: KeywordObject;
     private operatior?: string;
-    private conditionFin?: string;
 
-    constructor(interfaces: { [id: string]: Interface }) {
-        this.allInterfaces = interfaces;
-    }
+    // tslint:disable-next-line: no-empty
+    public postConstructor() {}
 
     public addToken(
-        token: Token,
-        _?: any
+        token: Token
     ): ParserError | WAIT | { type: "Expression"; data: Expression } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
@@ -67,19 +63,19 @@ export default class ExpressionParser {
                 if (token.type !== "Keyword") {
                     return builderError("Expected keyword");
                 }
-                if (!this.operatior) {
+                if (!this.operatior || !this.conditionVal) {
                     return builderError("Internal error");
                 }
                 // Depending on the operator our next path changes.
                 if (this.operatior === "is") {
-                    if (!this.allInterfaces[token.value]) {
+                    if (!this.interfaces[token.value]) {
                         return builderError("Unknown interface");
                     }
                     return {
                         data: [
                             this.conditionVal,
                             "is",
-                            this.allInterfaces[token.value]
+                            this.interfaces[token.value]
                         ],
                         type: "Expression"
                     };

@@ -1,11 +1,6 @@
 import { WAIT } from ".";
-import {
-    IfBlock,
-    Interface,
-    Rule,
-    RuleHeader,
-    Token
-} from "../types";
+import { IfBlock, Rule, RuleHeader, Token } from "../types";
+import BaseParser from "./BaseParser";
 import ExpressionParser from "./ExpressionParser";
 import IfParser from "./IfParser";
 import ParserError from "./ParserError";
@@ -21,25 +16,21 @@ const allRules: RuleHeader[] = [
 export const extractRuleFromString = (input: string) =>
     allRules.find(r => r === input.replace(/\s/g, ""));
 
-export default class RuleParser {
+export default class RuleParser extends BaseParser {
     private stage:
         | "awating start"
         | "building oneLiner"
         | "building rule"
         | "awating finish" = "awating start";
-    private interfaces: { [id: string]: Interface };
-    private deepParser: IfParser | ExpressionParser;
+    private deepParser!: IfParser | ExpressionParser;
     private returnable?: IfBlock;
 
-    constructor(interfaces: { [id: string]: Interface }) {
-        this.interfaces = interfaces;
-        // We assume we'll get a block
-        this.deepParser = new IfParser(interfaces);
+    public postConstructor() {
+        this.deepParser = this.spawn(IfParser);
     }
 
     public addToken(
-        token: Token,
-        _?: any
+        token: Token
     ): ParserError | WAIT | { type: "Rule"; data: Rule } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
@@ -51,9 +42,7 @@ export default class RuleParser {
                 }
                 if (token.type === "Keyword") {
                     // This is a one liner, so change the parser
-                    this.deepParser = new ExpressionParser(
-                        this.interfaces
-                    );
+                    this.deepParser = this.spawn(ExpressionParser);
                     this.stage = "building oneLiner";
                     return WAIT;
                 }
