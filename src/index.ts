@@ -19,4 +19,4 @@ const b = parse(file);
 
 const rules = blockToRules(b);
 
-fs.writeFileSync("./test/output.fire", rules);
+fs.writeFileSync("./test/firestore.rules", rules);
