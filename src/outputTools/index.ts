@@ -1,4 +1,4 @@
-import { Block, Expression, IfBlock } from "../types";
+import { Block, Expression, IfBlock, isIfBlock } from "../types";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -6,6 +6,31 @@ match /databases/{database}/documents {
 `;
 
 const footer = `\t\n}\n}`;
+
+const stringifyBlock = (input: Block): string =>
+    formatFile(blockToRules(input));
+
+const formatFile = (input: string): string => {
+    // Split lines, remove unneeded spacing, and tailing spacing
+    const lines = input
+        .split("\n")
+        .map(s => s.replace(/\s+/g, " ").replace(/\s+$/, ""));
+    let output = "";
+    let tabIndentation = "";
+    // Replace with better formatter that can take account of {} on one line
+    for (const line of lines) {
+        let myIndentation = tabIndentation;
+        if (/^.*(\{|\(|\[)$/.test(line)) {
+            tabIndentation += "\t";
+        }
+        if (/^([^\[\n]*\}|[^\[\n]*\]|[^\(\n]*\));{0,1}$/.test(line)) {
+            tabIndentation = tabIndentation.substr(1);
+            myIndentation = tabIndentation;
+        }
+        output += myIndentation + line + "\n";
+    }
+    return output;
+};
 
 const blockToRules = (input: Block): string => {
     const ruleContent = input.matchGroups.map(
@@ -43,14 +68,11 @@ const ruleToString = (
     item: Expression | IfBlock,
     ruleType: string
 ): string => {
-    const ruleHeader = `allow ${ruleType}: if `;
-    const content = expressionOrIfToString(item);
-    const ruleFooter = `;\n`;
-    return ruleHeader + content + ruleFooter;
+    return `allow ${ruleType}: if ${expressionOrIfToString(item)};\n`;
 };
 
 const expressionOrIfToString = (item: Expression | IfBlock) => {
-    if (typeof item === "object" && !(item instanceof Array)) {
+    if (isIfBlock(item)) {
         return ifBlockToString(item);
     }
     return expressionToString(item);
@@ -73,13 +95,13 @@ const expressionToString = (expression: Expression): string => {
                         interfaceContent.value.reduce(
                             (pV, v) =>
                                 pV === ""
-                                    ? `(${targetData}.${iKey} is ${v.toLowerCase()}`
+                                    ? `(\n${targetData}.${iKey} is ${v.toLowerCase()}`
                                     : `${pV} || ${targetData}.${iKey} is ${v.toLowerCase()}`,
                             ""
-                        ) + ")"
+                        ) + "\n)"
                     );
                 } else {
-                    return ` ${targetData}.${iKey} is ${interfaceContent.value.toLowerCase()} `;
+                    return ` ${targetData}.${iKey} is ${interfaceContent.value.toLowerCase()}`;
                 }
             })
             .reduce((pV, v) => `${pV} && ${v}`);
@@ -99,52 +121,9 @@ const ifBlockToString = (ifBlock: IfBlock): string => {
     const b = expressionOrIfToString(ifBlock.ifTrue);
     if (ifBlock.ifFalse) {
         const c = expressionOrIfToString(ifBlock.ifFalse);
-        return `((${stringCondition} && ${b}) || (${c}))`;
+        return `(\n(${stringCondition} && ${b})\n|| (${c})\n)`;
     }
     return `(${stringCondition} && ${b})`;
 };
 
-// const ruleToString = (logic: Logic, key: string) => {
-//     const header = `allow ${key}: if `;
-//     const footer = ";";
-//     return `${header} ${logicToString(logic)} ${footer}`;
-// };
-
-// const logicToString = (logic: Logic): string => {
-//     if (typeof logic === "boolean") return `${logic}`;
-//     // We add a tail if this if has following code.
-//     const tail: string = logic.false ? `||${logicToString(logic.false)}` : "";
-//     return `(${ifToString(logic.check)}&&${logicToString(logic.true)})${tail}`;
-// };
-
-// const ifToString = (check: ifCondition) => {
-//     if (check[1] === "==") {
-//         return `${check[0]} == ${check[2]}`;
-//     } else {
-//         // Check if we're checking a type or interface
-//         if (typeof check[2] === "string") {
-//             return `${check[0]} is ${check[2]}`;
-//         } else {
-//             const selectedInterface = check[2];
-//             // We now add checks for all interface keys
-//             const rules = Object.keys(selectedInterface).map(key => {
-//                 const rule = selectedInterface[key];
-//                 if (rule instanceof Array) {
-//                     return (
-//                         "(" +
-//                         rule
-//                             .map(r => `${key} is ${r}`)
-//                             .reduce((pV, p) => `${pV} || (${p})`) +
-//                         ")"
-//                     );
-//                 } else {
-//                     return `${key} is ${rule}`;
-//                 }
-//             });
-//             // Now we just combine all the rules.
-//             return rules.reduce((pV, p) => `${pV} && ${p}`);
-//         }
-//     }
-// };
-
-export default blockToRules;
+export default stringifyBlock;
