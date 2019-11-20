@@ -1,7 +1,17 @@
-import { Interface, isInterface, isType, Type } from ".";
+import {
+    Interface,
+    isInterface,
+    isType,
+    KeywordObject,
+    Type
+} from ".";
 
-type isTypeCondition = [string, "is", Interface];
-type isEqualCondition = [string, "=" | "≠", Type | string];
+type isTypeCondition = [KeywordObject, "is", Interface];
+type isEqualCondition = [
+    KeywordObject,
+    "=" | "≠",
+    Type | KeywordObject | string
+];
 export type Condition = isTypeCondition | isEqualCondition;
 
 export type Expression = boolean | Condition;
@@ -18,7 +28,7 @@ export const isExpression = (input: any): input is Expression => {
         return false;
     }
     const [one, two, three] = input;
-    if (typeof one !== "string") {
+    if (!(one instanceof KeywordObject)) {
         return false;
     }
     if (
@@ -30,7 +40,8 @@ export const isExpression = (input: any): input is Expression => {
     if (
         typeof three === "string" ||
         isType(three) ||
-        isInterface(three)
+        isInterface(three) ||
+        three instanceof KeywordObject
     ) {
         return true;
     }

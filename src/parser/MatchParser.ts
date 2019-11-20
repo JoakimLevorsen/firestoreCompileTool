@@ -8,7 +8,6 @@ import BaseParser from "./BaseParser";
 export default class MatchParser extends BaseParser {
     rulesWritten: RuleSet = {};
     path: string[] = [];
-    pathComponents: string[] = [];
     addingPathComponent = false;
     stage:
         | "awaiting keyword"
@@ -123,7 +122,7 @@ export default class MatchParser extends BaseParser {
                         data: {
                             rules: this.rulesWritten,
                             path: this.path,
-                            pathVariables: this.pathComponents
+                            pathVariables: this.variablePathComponents
                         }
                     };
                 }
@@ -191,7 +190,7 @@ export default class MatchParser extends BaseParser {
     private addToPath(add: string) {
         if (this.addingPathComponent) {
             // This means we should also add to the pathComponents
-            this.pathComponents.push(add);
+            this.variablePathComponents.push(add);
         }
         this.path.push(add);
     }

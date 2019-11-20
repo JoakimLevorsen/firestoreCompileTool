@@ -63,7 +63,7 @@ const expressionToString = (expression: Expression): string => {
     // We check index 1 for the operator
     if (expression[1] === "is") {
         const [target, _, compareTo] = expression;
-        const targetData = target + ".data";
+        const targetData = target.toString();
         const interfaceKeys = Object.keys(compareTo);
         return interfaceKeys
             .map(iKey => {

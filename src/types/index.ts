@@ -1,3 +1,5 @@
+import KeywordObject from "./KeywordObject";
+
 export { AllTypes, AllTypesArray, isType, Type } from "./Type";
 export {
     Interface,
@@ -24,3 +26,4 @@ export {
     Token,
     TokenType
 } from "./Token";
+export { KeywordObject };

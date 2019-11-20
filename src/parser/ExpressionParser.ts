@@ -1,4 +1,5 @@
 import { WAIT } from ".";
+import { Expression, KeywordObject, Token } from "../types";
 import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
 
@@ -34,7 +35,11 @@ export default class ExpressionParser extends BaseParser {
                 }
                 // Then we assume that the token is an item
                 // TODO: Check this
-                this.conditionVal = token.value;
+                this.conditionVal = new KeywordObject(
+                    token.value,
+                    this.interfaces,
+                    this.variablePathComponents
+                );
                 this.stage = "awaiting oprerator";
                 return WAIT;
             case "awaiting oprerator":
