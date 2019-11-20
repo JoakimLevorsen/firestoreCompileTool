@@ -16,7 +16,23 @@ export const isInterface = (input: any): input is Interface => {
     if (typeof input !== "object") {
         return false;
     }
-    const { optional, multiType } = input;
+    // Is all content of the object InterfaceContent
+    if (Object.values(input).every(v => isInterfaceContent(v))) {
+        return true;
+    }
+    return false;
+};
+
+export const isInterfaceContent = (
+    input: any
+): input is InterfaceContent => {
+    if (typeof input !== "object") {
+        return false;
+    }
+    const { optional, value, multiType } = input;
+    if (optional == null || value == null || multiType == null) {
+        return false;
+    }
     if (
         typeof optional !== "boolean" ||
         typeof multiType !== "boolean"
@@ -24,22 +40,13 @@ export const isInterface = (input: any): input is Interface => {
         return false;
     }
     if (multiType) {
-        if (!input.value) {
-            return false;
+        if (value instanceof Array && value.every(v => isType(v))) {
+            return true;
         }
-        if (!isType(input.value)) {
-            return false;
-        }
-    } else {
-        if (!input.values || !(input.values instanceof Array)) {
-            return false;
-        }
-        const values = input.values as any[];
-        if (!values.every(v => isType(v))) {
-            return false;
-        }
+    } else if (isType(value)) {
+        return true;
     }
-    return true;
+    return false;
 };
 
 export interface InterfaceData {

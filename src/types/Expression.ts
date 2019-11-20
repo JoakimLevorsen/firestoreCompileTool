@@ -5,6 +5,7 @@ import {
     KeywordObject,
     Type
 } from ".";
+import { isInterfaceContent } from "./Interface";
 
 type isTypeCondition = [KeywordObject, "is", Interface];
 type isEqualCondition = [
@@ -41,6 +42,7 @@ export const isExpression = (input: any): input is Expression => {
         typeof three === "string" ||
         isType(three) ||
         isInterface(three) ||
+        isInterfaceContent(three) ||
         three instanceof KeywordObject
     ) {
         return true;

@@ -5,7 +5,8 @@ export {
     Interface,
     InterfaceContent,
     InterfaceData,
-    isInterface
+    isInterface,
+    isInterfaceContent
 } from "./Interface";
 export { Condition, Expression, isExpression } from "./Expression";
 export { IfBlock, isIfBlock } from "./IfBlock";
