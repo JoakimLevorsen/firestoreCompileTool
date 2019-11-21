@@ -43,9 +43,6 @@ const data: ScopeType = {
 const Resource: ScopeType = {
     ANY_STRING: data,
     optional: false,
-    subScope: {
-        data
-    },
     type: "OBJECT"
 };
 
@@ -58,8 +55,8 @@ const Request: ScopeType = {
 };
 
 const GlobalScope: { [id: string]: ScopeType } = {
-    Request,
-    Resource
+    request: Request,
+    resource: Resource
 };
 
 type TargetType =
@@ -210,8 +207,15 @@ export default class KeywordObject {
         return this.rootTarget.target;
     };
 
-    private addSubTarget(target: TargetType, key: string) {
+    private addSubTarget(
+        target: TargetType,
+        key: string,
+        isData = false
+    ) {
         if (this.rootTarget) {
+            if (isData) {
+                this.subTargets!.push({ target: data, key: "data" });
+            }
             this.subTargets!.push({ target, key });
         } else {
             this.rootTarget = { target, key };

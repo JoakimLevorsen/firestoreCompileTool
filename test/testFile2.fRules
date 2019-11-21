@@ -12,7 +12,10 @@ match /collection/[item] {
         if item.a == true {
             return item is B;
         }
+        if item is B {
+            return true
+        }
         return item is A;
     },
-    write: item is A;
+    write: request.resource is A;
 }
