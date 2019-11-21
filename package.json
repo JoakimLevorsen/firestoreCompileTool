@@ -6,6 +6,7 @@
     "scripts": {
         "test": "yarn build && yarn start",
         "build": "tsc && npm run lint",
+        "buildNoLint": "tsc",
         "lint": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
         "start": "node ./lib/index.js"
     },

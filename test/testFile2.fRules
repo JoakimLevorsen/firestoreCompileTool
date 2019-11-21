@@ -17,5 +17,5 @@ match /collection/[item] {
         }
         return item is A;
     },
-    write: request.resource is A;
+    write: resource is A;
 }
