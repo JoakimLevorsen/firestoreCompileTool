@@ -1,5 +1,10 @@
 import { WAIT } from ".";
-import { Expression, KeywordObject, Token } from "../types";
+import {
+    Expression,
+    KeywordObject,
+    Token,
+    TokenType
+} from "../types";
 import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
 
@@ -58,57 +63,93 @@ export default class ExpressionParser extends BaseParser {
                     );
                 }
                 // We now check for the valid keywords
-                if (token.value === "is") {
-                    this.operatior = token.value;
-                    this.stage = "awaiting conditionFin";
-                    return WAIT;
+                switch (token.value) {
+                    case "is":
+                    case "only":
+                    case "isOnly":
+                        this.operatior = token.value;
+                        this.stage = "awaiting conditionFin";
+                        return WAIT;
+                    default:
+                        return builderError("Unknown operator");
                 }
-                return builderError("Unknown operator");
             case "awaiting conditionFin":
-                if (token.type !== "Keyword") {
-                    return builderError("Expected keyword");
-                }
-                if (!this.operatior || !this.conditionVal) {
-                    return builderError("Internal error");
-                }
-                // Depending on the operator our next path changes.
-                if (this.operatior === "is") {
-                    if (!this.interfaces[token.value]) {
-                        return builderError("Unknown interface");
-                    }
-                    return {
-                        data: [
-                            this.conditionVal,
-                            "is",
-                            this.interfaces[token.value]
-                        ],
-                        type: "Expression"
-                    };
-                }
-                if (
-                    this.operatior === "Equals" ||
-                    this.operatior === "NotEquals"
-                ) {
-                    if (
-                        token.value === "true" ||
-                        token.value === "false"
-                    ) {
-                        // We got a value, so we just return that
-                        return {
-                            data: [
-                                this.conditionVal,
-                                this.operatior === "Equals"
-                                    ? "="
-                                    : "≠",
-                                token.value
-                            ],
-                            type: "Expression"
-                        };
-                    }
-                }
-                // TODO: Add support for more == types than bool
+                return this.finalizeExpression(token, builderError);
+        }
+    }
+
+    private finalizeExpression(
+        token: Token,
+        builderError: (reason: string) => ParserError
+    ): ReturnType<ExpressionParser["addToken"]> {
+        if (token.type !== "Keyword") {
+            return builderError("Expected keyword");
+        }
+        if (!this.operatior || !this.conditionVal) {
+            return builderError("Internal error");
+        }
+        // Depending on the operator our next path changes.
+        switch (this.operatior) {
+            case "is":
+            case "only":
+            case "isOnly":
+                return this.finalizeIsOperator(
+                    token,
+                    builderError,
+                    this.operatior
+                );
+            case "Equals":
+            case "NotEquals":
+                return this.finalizeEqualsOperator(
+                    token,
+                    builderError
+                );
+            default:
                 return builderError("Non valid comparison type");
         }
+    }
+
+    private finalizeIsOperator(
+        token: Token,
+        builderError: (reason: string) => ParserError,
+        operatior: "is" | "only" | "isOnly"
+    ): ReturnType<ExpressionParser["addToken"]> {
+        if (token.type !== "Keyword") {
+            return builderError("Expected keyword");
+        }
+        if (!this.interfaces[token.value]) {
+            return builderError("Unknown interface");
+        }
+        return {
+            data: [
+                this.conditionVal!,
+                operatior,
+                this.interfaces[token.value]
+            ],
+            type: "Expression"
+        };
+    }
+
+    private finalizeEqualsOperator(
+        token: Token,
+        builderError: (reason: string) => ParserError
+    ): ReturnType<ExpressionParser["addToken"]> {
+        // TODO: Add support for more == types than bool
+        if (token.type !== "Keyword") {
+            return builderError("Expected keyword");
+        }
+        if (token.value === "true" || token.value === "false") {
+            // We got a value, so we just return that
+            return {
+                data: [
+                    this.conditionVal!,
+                    this.operatior === "Equals" ? "=" : "≠",
+                    token.value
+                ],
+                type: "Expression"
+            };
+        }
+        return builderError("Unknown equality value check");
     }
 
     private buildError = (token: Token, stage: string) => (

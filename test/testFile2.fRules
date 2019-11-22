@@ -1,6 +1,8 @@
 interface A {
     foo: Number;
     bar: String | Timestamp;
+    name: String;
+    age: Number | Timestamp;
 }
 
 interface B {
@@ -10,12 +12,16 @@ interface B {
 match /collection/[item] {
     read, delete: {
         if item.a == true {
-            return item is B;
+            return item only B;
         }
-        if item is B {
+        if item isOnly B {
             return true
         }
         return item is A;
     },
     write: resource is A;
+}
+
+match /collection/[things]/subCollection/[othertings] {
+    read: resource is A;
 }

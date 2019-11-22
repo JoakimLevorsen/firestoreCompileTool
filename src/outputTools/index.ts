@@ -61,7 +61,9 @@ const blockToRules = (input: Block): string => {
             return `match ${matchPath} {\n${output}}`;
         }
     );
-    return `${header}${ruleContent}${footer}`;
+    return `${header}${ruleContent.reduce(
+        (pV, p) => `${pV}\n${p}`
+    )}${footer}`;
 };
 
 const ruleToString = (
@@ -106,6 +108,15 @@ const expressionToString = (expression: Expression): string => {
             })
             .reduce((pV, v) => `${pV} && ${v}`);
     }
+    // if (expression[1] === "only") {
+    //     const [target, _, compareTo] = expression;
+    //     const targetData = target.toStringAsData();
+    //     const interfaceKeys = Object.keys(compareTo);
+    //     return interfaceKeys.map(iKey => {
+    //         const interfaceContent = compareTo[iKey];
+    //         return "uhigfhsuidgf udfh  iuash"
+    //     });
+    // }
     if (expression[1] === "=") {
         return `${expression[0]} == ${expression[2]}`;
     }
