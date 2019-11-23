@@ -17,21 +17,17 @@ const expressionToString = (expression: Expression): string => {
             throw new Error("Internal error");
         }
         if (expression[1] === "isOnly") {
-            return (
-                isOnlyExpressionToString(
-                    "is",
-                    targetData,
-                    interfaceKeys,
-                    compareTo
-                ) +
-                " && " +
-                isOnlyExpressionToString(
-                    "only",
-                    targetData,
-                    interfaceKeys,
-                    compareTo
-                )
-            );
+            return `(${isOnlyExpressionToString(
+                "is",
+                targetData,
+                interfaceKeys,
+                compareTo
+            )} && ${isOnlyExpressionToString(
+                "only",
+                targetData,
+                interfaceKeys,
+                compareTo
+            )})c`;
         } else {
             return isOnlyExpressionToString(
                 expression[1],
@@ -78,18 +74,17 @@ const isOnlyExpressionToString = (
             optionalCheck = `!('${iKey}' in ${targetData}) `;
         }
         if (interfaceContent.multiType) {
-            const checkContent =
-                interfaceContent.value.reduce(
-                    (pV, p) =>
-                        pV === "( "
-                            ? `${targetData}.${iKey} is ${typeToString(
-                                  p
-                              )}`
-                            : `${pV}   || ${targetData}.${iKey} is ${typeToString(
-                                  p
-                              )}`,
-                    "( "
-                ) + " ";
+            const checkContent = interfaceContent.value.reduce(
+                (pV, p) =>
+                    !pV
+                        ? `${targetData}.${iKey} is ${typeToString(
+                              p
+                          )}`
+                        : `${pV} || ${targetData}.${iKey} is ${typeToString(
+                              p
+                          )}`,
+                " "
+            );
             if (optionalCheck) {
                 return `( ${optionalCheck} || ${checkContent} ) `;
             } else {
@@ -103,12 +98,12 @@ const isOnlyExpressionToString = (
             } else {
                 return `${targetData}.${iKey} is ${typeToString(
                     interfaceContent.value
-                )} ) `;
+                )} `;
             }
         }
     });
     const unifiedRule = rules.reduce((pV, v) => `${pV} && ${v}`);
-    return `   ${ruleHeader} && ( ${unifiedRule} )`;
+    return ` ${ruleHeader} && ( ${unifiedRule} )`;
 };
 
 export default expressionToString;

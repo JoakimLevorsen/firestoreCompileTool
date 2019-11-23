@@ -1,4 +1,10 @@
-import { Block, Expression, IfBlock, isIfBlock } from "../types";
+import {
+    Block,
+    Expression,
+    IfBlock,
+    isIfBlock,
+    MatchGroup
+} from "../types";
 import expressionToString from "./expressionToString";
 
 const header = `rules_version = '2';
@@ -27,16 +33,13 @@ const formatFile = (input: string): string => {
         .replace(/(\|\||&&)/g, "\n$1")
         .split("\n");
 
-    const lines = input
-        .split("\n")
-        .map(s => s.replace(/\s+/g, " ").replace(/\s+$/, ""));
-
     let output = "";
     let indentation = 0;
     // Replace with better formatter that can take account of {} on one line
-    // Every single ({[ moves the tab one in, and every singe ]}) moves it out for the next line, since that should balance it out.
+    /* Every single ({[ moves the tab one in, and every singe ]})
+     moves it out for the next line, since that should balance it out. */
     for (const line of split) {
-        let myIndentation = indentation;
+        const myIndentation = indentation;
         indentation +=
             countMatches(line, ["{", "[", "("]) -
             countMatches(line, [")", "]", "}"]);
@@ -60,7 +63,9 @@ const countMatches = (input: string, match: string[]): number => {
 };
 
 const tabsForCount = (count: number): string => {
-    if (count < 0) return "";
+    if (count < 0) {
+        return "";
+    }
     let output = "";
     for (let i = count; i > 0; i--) {
         output += "\t";
@@ -69,37 +74,45 @@ const tabsForCount = (count: number): string => {
 };
 
 const blockToRules = (input: Block): string => {
-    const ruleContent = input.matchGroups.map(
-        ({ rules, path, pathVariables }) => {
-            let output = "";
-            if (rules.create) {
-                output += ruleToString(rules.create, "create");
-            }
-            if (rules.delete) {
-                output += ruleToString(rules.delete, "delete");
-            }
-            if (rules.read) {
-                output += ruleToString(rules.read, "read");
-            }
-            if (rules.update) {
-                output += ruleToString(rules.update, "update");
-            }
-            if (rules.write) {
-                output += ruleToString(rules.write, "write");
-            }
-            const matchPath = path.reduce((pV, v) => {
-                // If the path component is mentioned wrap it
-                if (pathVariables.includes(v)) {
-                    return `${pV}/{${v}}`;
-                }
-                return `${pV}/${v}`;
-            }, "");
-            return `match ${matchPath} {\n${output}}`;
-        }
+    const ruleContent = input.matchGroups.map(mG =>
+        matchGroupToRules(mG)
     );
     return `${header}${ruleContent.reduce(
         (pV, p) => `${pV}\n${p}`
     )}${footer}`;
+};
+
+const matchGroupToRules = (input: MatchGroup): string => {
+    let output = "";
+    const { rules, path, pathVariables, subGroups } = input;
+    if (rules.create) {
+        output += ruleToString(rules.create, "create");
+    }
+    if (rules.delete) {
+        output += ruleToString(rules.delete, "delete");
+    }
+    if (rules.read) {
+        output += ruleToString(rules.read, "read");
+    }
+    if (rules.update) {
+        output += ruleToString(rules.update, "update");
+    }
+    if (rules.write) {
+        output += ruleToString(rules.write, "write");
+    }
+    const matchPath = path.reduce((pV, v) => {
+        // If the path component is mentioned wrap it
+        if (pathVariables.includes(v)) {
+            return `${pV}/{${v}}`;
+        }
+        return `${pV}/${v}`;
+    }, "");
+    if (subGroups) {
+        output += subGroups
+            .map(mG => matchGroupToRules(mG))
+            .reduce((pV, v) => pV + " " + v);
+    }
+    return `match ${matchPath} {\n${output}}`;
 };
 
 const ruleToString = (
@@ -122,7 +135,7 @@ const ifBlockToString = (ifBlock: IfBlock): string => {
     const b = expressionOrIfToString(ifBlock.ifTrue);
     if (ifBlock.ifFalse) {
         const c = expressionOrIfToString(ifBlock.ifFalse);
-        return `(\n(${stringCondition} && ${b})\n|| (${c})\n)`;
+        return `( (${stringCondition} && ${b}) || (${c}) )`;
     }
     return `(${stringCondition} && ${b})`;
 };

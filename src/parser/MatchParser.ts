@@ -18,6 +18,8 @@ export default class MatchParser extends BaseParser {
         | "building rule" = "awaiting keyword";
     ruleToBuildType: RuleHeader[] = [];
     deepParser!: RuleParser | ExpressionParser;
+    subMatchParser?: MatchParser;
+    subGroups?: MatchGroup[];
     twoBlockCloseInARow = false;
 
     public postConstructor() {
@@ -91,12 +93,40 @@ export default class MatchParser extends BaseParser {
             //         this.stage
             //     );
             case "awaiting rule":
+                /* If the subMatchParser exists, we are building a submatch, and will just continue giving that our data untill it's done*/
+                if (this.subMatchParser) {
+                    const result = this.subMatchParser.addToken(
+                        token
+                    );
+                    if (
+                        result instanceof ParserError ||
+                        result === "WAIT"
+                    ) {
+                        return result;
+                    }
+                    if (this.subGroups) {
+                        this.subGroups.push(result.data);
+                    } else {
+                        this.subGroups = [result.data];
+                    }
+                    this.subMatchParser = undefined;
+                    return WAIT;
+                }
                 if (token.type === "Keyword") {
                     const rule = extractRuleFromString(token.value);
                     if (rule === undefined) {
-                        throw new Error(
-                            `Unknown rule type ${token.value}`
-                        );
+                        // We check if this keyword is the start of a new match block.
+                        if (token.value === "match") {
+                            this.subMatchParser = new MatchParser(
+                                this.interfaces
+                            );
+                            this.subMatchParser.addToken(token);
+                            return WAIT;
+                        } else {
+                            throw new Error(
+                                `Unknown rule type ${token.value}`
+                            );
+                        }
                     }
                     this.ruleToBuildType.push(rule);
                     return WAIT;
@@ -122,7 +152,9 @@ export default class MatchParser extends BaseParser {
                         data: {
                             rules: this.rulesWritten,
                             path: this.path,
-                            pathVariables: this.variablePathComponents
+                            pathVariables: this
+                                .variablePathComponents,
+                            subGroups: this.subGroups
                         }
                     };
                 }

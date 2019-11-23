@@ -18,8 +18,7 @@ match /collection/[item] {
         return item is A;
     },
     write: resource only A;
-}
-
-match /collection/[things]/subCollection/[othertings] {
-    read: resource is A;
+    match /subCollection/[othertings] {
+        read: resource is A;
+    }
 }

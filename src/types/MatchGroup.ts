@@ -5,6 +5,7 @@ export interface MatchGroup {
     path: string[];
     pathVariables: string[];
     rules: RuleSet;
+    subGroups?: MatchGroup[];
 }
 
 export const isMatchGroup = (input: any): input is MatchGroup => {
@@ -28,6 +29,15 @@ export const isMatchGroup = (input: any): input is MatchGroup => {
         return false;
     }
     if (isRuleSet(rules)) {
+        if (input.subGroups) {
+            if (
+                input.subGroups instanceof Array &&
+                input.subGroups.every((sG: any) => isMatchGroup(sG))
+            ) {
+                return true;
+            }
+            return false;
+        }
         return true;
     } else {
         return false;
