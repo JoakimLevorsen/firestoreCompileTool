@@ -1,6 +1,12 @@
 import KeywordObject from "./KeywordObject";
 
-export { AllTypes, AllTypesArray, isType, Type } from "./Type";
+export {
+    AllTypes,
+    AllTypesArray,
+    isType,
+    Type,
+    typeToString
+} from "./Type";
 export {
     Interface,
     InterfaceContent,

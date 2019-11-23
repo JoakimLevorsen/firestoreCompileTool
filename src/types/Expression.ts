@@ -7,12 +7,13 @@ import {
 } from ".";
 import { isInterfaceContent } from "./Interface";
 
-type isTypeCondition = [KeywordObject, "is", Interface];
-type isEqualCondition = [
+type isTypeCondition = [
     KeywordObject,
-    "=" | "≠",
-    Type | KeywordObject | string
+    "is" | "only" | "isOnly",
+    Interface
 ];
+type isEqualCondition = [KeywordObject, "=" | "≠", Type | string];
+
 export type Condition = isTypeCondition | isEqualCondition;
 
 export type Expression = boolean | Condition;
@@ -34,7 +35,13 @@ export const isExpression = (input: any): input is Expression => {
     }
     if (
         typeof two !== "string" ||
-        !(two === "is" || two === "=" || two === "≠")
+        !(
+            two === "is" ||
+            two === "only" ||
+            two === "isOnly" ||
+            two === "=" ||
+            two === "≠"
+        )
     ) {
         return false;
     }

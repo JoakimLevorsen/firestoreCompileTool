@@ -34,3 +34,6 @@ export const isType = (input: any): input is Type => {
     }
     return AllTypes[input] !== undefined;
 };
+
+export const typeToString = (input: Type): string =>
+    input.toLowerCase();
