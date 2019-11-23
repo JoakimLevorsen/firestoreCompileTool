@@ -1,4 +1,6 @@
-# Firestore new security language spec.
+# KaKao with a FireBase
+
+[](./KaKao.svg)
 
 ## Types
 
@@ -30,9 +32,9 @@ Expressions are made to express opinion and are created using operators.
 For now the following expressions exist:
 | Expression | Meaning |
 | ---------- | ------- |
-| A is B | Does A have all fields of interface B |
+| A is B | Does A have all and possibly more of fields from interface B |
 | A only B | Does A have only fields present in B, but not nessesarily all of them |
-| A isOnly B | Does A fit the interface B perfectly |
+| A isOnly B | Does A fit the interface B perfectly (A is B && A only B) |
 | A == B | Is A equal to the value B |
 | A != B | Is A not equal to the value B |
 
