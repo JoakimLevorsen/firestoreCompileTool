@@ -1,4 +1,5 @@
 import { Block, Expression, IfBlock, isIfBlock } from "../types";
+import expressionToString from "./expressionToString";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -11,23 +12,58 @@ const stringifyBlock = (input: Block): string =>
     formatFile(blockToRules(input));
 
 const formatFile = (input: string): string => {
-    // Split lines, remove unneeded spacing, and tailing spacing
+    // First we replace all spacing with one space
+    const oneLiner = input.replace(/\s+/g, " ");
+    // Then we split based on {} () [] and ;
+    const split = oneLiner
+        .replace(/([\[\{\(;])\s/g, "$1\n")
+        .replace(/\s([\]\}\)])/g, "\n$1")
+        // The Match keyword is always moved to its own line.
+        .replace(/^\s*([\}\)\]])\s*match(.*)$/gm, "$1\nmatch$2")
+        // We also split if two of the same type appear in a row with a space in front
+        // so someting )) other is caught, but not
+        // something().other
+        .replace(/(\s)([\[\]\{\}\(\)])([\[\]\{\}\(\)])/g, "$1$2\n$3")
+        .replace(/(\|\||&&)/g, "\n$1")
+        .split("\n");
+
     const lines = input
         .split("\n")
         .map(s => s.replace(/\s+/g, " ").replace(/\s+$/, ""));
+
     let output = "";
-    let tabIndentation = "";
+    let indentation = 0;
     // Replace with better formatter that can take account of {} on one line
-    for (const line of lines) {
-        let myIndentation = tabIndentation;
-        if (/^.*(\{|\(|\[)$/.test(line)) {
-            tabIndentation += "\t";
+    // Every single ({[ moves the tab one in, and every singe ]}) moves it out for the next line, since that should balance it out.
+    for (const line of split) {
+        let myIndentation = indentation;
+        indentation +=
+            countMatches(line, ["{", "[", "("]) -
+            countMatches(line, [")", "]", "}"]);
+        if (indentation < myIndentation) {
+            output += tabsForCount(indentation) + line + "\n";
+        } else {
+            output += tabsForCount(myIndentation) + line + "\n";
         }
-        if (/^([^\[\n]*\}|[^\[\n]*\]|[^\(\n]*\));{0,1}$/.test(line)) {
-            tabIndentation = tabIndentation.substr(1);
-            myIndentation = tabIndentation;
+    }
+    return output;
+};
+
+const countMatches = (input: string, match: string[]): number => {
+    let matches = 0;
+    for (const char of input) {
+        if (match.some(m => m === char)) {
+            matches++;
         }
-        output += myIndentation + line + "\n";
+    }
+    return matches;
+};
+
+const tabsForCount = (count: number): string => {
+    if (count < 0) return "";
+    let output = "";
+    for (let i = count; i > 0; i--) {
+        output += "\t";
     }
     return output;
 };
@@ -78,52 +114,6 @@ const expressionOrIfToString = (item: Expression | IfBlock) => {
         return ifBlockToString(item);
     }
     return expressionToString(item);
-};
-
-const expressionToString = (expression: Expression): string => {
-    if (typeof expression === "boolean") {
-        return `${expression === true}`;
-    }
-    // We check index 1 for the operator
-    if (expression[1] === "is") {
-        const [target, _, compareTo] = expression;
-        const targetData = target.toStringAsData();
-        const interfaceKeys = Object.keys(compareTo);
-        return interfaceKeys
-            .map(iKey => {
-                const interfaceContent = compareTo[iKey];
-                if (interfaceContent.multiType) {
-                    return (
-                        interfaceContent.value.reduce(
-                            (pV, v) =>
-                                pV === ""
-                                    ? `(\n${targetData}.${iKey} is ${v.toLowerCase()}`
-                                    : `${pV} || ${targetData}.${iKey} is ${v.toLowerCase()}`,
-                            ""
-                        ) + "\n)"
-                    );
-                } else {
-                    return ` ${targetData}.${iKey} is ${interfaceContent.value.toLowerCase()}`;
-                }
-            })
-            .reduce((pV, v) => `${pV} && ${v}`);
-    }
-    // if (expression[1] === "only") {
-    //     const [target, _, compareTo] = expression;
-    //     const targetData = target.toStringAsData();
-    //     const interfaceKeys = Object.keys(compareTo);
-    //     return interfaceKeys.map(iKey => {
-    //         const interfaceContent = compareTo[iKey];
-    //         return "uhigfhsuidgf udfh  iuash"
-    //     });
-    // }
-    if (expression[1] === "=") {
-        return `${expression[0]} == ${expression[2]}`;
-    }
-    if (expression[1] === "≠") {
-        return `${expression[0]} != ${expression[2]}`;
-    }
-    return `${expression[0]} `;
 };
 
 const ifBlockToString = (ifBlock: IfBlock): string => {

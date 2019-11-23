@@ -12,11 +12,7 @@ type isTypeCondition = [
     "is" | "only" | "isOnly",
     Interface
 ];
-type isEqualCondition = [
-    KeywordObject,
-    "=" | "≠",
-    Type | KeywordObject | string
-];
+type isEqualCondition = [KeywordObject, "=" | "≠", Type | string];
 
 export type Condition = isTypeCondition | isEqualCondition;
 
