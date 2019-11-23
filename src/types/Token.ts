@@ -14,7 +14,8 @@ export type TokenType =
     | "Slash"
     | "Comma"
     | "Equals"
-    | "NotEquals";
+    | "NotEquals"
+    | "QuestionMark";
 
 export type Token =
     | { type: TokenType }
@@ -41,7 +42,8 @@ export const isTokenType = (input: any): input is TokenType => {
         input === "Slash" ||
         input === "Comma" ||
         input === "Equals" ||
-        input === "NotEquals"
+        input === "NotEquals" ||
+        input === "QuestionMark"
     ) {
         return true;
     }

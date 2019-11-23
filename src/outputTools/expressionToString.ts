@@ -59,7 +59,7 @@ const isOnlyExpressionToString = (
     // First we make an object.keys().hasOnly(...) for the interface keys
     // TODO: Check only expressions for deeper maps in interfaces when support added
     const checkType = type === "is" ? "hasAll" : "hasOnly";
-    const ruleHeaderCommand = `\n${targetData}.keys().${checkType}(`;
+    const ruleHeaderCommand = ` ${targetData}.keys().${checkType}(`;
     const ruleHeader =
         interfaceKeys.reduce(
             (pV, v) =>
@@ -67,32 +67,48 @@ const isOnlyExpressionToString = (
                     ? `${pV}'${v}'`
                     : `${pV}, '${v}'`,
             ruleHeaderCommand
-        ) + ")\n";
+        ) + ") ";
     const rules = interfaceKeys.map(iKey => {
         const interfaceContent = compareTo[iKey];
-        const optionalCheck = `!(${iKey} in ${targetData})\n`;
+        // If this interface defined the value as foo?: bar,
+        // or we're doing an only check, we add this optional path,
+        // since this value isn't forced to exist
+        let optionalCheck: string | null = null;
+        if (type === "only" || interfaceContent.optional) {
+            optionalCheck = `!('${iKey}' in ${targetData}) `;
+        }
         if (interfaceContent.multiType) {
             const checkContent =
                 interfaceContent.value.reduce(
                     (pV, p) =>
-                        pV === "(\n"
+                        pV === "( "
                             ? `${targetData}.${iKey} is ${typeToString(
                                   p
                               )}`
-                            : `${pV} \n || ${targetData}.${iKey} is ${typeToString(
+                            : `${pV}   || ${targetData}.${iKey} is ${typeToString(
                                   p
                               )}`,
-                    "(\n"
-                ) + "\n";
-            return `(\n${optionalCheck} || ${checkContent}\n)\n`;
+                    "( "
+                ) + " ";
+            if (optionalCheck) {
+                return `( ${optionalCheck} || ${checkContent} ) `;
+            } else {
+                return `( ${checkContent} )`;
+            }
         } else {
-            return `(\n${optionalCheck} || ${targetData}.${iKey} is ${typeToString(
-                interfaceContent.value
-            )}\n)\n`;
+            if (optionalCheck) {
+                return `( ${optionalCheck} || ${targetData}.${iKey} is ${typeToString(
+                    interfaceContent.value
+                )} ) `;
+            } else {
+                return `${targetData}.${iKey} is ${typeToString(
+                    interfaceContent.value
+                )} ) `;
+            }
         }
     });
     const unifiedRule = rules.reduce((pV, v) => `${pV} && ${v}`);
-    return `\n\n ${ruleHeader} && (\n${unifiedRule}\n)`;
+    return `   ${ruleHeader} && ( ${unifiedRule} )`;
 };
 
 export default expressionToString;

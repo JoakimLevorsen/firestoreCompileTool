@@ -9,7 +9,11 @@ import extractType from "./TypeParser";
 export default class InterfaceParser extends BaseParser {
     private interfaceName?: string;
     private interface: Interface = {};
-    private nextProperty?: { name: string; optional?: boolean };
+    private nextProperty?: {
+        name: string;
+        optional?: boolean;
+        set?: true;
+    };
     private stage:
         | "awaiting keyword"
         | "awaiting name"
@@ -91,7 +95,8 @@ export default class InterfaceParser extends BaseParser {
                 // Are we currently building a variable?
                 if (
                     this.nextProperty &&
-                    this.nextProperty.optional !== undefined
+                    this.nextProperty.optional !== undefined &&
+                    this.nextProperty.set !== undefined
                 ) {
                     // If we got a semiColon and one type has been added, we are done.
                     if (token.type === "SemiColon") {
@@ -131,7 +136,7 @@ export default class InterfaceParser extends BaseParser {
                         if (currentProperty === undefined) {
                             this.interface[this.nextProperty.name] = {
                                 multiType: false,
-                                optional: false,
+                                optional: this.nextProperty.optional,
                                 value: type
                             };
                         } else {
@@ -166,12 +171,20 @@ export default class InterfaceParser extends BaseParser {
                     );
                 }
                 // Have we started building a variable?
-                if (
-                    this.nextProperty &&
-                    this.nextProperty.optional === undefined
-                ) {
+                if (this.nextProperty) {
+                    // ? Means we got an optional
+                    if (token.type === "QuestionMark") {
+                        this.nextProperty.optional = true;
+                        return WAIT;
+                    }
                     if (token.type === "Colon") {
-                        this.nextProperty.optional = false;
+                        // Only set the optional if we haven't set it to true
+                        if (
+                            this.nextProperty.optional === undefined
+                        ) {
+                            this.nextProperty.optional = false;
+                        }
+                        this.nextProperty.set = true;
                         return WAIT;
                     }
                     return new ParserError(

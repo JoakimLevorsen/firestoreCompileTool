@@ -112,6 +112,8 @@ export const extractNextBlock = (
             return { token: { type: "Equals" }, remaining };
         case "≠":
             return { token: { type: "NotEquals" }, remaining };
+        case "?":
+            return { token: { type: "QuestionMark" }, remaining };
         default:
             return {
                 remaining,

@@ -1,8 +1,6 @@
 interface A {
-    foo: Number;
+    foo?: Number;
     bar: String | Timestamp;
-    name: String;
-    age: Number | Timestamp | String;
 }
 
 interface B {
