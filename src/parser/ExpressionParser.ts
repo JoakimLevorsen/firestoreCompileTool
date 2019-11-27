@@ -24,28 +24,18 @@ export default class ExpressionParser extends BaseParser {
                 if (token.type !== "Keyword") {
                     return builderError("Expected keyword");
                 }
-                if (
-                    token.value === "true" ||
-                    token.value === "false"
-                ) {
-                    // We got a value, so we just return that
-                    if (token.value === "true") {
-                        return { type: "Expression", data: true };
-                    }
-                    return { type: "Expression", data: false };
-                }
                 // Then we assume that the token is an item or rawValue
                 const rawValue = RawValue.toRawValue(token);
                 if (rawValue) {
                     this.conditionVal = rawValue;
-                    return WAIT;
+                } else {
+                    // TODO: Check this
+                    this.conditionVal = new KeywordObject(
+                        token.value,
+                        this.interfaces,
+                        this.variablePathComponents
+                    );
                 }
-                // TODO: Check this
-                this.conditionVal = new KeywordObject(
-                    token.value,
-                    this.interfaces,
-                    this.variablePathComponents
-                );
                 this.stage = "awaiting oprerator";
                 return WAIT;
             case "awaiting oprerator":
@@ -56,6 +46,16 @@ export default class ExpressionParser extends BaseParser {
                     this.operatior = token.type;
                     this.stage = "awaiting conditionFin";
                     return WAIT;
+                }
+                // If a semicolon appears we interpret that as this line being done.
+                if (token.type === "SemiColon") {
+                    if (this.conditionVal instanceof RawValue) {
+                        return {
+                            type: "Expression",
+                            data: this.conditionVal!
+                        };
+                    }
+                    return builderError("Unexpected semicolon");
                 }
                 if (token.type !== "Keyword") {
                     return builderError(

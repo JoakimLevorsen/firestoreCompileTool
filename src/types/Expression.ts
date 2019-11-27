@@ -15,10 +15,10 @@ type isEqualCondition = [
 
 export type Condition = isTypeCondition | isEqualCondition;
 
-export type Expression = boolean | Condition;
+export type Expression = RawValue | Condition;
 
 export const isExpression = (input: any): input is Expression => {
-    if (typeof input === "boolean") {
+    if (input instanceof RawValue) {
         return true;
     }
     if (
@@ -29,7 +29,10 @@ export const isExpression = (input: any): input is Expression => {
         return false;
     }
     const [one, two, three] = input;
-    if (!(one instanceof KeywordObject)) {
+    if (
+        !(one instanceof KeywordObject) &&
+        !(one instanceof RawValue)
+    ) {
         return false;
     }
     if (
@@ -49,7 +52,8 @@ export const isExpression = (input: any): input is Expression => {
         isType(three) ||
         isInterface(three) ||
         isInterfaceContent(three) ||
-        three instanceof KeywordObject
+        three instanceof KeywordObject ||
+        three instanceof RawValue
     ) {
         return true;
     }
