@@ -1,19 +1,15 @@
 import { WAIT } from ".";
-import {
-    Expression,
-    KeywordObject,
-    Token,
-    TokenType
-} from "../types";
+import { Expression, KeywordObject, Token } from "../types";
 import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
+import RawValue from "../types/RawValue";
 
 export default class ExpressionParser extends BaseParser {
     private stage:
         | "awaiting conditionVal"
         | "awaiting oprerator"
         | "awaiting conditionFin" = "awaiting conditionVal";
-    private conditionVal?: KeywordObject;
+    private conditionVal?: KeywordObject | RawValue;
     private operatior?: string;
 
     // tslint:disable-next-line: no-empty
@@ -38,7 +34,12 @@ export default class ExpressionParser extends BaseParser {
                     }
                     return { type: "Expression", data: false };
                 }
-                // Then we assume that the token is an item
+                // Then we assume that the token is an item or rawValue
+                const rawValue = RawValue.toRawValue(token);
+                if (rawValue) {
+                    this.conditionVal = rawValue;
+                    return WAIT;
+                }
                 // TODO: Check this
                 this.conditionVal = new KeywordObject(
                     token.value,
@@ -120,6 +121,11 @@ export default class ExpressionParser extends BaseParser {
         if (!this.interfaces[token.value]) {
             return builderError("Unknown interface");
         }
+        if (this.conditionVal instanceof RawValue) {
+            throw new Error(
+                `is keyword only allowed for comparing Keyword Objects to interfaces`
+            );
+        }
         return {
             data: [
                 this.conditionVal!,
@@ -138,17 +144,14 @@ export default class ExpressionParser extends BaseParser {
         if (token.type !== "Keyword") {
             return builderError("Expected keyword");
         }
-        if (
-            token.value === "true" ||
-            token.value === "false" ||
-            token.value === "null"
-        ) {
+        const rawValue = RawValue.toRawValue(token);
+        if (rawValue) {
             // We got a value, so we just return that
             return {
                 data: [
                     this.conditionVal!,
                     this.operatior === "Equals" ? "=" : "≠",
-                    token.value
+                    rawValue
                 ],
                 type: "Expression"
             };
@@ -163,7 +166,7 @@ export default class ExpressionParser extends BaseParser {
                 data: [
                     this.conditionVal!,
                     this.operatior === "Equals" ? "=" : "≠",
-                    keyword.toString()
+                    keyword
                 ],
                 type: "Expression"
             };

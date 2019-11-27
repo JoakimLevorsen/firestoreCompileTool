@@ -1,18 +1,17 @@
-import {
-    Interface,
-    isInterface,
-    isType,
-    KeywordObject,
-    Type
-} from ".";
+import { Interface, isInterface, isType, KeywordObject } from ".";
 import { isInterfaceContent } from "./Interface";
+import RawValue from "./RawValue";
 
 type isTypeCondition = [
     KeywordObject,
     "is" | "only" | "isOnly",
     Interface
 ];
-type isEqualCondition = [KeywordObject, "=" | "≠", Type | string];
+type isEqualCondition = [
+    RawValue | KeywordObject,
+    "=" | "≠",
+    RawValue | KeywordObject
+];
 
 export type Condition = isTypeCondition | isEqualCondition;
 
