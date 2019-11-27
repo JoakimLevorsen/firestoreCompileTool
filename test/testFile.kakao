@@ -1,0 +1,9 @@
+interface Boblike {
+    name: String;
+    shy: Bool;
+    person?: Bool;
+}
+
+match /bobs/[bob] {
+    write: bob.name == ,382;
+}

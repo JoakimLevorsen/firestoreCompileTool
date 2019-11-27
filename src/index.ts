@@ -9,8 +9,7 @@ import parse from "./parser";
 
 clear();
 // tslint:disable-next-line: no-console
-console.log(chalk.red(figlet.textSync("hi")));
-const file = fs.readFileSync("./test/testFile2.fRules").toString();
+const file = fs.readFileSync("./test/testFile.kakao").toString();
 
 // const Oldb = extractBlock(file);
 const b = parse(file);

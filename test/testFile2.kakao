@@ -13,7 +13,7 @@ interface Resturant {
 interface Review {
     title: String;
     stars: Number;
-    imageURL?: String;
+    imageURL?: String | Number;
     user: String;
 }
 
