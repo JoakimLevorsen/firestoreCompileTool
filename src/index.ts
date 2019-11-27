@@ -9,6 +9,7 @@ import parse from "./parser";
 
 clear();
 // tslint:disable-next-line: no-console
+console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
 const file = fs.readFileSync("./test/testFile.kakao").toString();
 
 // const Oldb = extractBlock(file);
