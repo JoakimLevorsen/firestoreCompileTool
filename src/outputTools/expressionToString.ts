@@ -1,8 +1,13 @@
 import { Expression, Interface, typeToString } from "../types";
+import RawValue from "../types/RawValue";
 
 const expressionToString = (expression: Expression): string => {
-    if (typeof expression === "boolean") {
-        return `${expression === true}`;
+    if (expression instanceof RawValue) {
+        const xType = expression.getType();
+        if (xType === "Bool" || xType === "null") {
+            return `${expression.toString() === "true"}`;
+        }
+        throw new Error(`${xType} cannot be cast to boolean.`);
     }
     // We check index 1 for the operator
     if (
@@ -96,7 +101,7 @@ const isOnlyExpressionToString = (
         if (interfaceContent.multiType) {
             const checkContent = interfaceContent.value.reduce(
                 (pV, p) =>
-                    !pV
+                    pV === " "
                         ? `${targetData}.${iKey} is ${typeToString(
                               p
                           )}`
