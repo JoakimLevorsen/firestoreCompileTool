@@ -124,7 +124,9 @@ export default class MatchParser extends BaseParser {
                             return WAIT;
                         } else {
                             throw new Error(
-                                `Unknown rule type ${token.value}`
+                                `Unknown rule type ${JSON.stringify(
+                                    token
+                                )}`
                             );
                         }
                     }

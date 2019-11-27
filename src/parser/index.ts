@@ -10,7 +10,7 @@ export const WAIT: WAIT = "WAIT";
 
 const parsers = [InterfaceParser, MatchParser];
 
-const parse = (input: string) => {
+const parse = (input: string, debug = false) => {
     let done = false;
     let remaining = input;
     const block: Block = { interfaces: {}, matchGroups: [] };
@@ -28,12 +28,13 @@ const parse = (input: string) => {
         const parserResponses = myParsers.map(p =>
             p.addToken(nextBlock.token)
         );
+        const parserErrorsThisRound: Error[] = [];
         parserResponses.forEach((p, i) => {
             if (p === "WAIT") {
                 return;
             } else if (p instanceof ParserError) {
                 myParsers.splice(i, 1);
-                console.error(chalk.red(p.toString()));
+                parserErrorsThisRound.push(p.getError());
             } else {
                 switch (p.type) {
                     case "Interface":
@@ -53,11 +54,17 @@ const parse = (input: string) => {
         });
         // Did we run out of parsers?
         if (myParsers.length === 0) {
-            console.log(
-                "Token history is",
-                JSON.stringify(blockHistory)
-            );
-            throw new Error("Out of parsers");
+            if (debug) {
+                console.log(
+                    "Token history is",
+                    JSON.stringify(blockHistory)
+                );
+            }
+            const firstError = parserErrorsThisRound[0];
+            if (firstError) {
+                throw firstError;
+            }
+            throw new Error("Ran out of parsers");
         }
         if (
             nextBlock.remaining === "" ||
