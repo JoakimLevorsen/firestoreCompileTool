@@ -190,9 +190,14 @@ export default class KeywordObject {
             this.variablePathComponents &&
             this.variablePathComponents.includes(keyword)
         ) {
+            // This means we add request, then resource
             this.addSubTargetToSelf({
-                key: requestResource,
-                target: ANY_DATA_CHILD
+                key: "request",
+                target: GlobalScope.request
+            });
+            this.addSubTargetToSelf({
+                key: "resource",
+                target: GlobalScope.request.resource
             });
         } else if (interfaces && interfaces[keyword]) {
             this.addSubTargetToSelf({

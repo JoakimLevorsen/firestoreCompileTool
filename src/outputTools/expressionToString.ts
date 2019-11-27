@@ -56,7 +56,11 @@ const isOnlyExpressionHeader = (
     // First we make an object.keys().hasOnly(...) for the interface keys
     // TODO: Check only expressions for deeper maps in interfaces when support added
     const checkType = type === "is" ? "hasAll" : "hasOnly";
-    const ruleHeaderCommand = ` ${targetData}.keys().${checkType}(`;
+    // We need to remove the last .data from the target
+    const ruleHeaderCommand = ` ${targetData.replace(
+        /.data$/,
+        ""
+    )}.keys().${checkType}(`;
 
     // The items in our .hasAll() should only be the non optionals
     // where .hasOnly should have all keys
