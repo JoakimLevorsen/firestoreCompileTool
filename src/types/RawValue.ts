@@ -22,7 +22,13 @@ export const extractRawValueString = (
 ): string | null => {
     for (const regex of Object.values(openEndedRegexes)) {
         const match = input.match(regex);
-        if (match && match[0]) {
+        // The number parser will interpret ',' as a number, and that is wrong
+        if (
+            match &&
+            match[0] &&
+            match[0] !== "," &&
+            match[0] !== "."
+        ) {
             return match[0];
         }
     }
