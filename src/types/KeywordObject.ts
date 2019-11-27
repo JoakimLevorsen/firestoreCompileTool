@@ -1,10 +1,10 @@
-import { Type } from "./Type";
-import { Interface } from ".";
 import {
-    isInterface,
+    Interface,
     InterfaceContent,
+    isInterface,
     isInterfaceContent
-} from "./Interface";
+} from ".";
+import { Type } from "./Type";
 
 type ANY = "ANY";
 const ANY: ANY = "ANY";
@@ -118,174 +118,11 @@ export default class KeywordObject {
         }
     }
 
-    private setRootTarget(
-        keyword: string,
-        interfaces?: { [id: string]: Interface }
-    ) {
-        /*
-                Now we find the correct keyword based on the following order:
-                1. path
-                2. interfaces
-                3. GlobalScope
-                */
-        const requestResource = "request.resource";
-        if (
-            this.variablePathComponents &&
-            this.variablePathComponents.includes(keyword)
-        ) {
-            this.addSubTargetToSelf(
-                {
-                    key: requestResource,
-                    target: ANY_DATA_CHILD
-                },
-                true
-            );
-        } else if (interfaces && interfaces[keyword]) {
-            this.addSubTargetToSelf(
-                {
-                    key: requestResource,
-                    target: interfaces[keyword]
-                },
-                true
-            );
-        } else if (keyword === "request") {
-            this.addSubTargetToSelf({
-                key: "request",
-                target: GlobalScope.request
-            });
-        } else if (keyword === "resource") {
-            this.addSubTargetToSelf({
-                key: "resource",
-                target: GlobalScope.resource
-            });
-        } else {
-            throw new Error("Unknown keyword: " + keyword);
-        }
-    }
-
-    private addSubTarget(keyword: string) {
-        const currentTarget = this.currentTarget();
-        if (currentTarget === null) {
-            throw "Internal error";
-        }
-        if (typeof currentTarget === "string") {
-            if (currentTarget === "Map") {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: ANY_DATA_CHILD
-                });
-            } else {
-                throw `Object with type ${currentTarget} does not have any children`;
-            }
-        } else if (isInterface(currentTarget)) {
-            if (currentTarget[keyword]) {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: currentTarget[keyword]
-                });
-            } else {
-                throw `Interface with type ${currentTarget} does not have a child for key ${keyword}`;
-            }
-        } else if (isInterfaceContent(currentTarget)) {
-            const extractedType = currentTarget.multiType
-                ? currentTarget.value.find(t => t === "Map")
-                : currentTarget.value;
-            if (extractedType === "Map") {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: extractedType
-                });
-            } else {
-                throw `Interface with type ${currentTarget} does not have a child for key ${keyword}`;
-            }
-        } else {
-            if (isKeywordType(currentTarget)) {
-                switch (currentTarget.type) {
-                    case "FUNCTION":
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: currentTarget.returns
-                        });
-                        break;
-                    case "List":
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: ANY_DATA_CHILD
-                        });
-                        break;
-                    case "Map":
-                        const match =
-                            currentTarget.data[keyword] ||
-                            currentTarget.data[ANY];
-                        if (match) {
-                            this.addSubTargetToSelf({
-                                key: keyword,
-                                target: match
-                            });
-                        } else {
-                            throw new Error(
-                                `${keyword} was not found on ${JSON.stringify(
-                                    currentTarget
-                                )}`
-                            );
-                        }
-                }
-            } else if (isResource(currentTarget)) {
-                if (keyword === "id") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: "String"
-                    });
-                } else {
-                    const match = currentTarget.data[keyword];
-                    if (match) {
-                        this.addSubTargetToSelf(
-                            {
-                                key: keyword,
-                                target: match
-                            },
-                            true
-                        );
-                    } else {
-                        throw new Error(
-                            `${keyword} was not found on ${currentTarget}`
-                        );
-                    }
-                }
-            } else {
-                if (keyword === "auth") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: request.auth
-                    });
-                } else if (keyword === "resource") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: request.resource
-                    });
-                } else {
-                    const match = (currentTarget as ObjectType)[
-                        keyword
-                    ];
-                    if (match) {
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: match
-                        });
-                    } else {
-                        throw new Error(
-                            `${keyword} was not found on ${currentTarget}`
-                        );
-                    }
-                }
-            }
-        }
-        this;
-    }
-
     public toString(): string {
         if (!this.rootTarget) {
-            throw "Cannot export to string with no rootTarget";
+            throw new Error(
+                "Cannot export to string with no rootTarget"
+            );
         }
         if (!this.subTargets || this.subTargets.length === 0) {
             // This means we access a single object with no dot notation, so we just export that
@@ -338,6 +175,173 @@ export default class KeywordObject {
         return this.toString();
     }
 
+    private setRootTarget(
+        keyword: string,
+        interfaces?: { [id: string]: Interface }
+    ) {
+        /*
+                Now we find the correct keyword based on the following order:
+                1. path
+                2. interfaces
+                3. GlobalScope
+                */
+        const requestResource = "request.resource";
+        if (
+            this.variablePathComponents &&
+            this.variablePathComponents.includes(keyword)
+        ) {
+            this.addSubTargetToSelf({
+                key: requestResource,
+                target: ANY_DATA_CHILD
+            });
+        } else if (interfaces && interfaces[keyword]) {
+            this.addSubTargetToSelf({
+                key: requestResource,
+                target: interfaces[keyword]
+            });
+        } else if (keyword === "request") {
+            this.addSubTargetToSelf({
+                key: "request",
+                target: GlobalScope.request
+            });
+        } else if (keyword === "resource") {
+            this.addSubTargetToSelf({
+                key: "resource",
+                target: GlobalScope.resource
+            });
+        } else {
+            throw new Error("Unknown keyword: " + keyword);
+        }
+    }
+
+    private addSubTarget(keyword: string) {
+        const currentTarget = this.currentTarget();
+        if (currentTarget === null) {
+            throw new Error("Internal error");
+        }
+        if (typeof currentTarget === "string") {
+            if (currentTarget === "Map") {
+                this.addSubTargetToSelf({
+                    key: keyword,
+                    target: ANY_DATA_CHILD
+                });
+            } else {
+                throw new Error(
+                    `Object with type ${currentTarget} does not have any children`
+                );
+            }
+        } else if (isInterface(currentTarget)) {
+            if (currentTarget[keyword]) {
+                this.addSubTargetToSelf({
+                    key: keyword,
+                    target: currentTarget[keyword]
+                });
+            } else {
+                throw new Error(
+                    `Interface with type ${currentTarget} does not have a child for key ${keyword}`
+                );
+            }
+        } else if (isInterfaceContent(currentTarget)) {
+            const extractedType = currentTarget.multiType
+                ? currentTarget.value.find(t => t === "Map")
+                : currentTarget.value;
+            if (extractedType === "Map") {
+                this.addSubTargetToSelf({
+                    key: keyword,
+                    target: extractedType
+                });
+            } else {
+                throw new Error(
+                    `Interface with type ${currentTarget} does not have a child for key ${keyword}`
+                );
+            }
+        } else {
+            if (isKeywordType(currentTarget)) {
+                switch (currentTarget.type) {
+                    case "FUNCTION":
+                        this.addSubTargetToSelf({
+                            key: keyword,
+                            target: currentTarget.returns
+                        });
+                        break;
+                    case "List":
+                        this.addSubTargetToSelf({
+                            key: keyword,
+                            target: ANY_DATA_CHILD
+                        });
+                        break;
+                    case "Map":
+                        const match =
+                            currentTarget.data[keyword] ||
+                            currentTarget.data[ANY];
+                        if (match) {
+                            this.addSubTargetToSelf({
+                                key: keyword,
+                                target: match
+                            });
+                        } else {
+                            throw new Error(
+                                `${keyword} was not found on ${JSON.stringify(
+                                    currentTarget
+                                )}`
+                            );
+                        }
+                }
+            } else if (isResource(currentTarget)) {
+                if (keyword === "id") {
+                    this.addSubTargetToSelf({
+                        key: keyword,
+                        target: "String"
+                    });
+                } else {
+                    const match = currentTarget.data[keyword];
+                    if (match) {
+                        this.addSubTargetToSelf({
+                            key: keyword,
+                            target: match
+                        });
+                    } else {
+                        this.addSubTargetToSelf({
+                            key: keyword,
+                            target: ANY_DATA_CHILD
+                        });
+                        // throw new Error(
+                        //     `${keyword} was not found on ${JSON.stringify(
+                        //         currentTarget
+                        //     )}`
+                        // );
+                    }
+                }
+            } else {
+                if (keyword === "auth") {
+                    this.addSubTargetToSelf({
+                        key: keyword,
+                        target: request.auth
+                    });
+                } else if (keyword === "resource") {
+                    this.addSubTargetToSelf({
+                        key: keyword,
+                        target: request.resource
+                    });
+                } else {
+                    const match = (currentTarget as ObjectType)[
+                        keyword
+                    ];
+                    if (match) {
+                        this.addSubTargetToSelf({
+                            key: keyword,
+                            target: match
+                        });
+                    } else {
+                        throw new Error(
+                            `${keyword} was not found on ${currentTarget}`
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     private currentTarget = (): Target | null => {
         if (!this.rootTarget) {
             return null;
@@ -348,16 +352,22 @@ export default class KeywordObject {
         return this.rootTarget.target;
     };
 
-    private addSubTargetToSelf(item: TargetWithKey, isData = false) {
+    private addSubTargetToSelf(item: TargetWithKey) {
         const { key, target } = item;
         if (this.rootTarget !== null) {
+            /* 
+            If were adding the key 'id' to the rootTarget 'request.resource' 
+            or 'resource' we don't need .data, otherwise we do*/
+            if (
+                /resource$/.test(this.rootTarget.key || "") &&
+                key !== "id"
+            ) {
+                this.subTargets!.push({ target: data, key: "data" });
+            }
             this.subTargets!.push({ target, key });
         } else {
             this.rootTarget = { target, key };
             this.subTargets = [];
-        }
-        if (isData) {
-            this.addSubTargetToSelf({ target: data, key: "data" });
         }
     }
 }

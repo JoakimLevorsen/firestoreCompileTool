@@ -5,7 +5,8 @@ export type Type =
     | "Geopoint"
     | "Timestamp"
     | "Map"
-    | "Array";
+    | "Array"
+    | "null";
 
 export const AllTypesArray: Type[] = [
     "Bool",
@@ -14,7 +15,8 @@ export const AllTypesArray: Type[] = [
     "String",
     "Timestamp",
     "Map",
-    "Array"
+    "Array",
+    "null"
 ];
 
 // tslint:disable-next-line: one-variable-per-declaration
@@ -25,7 +27,8 @@ export const AllTypes: { [id: string]: Type } = {
     Map: "Map",
     Number: "Number",
     String: "String",
-    Timestamp: "Timestamp"
+    Timestamp: "Timestamp",
+    null: "null"
 };
 
 export const isType = (input: any): input is Type => {

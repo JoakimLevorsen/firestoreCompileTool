@@ -1,24 +1,54 @@
-interface A {
-    foo?: Number;
-    bar: String | Timestamp;
+interface User {
+    name: String;
+    displayName?: String;
 }
 
-interface B {
-    value: Bool;
+interface Resturant {
+    name: String;
+    location: Geopoint;
+    url?: String;
+    owner: String;
 }
 
-match /collection/[item] {
-    read, delete: {
-        if item.a == true {
-            return item only B;
+interface Review {
+    title: String;
+    stars: Number;
+    imageURL?: String;
+    user: String;
+}
+
+match /users/[user] {
+    read: request.auth != null;
+    write: {
+        if request.auth.uid == user.id {
+            return user isOnly User;
         }
-        if item is B {
-            return true
-        }
-        return item is A;
+        return false;
     },
-    write: resource only A;
-    match /subCollection/[othertings] {
-        read: resource is A;
+}
+
+match /resturants/[resturant] {
+    read: request.auth != null;
+    create: {
+        if resturant isOnly Resturant {
+            return resturant.owner == request.auth.uid;
+        }
+        return false;
+    },
+    write: {
+        if resource.owner == request.auth.uid {
+            return resturant isOnly Resturant;
+        }
+        return false;
+    },
+    match /reviews/[review] {
+        read: request.auth != null;
+        create: {
+            if review isOnly Review {
+                return review.user == request.auth.uid;
+            }
+            return false;
+        }
+        delete: resource.user == request.auth.uid;
     }
 }

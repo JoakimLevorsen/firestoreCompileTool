@@ -138,7 +138,11 @@ export default class ExpressionParser extends BaseParser {
         if (token.type !== "Keyword") {
             return builderError("Expected keyword");
         }
-        if (token.value === "true" || token.value === "false") {
+        if (
+            token.value === "true" ||
+            token.value === "false" ||
+            token.value === "null"
+        ) {
             // We got a value, so we just return that
             return {
                 data: [
@@ -149,7 +153,23 @@ export default class ExpressionParser extends BaseParser {
                 type: "Expression"
             };
         }
-        return builderError("Unknown equality value check");
+        try {
+            const keyword = new KeywordObject(
+                token.value,
+                this.interfaces,
+                this.variablePathComponents
+            );
+            return {
+                data: [
+                    this.conditionVal!,
+                    this.operatior === "Equals" ? "=" : "≠",
+                    keyword.toString()
+                ],
+                type: "Expression"
+            };
+        } catch {
+            return builderError("Unknown equality value check");
+        }
     }
 
     private buildError = (token: Token, stage: string) => (

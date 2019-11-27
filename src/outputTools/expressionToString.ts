@@ -12,7 +12,6 @@ const expressionToString = (expression: Expression): string => {
     ) {
         const [target, _, compareTo] = expression;
         const targetData = target.toStringAsData();
-        const interfaceKeys = Object.keys(compareTo);
         if (targetData === null) {
             throw new Error("Internal error");
         }
@@ -20,19 +19,16 @@ const expressionToString = (expression: Expression): string => {
             return `(${isOnlyExpressionToString(
                 "is",
                 targetData,
-                interfaceKeys,
                 compareTo
-            )} && ${isOnlyExpressionToString(
+            )} && ${isOnlyExpressionHeader(
                 "only",
                 targetData,
-                interfaceKeys,
                 compareTo
-            )})c`;
+            )})`;
         } else {
             return isOnlyExpressionToString(
                 expression[1],
                 targetData,
-                interfaceKeys,
                 compareTo
             );
         }
@@ -46,25 +42,45 @@ const expressionToString = (expression: Expression): string => {
     return `${expression[0]} `;
 };
 
-const isOnlyExpressionToString = (
+const isOnlyExpressionHeader = (
     type: "is" | "only",
     targetData: string,
-    interfaceKeys: string[],
     compareTo: Interface
 ): string => {
+    // We get all the interface keys, and the nonOptionalKeys
+    const allInterfaceKeys = Object.keys(compareTo);
+    const nonOptionalKeys = [...allInterfaceKeys].filter(
+        k => compareTo[k].optional === false
+    );
+
     // First we make an object.keys().hasOnly(...) for the interface keys
     // TODO: Check only expressions for deeper maps in interfaces when support added
     const checkType = type === "is" ? "hasAll" : "hasOnly";
     const ruleHeaderCommand = ` ${targetData}.keys().${checkType}(`;
+
+    // The items in our .hasAll() should only be the non optionals
+    // where .hasOnly should have all keys
+    const ruleHeaderTarget =
+        type === "is" ? nonOptionalKeys : allInterfaceKeys;
+
     const ruleHeader =
-        interfaceKeys.reduce(
+        ruleHeaderTarget.reduce(
             (pV, v) =>
                 pV === ruleHeaderCommand
                     ? `${pV}'${v}'`
                     : `${pV}, '${v}'`,
             ruleHeaderCommand
         ) + ") ";
-    const rules = interfaceKeys.map(iKey => {
+    return ruleHeader;
+};
+
+const isOnlyExpressionToString = (
+    type: "is" | "only",
+    targetData: string,
+    compareTo: Interface
+): string => {
+    const allInterfaceKeys = Object.keys(compareTo);
+    const rules = allInterfaceKeys.map(iKey => {
         const interfaceContent = compareTo[iKey];
         // If this interface defined the value as foo?: bar,
         // or we're doing an only check, we add this optional path,
@@ -103,7 +119,11 @@ const isOnlyExpressionToString = (
         }
     });
     const unifiedRule = rules.reduce((pV, v) => `${pV} && ${v}`);
-    return ` ${ruleHeader} && ( ${unifiedRule} )`;
+    return ` ${isOnlyExpressionHeader(
+        type,
+        targetData,
+        compareTo
+    )} && ( ${unifiedRule} )`;
 };
 
 export default expressionToString;

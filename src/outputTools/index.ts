@@ -77,6 +77,9 @@ const blockToRules = (input: Block): string => {
     const ruleContent = input.matchGroups.map(mG =>
         matchGroupToRules(mG)
     );
+    if (!ruleContent || ruleContent.length === 0) {
+        return `${header}${footer}`;
+    }
     return `${header}${ruleContent.reduce(
         (pV, p) => `${pV}\n${p}`
     )}${footer}`;

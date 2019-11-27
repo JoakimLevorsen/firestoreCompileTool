@@ -142,10 +142,11 @@ export default class MatchParser extends BaseParser {
                 }
                 if (token.type === "BlockClose") {
                     // Are we finishing a previous rule, or are we all done?
-                    if (!this.twoBlockCloseInARow) {
-                        this.twoBlockCloseInARow = true;
-                        return WAIT;
-                    }
+                    // TODO: WHY DID REMOVING THIS FIX ANYTHING?
+                    // if (!this.twoBlockCloseInARow) {
+                    //     this.twoBlockCloseInARow = true;
+                    //     return WAIT;
+                    // }
                     // This means we have completed all rules and can return our matchset.
                     return {
                         type: "Match",

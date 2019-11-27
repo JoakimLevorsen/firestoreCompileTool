@@ -1,11 +1,14 @@
-interface A {
-    foo: Number;
-    bar: String | Timestamp;
+interface Boblike {
+    name: String;
+    shy: Bool;
+    person?: Bool;
 }
 
-match /collection/[item] {
-    read, delete: {
-        return if item is A;
-    },
-    write: true;
+match /bobs/[bob] {
+    write: {
+        if bob is Boblike {
+            return bob.name == true;
+        }
+        return false;
+    }
 }
