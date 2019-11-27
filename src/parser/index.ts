@@ -1,5 +1,6 @@
 import chalk from "chalk";
-import { Block, Token } from "../types";
+import { Block } from "../types";
+import { extractNextToken } from "./TokenParser";
 import InterfaceParser from "./InterfaceParser";
 import MatchParser from "./matchParser";
 import ParserError from "./ParserError";
@@ -15,10 +16,10 @@ const parse = (input: string) => {
     const block: Block = { interfaces: {}, matchGroups: [] };
     let myParsers = parsers.map(p => new p(block.interfaces));
     const blockHistory: Array<ReturnType<
-        typeof extractNextBlock
+        typeof extractNextToken
     >> = [];
     while (!done) {
-        const nextBlock = extractNextBlock(remaining);
+        const nextBlock = extractNextToken(remaining);
         blockHistory.push(nextBlock);
         if (nextBlock === null) {
             done = true;
@@ -68,58 +69,6 @@ const parse = (input: string) => {
         remaining = nextBlock.remaining;
     }
     return block;
-};
-
-export const extractNextBlock = (
-    input: string
-): { token: Token; remaining: string } | null => {
-    // First we remove start spacing and replace == with = since no assignment exists, and != with ≠.
-    const toConsider = input
-        .replace(/^\s*/, "")
-        .replace(/^==/, "=")
-        .replace(/^!=/, "≠");
-    const nextTerm = toConsider.match(
-        /^(?:[\w\.]+|[{};,:?=≠|\/\[\]])/
-    );
-    if (nextTerm === null) {
-        console.log(`${toConsider} returned null with regex`);
-        return null;
-    }
-    const [match] = nextTerm;
-    const remaining = toConsider.replace(match, "");
-    switch (match) {
-        case "{":
-            return { token: { type: "BlockOpen" }, remaining };
-        case "}":
-            return { token: { type: "BlockClose" }, remaining };
-        case "[":
-            return { token: { type: "IndexOpen" }, remaining };
-        case "]":
-            return { token: { type: "IndexClose" }, remaining };
-        case ".":
-            return { token: { type: "Dot" }, remaining };
-        case "|":
-            return { token: { type: "Or" }, remaining };
-        case ":":
-            return { token: { type: "Colon" }, remaining };
-        case ";":
-            return { token: { type: "SemiColon" }, remaining };
-        case "/":
-            return { token: { type: "Slash" }, remaining };
-        case ",":
-            return { token: { type: "Comma" }, remaining };
-        case "=":
-            return { token: { type: "Equals" }, remaining };
-        case "≠":
-            return { token: { type: "NotEquals" }, remaining };
-        case "?":
-            return { token: { type: "QuestionMark" }, remaining };
-        default:
-            return {
-                remaining,
-                token: { type: "Keyword", value: match }
-            };
-    }
 };
 
 export default parse;
