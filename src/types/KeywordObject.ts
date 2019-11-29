@@ -364,8 +364,14 @@ export default class KeywordObject {
             If were adding the key 'id' to the rootTarget 'request.resource' 
             or 'resource' we don't need .data, otherwise we do*/
             if (
-                /resource$/.test(this.rootTarget.key || "") &&
-                key !== "id"
+                (/resource$/.test(this.rootTarget.key || "") ||
+                    (this.subTargets &&
+                        this.subTargets[0] &&
+                        /resource$/.test(
+                            this.subTargets[0].key || ""
+                        ))) &&
+                key !== "id" &&
+                key !== "data"
             ) {
                 this.subTargets!.push({ target: data, key: "data" });
             }

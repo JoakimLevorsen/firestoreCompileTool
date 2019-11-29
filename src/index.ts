@@ -7,16 +7,24 @@ import * as fs from "fs";
 import blockToRules from "./outputTools";
 import parse from "./parser";
 
-clear();
-// tslint:disable-next-line: no-console
-console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
-const file = fs.readFileSync("./test/testFile.kakao").toString();
+const [inputFile, outputFile] = process.argv;
 
-// const Oldb = extractBlock(file);
-const b = parse(file);
+if (inputFile === "" || outputFile === "") {
+    console.log(
+        chalk.red("A path for input and output must be provided.")
+    );
+} else {
+    clear();
+    // tslint:disable-next-line: no-console
+    console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
+    const file = fs.readFileSync(inputFile).toString();
 
-// console.log("Old parser got", JSON.stringify(Oldb));
+    // const Oldb = extractBlock(file);
+    const b = parse(file);
 
-const rules = blockToRules(b);
+    // console.log("Old parser got", JSON.stringify(Oldb));
 
-fs.writeFileSync("./test/firestore.rules", rules);
+    const rules = blockToRules(b);
+
+    fs.writeFileSync(outputFile, rules);
+}
