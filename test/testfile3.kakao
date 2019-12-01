@@ -1,0 +1,46 @@
+interface User {
+    displayName: String;
+}
+
+interface Chat {
+    title: String;
+    creator: String;
+}
+
+interface Message {
+    content: String;
+    sender: String;
+    sendDate: Timestamp;
+}
+
+match /users/[user] {
+    read: true;
+    write: {
+        if user.id == request.auth.uid {
+            if user isOnly User {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+}
+
+match /chats/[chat] {
+    read: true;
+    create: {
+        if chat.creator == request.auth.uid {
+            return chat isOnly Chat;
+        }
+        return false;
+    },
+    match /messages/[message] {
+        read: true;
+        create: {
+            if message.sender == request.auth.uid {
+                return message isOnly Message;
+            }
+            return false;
+        }
+    }
+}
