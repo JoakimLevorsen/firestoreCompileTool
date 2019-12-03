@@ -310,11 +310,6 @@ export default class KeywordObject {
                             key: keyword,
                             target: ANY_DATA_CHILD
                         });
-                        // throw new Error(
-                        //     `${keyword} was not found on ${JSON.stringify(
-                        //         currentTarget
-                        //     )}`
-                        // );
                     }
                 }
             } else {
@@ -363,18 +358,58 @@ export default class KeywordObject {
             /* 
             If were adding the key 'id' to the rootTarget 'request.resource' 
             or 'resource' we don't need .data, otherwise we do*/
+
+            /* If we don't have subTargets or the only subTarget is resource
+             we might need to add .data first.*/
+            const noSubTargets =
+                this.subTargets === null ||
+                this.subTargets.length === 0;
             if (
-                (/resource$/.test(this.rootTarget.key || "") ||
+                this.subTargets === null ||
+                this.subTargets.length < 2
+            ) {
+                // Only if our rootTarget is a resource and we don't have a subTarget
+                // Or the first subTarget is resource
+                if (
+                    (noSubTargets &&
+                        /resource$/.test(
+                            this.rootTarget.key || ""
+                        )) ||
                     (this.subTargets &&
                         this.subTargets[0] &&
                         /resource$/.test(
                             this.subTargets[0].key || ""
-                        ))) &&
-                key !== "id" &&
-                key !== "data"
-            ) {
-                this.subTargets!.push({ target: data, key: "data" });
+                        ))
+                ) {
+                    // Though we don't need to add data for the following keys
+                    switch (key) {
+                        case "auth":
+                        case "id":
+                        case "data":
+                            break;
+                        default:
+                            this.subTargets!.push({
+                                key: "data",
+                                target: data
+                            });
+                    }
+                }
             }
+            // if (
+            //     (this.subTargets === null ||
+            //         this.subTargets.length === 0) &&
+            //     (/resource$/.test(this.rootTarget.key || "") ||
+            //         (this.subTargets &&
+            //             this.subTargets[0] &&
+            //             /resource$/.test(
+            //                 this.subTargets[0].key || ""
+            //             ))) &&
+            //     key !== "auth" &&
+            //     key !== "id" &&
+            //     key !== "data"
+            // ) {
+            //     this.subTargets!.push({ target: data, key: "data" });
+            // }
             this.subTargets!.push({ target, key });
         } else {
             this.rootTarget = { target, key };
