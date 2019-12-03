@@ -6,7 +6,7 @@ import { Token } from "./Token";
 const typeRegexes = {
     boolean: /^(?:true|false)$/,
     null: /^null$/,
-    number: /^([0-9]*)(?:([\.,])([0-9]*))?$/,
+    number: /^(?<neg>-)?(?<int>[0-9]*)(?:(?:[\.,])(?<dec>[0-9]*))?$/,
     string: /^("|')(.*)[^\\]("|')$/
 };
 
@@ -22,7 +22,7 @@ export const extractRawValueString = (
 ): string | null => {
     for (const regex of Object.values(openEndedRegexes)) {
         const match = input.match(regex);
-        // The number parser will interpret ',' as a number, and that is wrong
+        // The number parser will interpret ',' and '.' as a number, and that is wrong
         if (
             match &&
             match[0] &&
@@ -55,11 +55,11 @@ export default class RawValue {
         }
         // We check if its a number
         if (typeRegexes.number.test(keyword.value)) {
-            const [_, integer, __, subDecimal] = keyword.value.match(
+            const { dec, int, neg } = keyword.value.match(
                 typeRegexes.number
-            )!;
+            )!.groups!;
             const myNumber = new Number(
-                `${integer || ""}.${subDecimal || ""}`
+                `${neg || ""}${int || ""}.${dec || ""}`
             );
             this.type = "Number";
             this.value = myNumber.toString();

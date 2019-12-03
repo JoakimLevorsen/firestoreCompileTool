@@ -1,4 +1,5 @@
 import KeywordObject from "./KeywordObject";
+import RawValue from "./RawValue";
 
 export {
     AllTypes,
@@ -34,3 +35,4 @@ export {
     TokenType
 } from "./Token";
 export { KeywordObject };
+export { RawValue };
