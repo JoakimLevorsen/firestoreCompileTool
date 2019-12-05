@@ -2,14 +2,15 @@
     "compilerOptions": {
         "target": "es5",
         "module": "commonjs",
-        "lib": ["es6", "es2015", "dom"],
+        "lib": ["es6", "es2015"],
         "declaration": true,
-        "outDir": "lib",
+        "outDir": "./lib",
         "rootDir": "src",
         "strict": true,
         "types": ["node"],
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "sourceMap": true
-    }
+    },
+    "exclude": ["./test", "./lib"]
 }
