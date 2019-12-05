@@ -1,5 +1,5 @@
 import { WAIT } from ".";
-import { Expression, IfBlock, Token } from "../types";
+import { Expression, IfBlock, Token, IfBlockBuilder } from "../types";
 import BaseParser from "./BaseParser";
 import ExpressionParser from "./ExpressionParser";
 import ParserError from "./ParserError";
@@ -14,8 +14,7 @@ export default class IfParser extends BaseParser {
         | "building false" = "awaiting keyword";
     private buildingExpression = false;
     private deepParser!: ExpressionParser | IfParser;
-    private condition?: Expression;
-    private trueBlock?: IfBlock | Expression;
+    private blockBuilder = new IfBlockBuilder();
     private hasSeenOneBlockClose = false;
 
     public postConstructor() {
@@ -62,7 +61,7 @@ export default class IfParser extends BaseParser {
                 if (parserReturn.type === "IfBlock") {
                     return builderError("Internal error");
                 }
-                this.condition = parserReturn.data;
+                this.blockBuilder.setCondition(parserReturn.data);
                 this.stage = "awaiting true";
                 return WAIT;
             case "awaiting true":
@@ -81,7 +80,7 @@ export default class IfParser extends BaseParser {
                 ) {
                     return parserReturn2;
                 }
-                this.trueBlock = parserReturn2.data;
+                this.blockBuilder.setIfTrue(parserReturn2.data);
                 this.stage = "awaiting false";
                 this.hasSeenOneBlockClose = false;
                 return WAIT;
@@ -103,19 +102,10 @@ export default class IfParser extends BaseParser {
                     }
                     // This means we aren't building a false token, so we return the condition and the true
                     if (token.type === "BlockClose") {
-                        if (
-                            this.condition &&
-                            typeof this.condition !== "boolean" &&
-                            this.trueBlock !== undefined
-                        ) {
-                            return {
-                                data: {
-                                    condition: this.condition,
-                                    ifTrue: this.trueBlock
-                                },
-                                type: "IfBlock"
-                            };
-                        }
+                        return {
+                            data: this.blockBuilder.getIfBlock(),
+                            type: "IfBlock"
+                        };
 
                         return builderError("Internal Error");
                     }
@@ -129,20 +119,12 @@ export default class IfParser extends BaseParser {
                     return parserReturn3;
                 }
                 // Now we got our else token, so we can return.
-                if (
-                    this.condition &&
-                    typeof this.condition !== "boolean" &&
-                    this.trueBlock
-                ) {
-                    return {
-                        data: {
-                            condition: this.condition,
-                            ifFalse: parserReturn3.data,
-                            ifTrue: this.trueBlock
-                        },
-                        type: "IfBlock"
-                    };
-                }
+                return {
+                    data: this.blockBuilder
+                        .setIfFalse(parserReturn3.data)
+                        .getIfBlock(),
+                    type: "IfBlock"
+                };
 
                 return builderError("Internal error");
         }

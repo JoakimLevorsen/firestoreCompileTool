@@ -1,4 +1,4 @@
-import { Expression, IfBlock, isExpression, isIfBlock } from ".";
+import { Expression, IfBlock, isExpression } from ".";
 
 export type Rule = Expression | IfBlock;
 
@@ -12,7 +12,7 @@ export type RuleHeader =
 export type RuleSet = { [Header in RuleHeader]?: Rule };
 
 export const isRule = (input: any): input is Rule => {
-    if (isExpression(input) || isIfBlock(input)) {
+    if (isExpression(input) || input instanceof IfBlock) {
         return true;
     }
     return false;

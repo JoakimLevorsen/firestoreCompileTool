@@ -1,10 +1,4 @@
-import {
-    Block,
-    Expression,
-    IfBlock,
-    isIfBlock,
-    MatchGroup
-} from "../types";
+import { Block, Expression, IfBlock, MatchGroup } from "../types";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -121,25 +115,7 @@ const ruleToString = (
     item: Expression | IfBlock,
     ruleType: string
 ): string => {
-    return `allow ${ruleType}: if ${expressionOrIfToString(item)};\n`;
-};
-
-const expressionOrIfToString = (item: Expression | IfBlock) => {
-    if (isIfBlock(item)) {
-        return ifBlockToString(item);
-    }
-    return item.toString();
-};
-
-const ifBlockToString = (ifBlock: IfBlock): string => {
-    // a == b ? c : d <=> (a == b && c) || d
-    const stringCondition = ifBlock.condition.toString();
-    const b = expressionOrIfToString(ifBlock.ifTrue);
-    if (ifBlock.ifFalse) {
-        const c = expressionOrIfToString(ifBlock.ifFalse);
-        return `( (${stringCondition} && ${b}) || (${c}) )`;
-    }
-    return `(${stringCondition} && ${b})`;
+    return `allow ${ruleType}: if ${item.toString()};\n`;
 };
 
 export default stringifyBlock;
