@@ -27,7 +27,9 @@ export const extractNextToken = (
     if (keyword) {
         return keyword;
     }
-    throw new Error(`${input} was not recognized as a token`);
+    throw new Error(
+        `${JSON.stringify(input)} was not recognized as a token`
+    );
 };
 
 const extractNextRawValue = (
@@ -37,38 +39,43 @@ const extractNextRawValue = (
     if (match) {
         const remaining = input.replace(match, "");
         return {
-            token: { type: "Keyword", value: match },
-            remaining
+            remaining,
+            token: { type: "Keyword", value: match }
         };
     }
     return null;
 };
 
-const nonKeywordTokens: { [id: string]: { type: TokenType } } = {
-    "{": { type: "BlockOpen" },
-    "}": { type: "BlockClose" },
-    "[": { type: "IndexOpen" },
-    "]": { type: "IndexClose" },
+const nonKeywordTokens: {
+    [id: string]: { type: TokenType };
+} = {
+    ",": { type: "Comma" },
     ".": { type: "Dot" },
-    "|": { type: "Or" },
+    "/": { type: "Slash" },
     ":": { type: "Colon" },
     ";": { type: "SemiColon" },
-    "/": { type: "Slash" },
-    ",": { type: "Comma" },
     "=": { type: "Equals" },
-    "≠": { type: "NotEquals" },
-    "?": { type: "QuestionMark" }
+    "?": { type: "QuestionMark" },
+    "[": { type: "IndexOpen" },
+    "]": { type: "IndexClose" },
+    "{": { type: "BlockOpen" },
+    "|": { type: "Or" },
+    "}": { type: "BlockClose" },
+    "≠": { type: "NotEquals" }
 };
 
 const extractNextNonKeyword = (
     input: string
 ): { token: Token; remaining: string } | null => {
-    const NonKeywordRegex = /^[{};,:?=≠|\/\[\]]/;
-    const match = input.match(NonKeywordRegex);
-    if (match && match[0]) {
-        const remaining = input.replace(match[0], "");
-        if (nonKeywordTokens[match[0]]) {
-            return { token: nonKeywordTokens[match[0]], remaining };
+    const firstChar = input.match(/^([^\w])/);
+    if (firstChar && firstChar[1]) {
+        const match = nonKeywordTokens[firstChar[1]];
+        if (match) {
+            const remaining = input.replace(firstChar[1], "");
+            return {
+                remaining,
+                token: match
+            };
         }
     }
     return null;
@@ -83,8 +90,8 @@ const extractNextKeyword = (
         const keyword = match[0];
         const remaining = input.replace(keyword, "");
         return {
-            token: { type: "Keyword", value: keyword },
-            remaining
+            remaining,
+            token: { type: "Keyword", value: keyword }
         };
     }
     return null;
