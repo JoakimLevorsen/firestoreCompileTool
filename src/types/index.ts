@@ -1,38 +1,13 @@
 import KeywordObject from "./KeywordObject";
 import RawValue from "./RawValue";
 
-export {
-    AllTypes,
-    AllTypesArray,
-    isType,
-    Type,
-    typeToString
-} from "./Type";
-export {
-    Interface,
-    InterfaceContent,
-    InterfaceData,
-    isInterface,
-    isInterfaceContent
-} from "./Interface";
-export { Condition, Expression, isExpression } from "./Expression";
-export { IfBlock, isIfBlock } from "./IfBlock";
-export {
-    isRule,
-    isRuleHeader,
-    isRuleSet,
-    Rule,
-    RuleHeader,
-    RuleSet
-} from "./Rule";
-export { isMatchGroup, MatchGroup } from "./MatchGroup";
-export {
-    Block,
-    isBlock,
-    isToken,
-    isTokenType,
-    Token,
-    TokenType
-} from "./Token";
+export * from "./Type";
+export * from "./Interface";
+export * from "./Expression";
+export * from "./IfBlock";
+export * from "./Rule";
+export * from "./MatchGroup";
+export * from "./Token";
 export { KeywordObject };
 export { RawValue };
+export * from "./expressions";
