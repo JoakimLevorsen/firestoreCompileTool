@@ -1,9 +1,8 @@
-import chalk from "chalk";
 import { Block } from "../types";
-import { extractNextToken } from "./TokenParser";
 import InterfaceParser from "./InterfaceParser";
 import MatchParser from "./matchParser";
 import ParserError from "./ParserError";
+import { extractNextToken } from "./TokenParser";
 
 export type WAIT = "WAIT";
 export const WAIT: WAIT = "WAIT";
@@ -57,7 +56,11 @@ const parse = (input: string, debug = false) => {
             if (debug) {
                 console.log(
                     "Token history is",
-                    JSON.stringify(blockHistory)
+                    JSON.stringify(
+                        blockHistory.map(b =>
+                            b === null ? null : b.token
+                        )
+                    )
                 );
             }
             const firstError = parserErrorsThisRound[0];
