@@ -5,7 +5,6 @@ import {
     isIfBlock,
     MatchGroup
 } from "../types";
-import expressionToString from "./expressionToString";
 
 const header = `rules_version = '2';
 service cloud.firestore {
@@ -129,12 +128,12 @@ const expressionOrIfToString = (item: Expression | IfBlock) => {
     if (isIfBlock(item)) {
         return ifBlockToString(item);
     }
-    return expressionToString(item);
+    return item.toString();
 };
 
 const ifBlockToString = (ifBlock: IfBlock): string => {
     // a == b ? c : d <=> (a == b && c) || d
-    const stringCondition = expressionToString(ifBlock.condition);
+    const stringCondition = ifBlock.condition.toString();
     const b = expressionOrIfToString(ifBlock.ifTrue);
     if (ifBlock.ifFalse) {
         const c = expressionOrIfToString(ifBlock.ifFalse);

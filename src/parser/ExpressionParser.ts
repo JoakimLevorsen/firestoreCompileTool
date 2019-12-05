@@ -1,16 +1,21 @@
 import { WAIT } from ".";
-import { Expression, KeywordObject, Token } from "../types";
+import {
+    ConditionBuilder,
+    Expression,
+    KeywordObject,
+    Token,
+    Interface
+} from "../types";
+import RawValue from "../types/RawValue";
 import BaseParser from "./BaseParser";
 import ParserError from "./ParserError";
-import RawValue from "../types/RawValue";
 
 export default class ExpressionParser extends BaseParser {
     private stage:
         | "awaiting conditionVal"
         | "awaiting oprerator"
         | "awaiting conditionFin" = "awaiting conditionVal";
-    private conditionVal?: KeywordObject | RawValue;
-    private operatior?: string;
+    private conditionBuilder = new ConditionBuilder();
 
     // tslint:disable-next-line: no-empty
     public postConstructor() {}
@@ -27,13 +32,15 @@ export default class ExpressionParser extends BaseParser {
                 // Then we assume that the token is an item or rawValue
                 const rawValue = RawValue.toRawValue(token);
                 if (rawValue) {
-                    this.conditionVal = rawValue;
+                    this.conditionBuilder.setFirstValue(rawValue);
                 } else {
                     // TODO: Check this
-                    this.conditionVal = new KeywordObject(
-                        token.value,
-                        this.interfaces,
-                        this.variablePathComponents
+                    this.conditionBuilder.setFirstValue(
+                        new KeywordObject(
+                            token.value,
+                            this.interfaces,
+                            this.variablePathComponents
+                        )
                     );
                 }
                 this.stage = "awaiting oprerator";
@@ -43,24 +50,23 @@ export default class ExpressionParser extends BaseParser {
                     token.type === "Equals" ||
                     token.type === "NotEquals"
                 ) {
-                    this.operatior = token.type;
+                    this.conditionBuilder.setOperator(
+                        token.type === "Equals" ? "=" : "≠"
+                    );
                     this.stage = "awaiting conditionFin";
                     return WAIT;
                 }
                 // If a semicolon appears we interpret that as this line being done.
                 if (token.type === "SemiColon") {
-                    if (this.conditionVal instanceof RawValue) {
-                        return {
-                            type: "Expression",
-                            data: this.conditionVal!
-                        };
-                    }
-                    return builderError("Unexpected semicolon");
+                    return {
+                        data: this.conditionBuilder.getExpression(),
+                        type: "Expression"
+                    };
                 }
                 if (token.type !== "Keyword") {
                     return builderError(
                         "Unexpected token type, condition is " +
-                            this.conditionVal
+                            JSON.stringify(this.conditionBuilder)
                     );
                 }
                 // We now check for the valid keywords
@@ -68,110 +74,37 @@ export default class ExpressionParser extends BaseParser {
                     case "is":
                     case "only":
                     case "isOnly":
-                        this.operatior = token.value;
+                        this.conditionBuilder.setOperator(
+                            token.value
+                        );
                         this.stage = "awaiting conditionFin";
                         return WAIT;
                     default:
                         return builderError("Unknown operator");
                 }
             case "awaiting conditionFin":
-                return this.finalizeExpression(token, builderError);
-        }
-    }
-
-    private finalizeExpression(
-        token: Token,
-        builderError: (reason: string) => ParserError
-    ): ReturnType<ExpressionParser["addToken"]> {
-        if (token.type !== "Keyword") {
-            return builderError("Expected keyword");
-        }
-        if (!this.operatior || !this.conditionVal) {
-            return builderError("Internal error");
-        }
-        // Depending on the operator our next path changes.
-        switch (this.operatior) {
-            case "is":
-            case "only":
-            case "isOnly":
-                return this.finalizeIsOperator(
-                    token,
-                    builderError,
-                    this.operatior
+                if (token.type !== "Keyword") {
+                    return builderError("Expected keyword");
+                }
+                const newRawValue = RawValue.toRawValue(token);
+                const keywordValue = KeywordObject.toKeywordObject(
+                    token.value,
+                    this.interfaces,
+                    this.variablePathComponents
                 );
-            case "Equals":
-            case "NotEquals":
-                return this.finalizeEqualsOperator(
-                    token,
-                    builderError
-                );
-            default:
-                return builderError("Non valid comparison type");
-        }
-    }
-
-    private finalizeIsOperator(
-        token: Token,
-        builderError: (reason: string) => ParserError,
-        operatior: "is" | "only" | "isOnly"
-    ): ReturnType<ExpressionParser["addToken"]> {
-        if (token.type !== "Keyword") {
-            return builderError("Expected keyword");
-        }
-        if (!this.interfaces[token.value]) {
-            return builderError("Unknown interface");
-        }
-        if (this.conditionVal instanceof RawValue) {
-            throw new Error(
-                `is keyword only allowed for comparing Keyword Objects to interfaces`
-            );
-        }
-        return {
-            data: [
-                this.conditionVal!,
-                operatior,
-                this.interfaces[token.value]
-            ],
-            type: "Expression"
-        };
-    }
-
-    private finalizeEqualsOperator(
-        token: Token,
-        builderError: (reason: string) => ParserError
-    ): ReturnType<ExpressionParser["addToken"]> {
-        // TODO: Add support for more == types than bool
-        if (token.type !== "Keyword") {
-            return builderError("Expected keyword");
-        }
-        const rawValue = RawValue.toRawValue(token);
-        if (rawValue) {
-            // We got a value, so we just return that
-            return {
-                data: [
-                    this.conditionVal!,
-                    this.operatior === "Equals" ? "=" : "≠",
-                    rawValue
-                ],
-                type: "Expression"
-            };
-        }
-        try {
-            const keyword = new KeywordObject(
-                token.value,
-                this.interfaces,
-                this.variablePathComponents
-            );
-            return {
-                data: [
-                    this.conditionVal!,
-                    this.operatior === "Equals" ? "=" : "≠",
-                    keyword
-                ],
-                type: "Expression"
-            };
-        } catch {
-            return builderError("Unknown equality value check");
+                const target =
+                    newRawValue ||
+                    this.interfaces[token.value] ||
+                    keywordValue;
+                if (target) {
+                    return {
+                        data: this.conditionBuilder
+                            .setSecondValue(target)
+                            .getCondition(),
+                        type: "Expression"
+                    };
+                }
+                return builderError("Wat");
         }
     }
 

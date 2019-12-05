@@ -1,8 +1,7 @@
-import { isEqualCondition, isTypeCondition } from ".";
-import { isIsEqualCondition } from "./isEqualCondition";
-import { isIsTypeCondition } from "./isTypeCondition";
+import { IsEqualCondition, IsTypeCondition } from ".";
 
-export type Condition = isTypeCondition | isEqualCondition;
+export type Condition = IsTypeCondition | IsEqualCondition;
 
 export const isCondition = (input: any): input is Condition =>
-    isIsEqualCondition(input) || isIsTypeCondition(input);
+    input instanceof IsEqualCondition ||
+    input instanceof IsTypeCondition;

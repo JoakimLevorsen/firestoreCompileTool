@@ -91,6 +91,22 @@ interface TargetWithKey {
 }
 
 export default class KeywordObject {
+    public static toKeywordObject(
+        input: string,
+        interfaces?: { [id: string]: Interface },
+        variablePathComponents?: string[]
+    ): KeywordObject | null {
+        try {
+            return new KeywordObject(
+                input,
+                interfaces,
+                variablePathComponents
+            );
+        } catch {
+            return null;
+        }
+    }
+
     private rootTarget: TargetWithKey | null = null;
     private subTargets: TargetWithKey[] | null = null;
     private variablePathComponents: string[];

@@ -1,9 +1,4 @@
-export {
-    isEqualCondition,
-    isIsEqualCondition
-} from "./isEqualCondition";
-export {
-    isTypeCondition,
-    isIsTypeCondition
-} from "./isTypeCondition";
-export { Condition, isCondition } from "./Condition";
+export * from "./IsEqualCondition";
+export * from "./IsTypeCondition";
+export * from "./Condition";
+export * from "./ConditionBuilder";

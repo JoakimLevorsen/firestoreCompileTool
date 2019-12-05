@@ -1,36 +1,26 @@
 import { KeywordObject, RawValue } from "..";
 
-export type isEqualCondition = [
-    RawValue | KeywordObject,
-    "=" | "≠",
-    RawValue | KeywordObject
-];
+type SubValue = RawValue | KeywordObject;
 
-export const isIsEqualCondition = (
-    input: any
-): input is isEqualCondition => {
-    if (!(input instanceof Array) || input.length !== 3) {
-        return false;
-    }
-    const [first, operator, second] = input;
-    if (
-        !(first instanceof KeywordObject || first instanceof RawValue)
+export class IsEqualCondition {
+    public values: [SubValue, SubValue];
+    public equal: boolean;
+    constructor(
+        firstValue: SubValue,
+        equals: "=" | "≠" | boolean,
+        secondValue: SubValue
     ) {
-        return false;
+        this.values = [firstValue, secondValue];
+        if (typeof equals === "boolean") {
+            this.equal = equals;
+        } else {
+            this.equal = equals === "=";
+        }
     }
-    if (
-        typeof operator !== "string" ||
-        !(operator === "=" || operator === "≠")
-    ) {
-        return false;
+
+    public toString(): string {
+        const [firstValue, secondValue] = this.values;
+        const comparison = this.equal ? "==" : "!=";
+        return `${firstValue} ${comparison} ${secondValue}`;
     }
-    if (
-        !(
-            second instanceof KeywordObject ||
-            second instanceof RawValue
-        )
-    ) {
-        return false;
-    }
-    return true;
-};
+}
