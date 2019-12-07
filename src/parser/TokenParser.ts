@@ -8,7 +8,9 @@ export const extractNextToken = (
     const toConsider = input
         .replace(/^\s*/, "")
         .replace(/^==/, "=")
-        .replace(/^!=/, "≠");
+        .replace(/^!=/, "≠")
+        .replace(/^&&/, "&")
+        .replace(/^\|\|/, "|");
 
     // First we check if this is simply whitespace
     if (/^\s*$/.test(toConsider)) {
@@ -60,6 +62,7 @@ const nonKeywordTokens: {
     "]": { type: "IndexClose" },
     "{": { type: "BlockOpen" },
     "|": { type: "Or" },
+    "&": { type: "And" },
     "}": { type: "BlockClose" },
     "≠": { type: "NotEquals" }
 };

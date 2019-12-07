@@ -30,7 +30,8 @@ export default class RuleParser extends BaseParser {
     }
 
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ): ParserError | WAIT | { type: "Rule"; data: Rule } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
@@ -48,7 +49,10 @@ export default class RuleParser extends BaseParser {
                 }
                 return builderError("Unexpected token");
             case "building oneLiner":
-                const parserReturn = this.deepParser.addToken(token);
+                const parserReturn = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
@@ -57,7 +61,10 @@ export default class RuleParser extends BaseParser {
                 }
                 return { type: "Rule", data: parserReturn.data };
             case "building rule":
-                const parserReturn2 = this.deepParser.addToken(token);
+                const parserReturn2 = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
@@ -68,6 +75,7 @@ export default class RuleParser extends BaseParser {
                 // we can't return now since we need to catch the last }
                 if (
                     parserReturn2.type === "Expression" ||
+                    parserReturn2.type === "ExpressionGroup" ||
                     parserReturn2.data.ifFalse === undefined
                 ) {
                     return { type: "Rule", data: parserReturn2.data };

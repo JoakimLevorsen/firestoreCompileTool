@@ -24,7 +24,8 @@ export default class InterfaceParser extends BaseParser {
     public postConstructor() {}
 
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ):
         | ParserError
         | WAIT

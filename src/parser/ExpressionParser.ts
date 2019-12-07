@@ -21,7 +21,8 @@ export default class ExpressionParser extends BaseParser {
     public postConstructor() {}
 
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ): ParserError | WAIT | { type: "Expression"; data: Expression } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
@@ -43,6 +44,13 @@ export default class ExpressionParser extends BaseParser {
                         )
                     );
                 }
+                // We check if a semiColon is upcomming, if so we return now
+                if (nextToken && nextToken.type === "SemiColon") {
+                    return {
+                        data: this.conditionBuilder.getExpression(),
+                        type: "Expression"
+                    };
+                }
                 this.stage = "awaiting oprerator";
                 return WAIT;
             case "awaiting oprerator":
@@ -55,13 +63,6 @@ export default class ExpressionParser extends BaseParser {
                     );
                     this.stage = "awaiting conditionFin";
                     return WAIT;
-                }
-                // If a semicolon appears we interpret that as this line being done.
-                if (token.type === "SemiColon") {
-                    return {
-                        data: this.conditionBuilder.getExpression(),
-                        type: "Expression"
-                    };
                 }
                 if (token.type !== "Keyword") {
                     return builderError(

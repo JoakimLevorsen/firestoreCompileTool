@@ -11,3 +11,4 @@ export * from "./Token";
 export { KeywordObject };
 export { RawValue };
 export * from "./expressions";
+export * from "./ExpressionGroup";

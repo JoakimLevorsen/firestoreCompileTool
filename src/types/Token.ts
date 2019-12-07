@@ -9,6 +9,7 @@ export type TokenType =
     | "IndexClose"
     | "Dot"
     | "Or"
+    | "And"
     | "Colon"
     | "SemiColon"
     | "Slash"
@@ -37,6 +38,7 @@ export const isTokenType = (input: any): input is TokenType => {
         input === "IndexClose" ||
         input === "Dot" ||
         input === "Or" ||
+        input === "And" ||
         input === "Colon" ||
         input === "SemiColon" ||
         input === "Slash" ||

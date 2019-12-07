@@ -1,8 +1,14 @@
 import { WAIT } from ".";
-import { Expression, IfBlock, Token, IfBlockBuilder } from "../types";
+import {
+    Expression,
+    IfBlock,
+    Token,
+    IfBlockBuilder,
+    ExpressionGroup
+} from "../types";
 import BaseParser from "./BaseParser";
-import ExpressionParser from "./ExpressionParser";
 import ParserError from "./ParserError";
+import ExpressionGroupParser from "./ExpressionGroupParser";
 
 export default class IfParser extends BaseParser {
     private stage:
@@ -13,22 +19,24 @@ export default class IfParser extends BaseParser {
         | "awaiting false"
         | "building false" = "awaiting keyword";
     private buildingExpression = false;
-    private deepParser!: ExpressionParser | IfParser;
+    private deepParser!: ExpressionGroupParser | IfParser;
     private blockBuilder = new IfBlockBuilder();
     private hasSeenOneBlockClose = false;
 
     public postConstructor() {
-        this.deepParser = this.spawn(ExpressionParser);
+        this.deepParser = this.spawn(ExpressionGroupParser);
     }
 
     // NOTE, this will return one token too late if no else part exists
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ):
         | ParserError
         | WAIT
         | { type: "IfBlock"; data: IfBlock }
-        | { type: "Expression"; data: Expression } {
+        | { type: "Expression"; data: Expression }
+        | { type: "ExpressionGroup"; data: ExpressionGroup } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "awaiting keyword":
@@ -47,7 +55,10 @@ export default class IfParser extends BaseParser {
                 }
                 return builderError("Unknown keyword");
             case "awaiting condition":
-                const parserReturn = this.deepParser.addToken(token);
+                const parserReturn = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 // If we're only building an expression, we can return whatever the parser gave.
                 if (
                     this.buildingExpression ||
@@ -73,7 +84,10 @@ export default class IfParser extends BaseParser {
                 }
                 return builderError("Unexpected token");
             case "building true":
-                const parserReturn2 = this.deepParser.addToken(token);
+                const parserReturn2 = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
@@ -111,7 +125,10 @@ export default class IfParser extends BaseParser {
                     }
                 }
             case "building false":
-                const parserReturn3 = this.deepParser.addToken(token);
+                const parserReturn3 = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn3 === WAIT ||
                     parserReturn3 instanceof ParserError
