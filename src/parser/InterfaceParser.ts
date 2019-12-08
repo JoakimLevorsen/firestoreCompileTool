@@ -56,7 +56,7 @@ export default class InterfaceParser extends BaseParser {
                     InterfaceParser
                 );
             case "awaiting block":
-                if (token.type === "BlockOpen") {
+                if (token.type === "{") {
                     this.stage = "building block";
                     return WAIT;
                 }
@@ -67,7 +67,7 @@ export default class InterfaceParser extends BaseParser {
                 );
             case "building block":
                 // First we check if we've been closed
-                if (token.type === "BlockClose") {
+                if (token.type === "}") {
                     // Are we currently building a property?
                     if (this.nextProperty) {
                         return new ParserError(
@@ -100,7 +100,7 @@ export default class InterfaceParser extends BaseParser {
                     this.nextProperty.set !== undefined
                 ) {
                     // If we got a semiColon and one type has been added, we are done.
-                    if (token.type === "SemiColon") {
+                    if (token.type === ";") {
                         if (
                             this.interface[this.nextProperty.name] ===
                             undefined
@@ -116,7 +116,7 @@ export default class InterfaceParser extends BaseParser {
                     }
                     // If we got a | we just ignore it for now, add checks later
                     // TODO
-                    if (token.type === "Or") {
+                    if (token.type === "|") {
                         return WAIT;
                     }
                     // If we got a keyword it must be a type we'll ad to the interface.
@@ -174,11 +174,11 @@ export default class InterfaceParser extends BaseParser {
                 // Have we started building a variable?
                 if (this.nextProperty) {
                     // ? Means we got an optional
-                    if (token.type === "QuestionMark") {
+                    if (token.type === "?") {
                         this.nextProperty.optional = true;
                         return WAIT;
                     }
-                    if (token.type === "Colon") {
+                    if (token.type === ":") {
                         // Only set the optional if we haven't set it to true
                         if (
                             this.nextProperty.optional === undefined

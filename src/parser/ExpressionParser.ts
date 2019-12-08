@@ -45,7 +45,7 @@ export default class ExpressionParser extends BaseParser {
                     );
                 }
                 // We check if a semiColon is upcomming, if so we return now
-                if (nextToken && nextToken.type === "SemiColon") {
+                if (nextToken && nextToken.type === ";") {
                     return {
                         data: this.conditionBuilder.getExpression(),
                         type: "Expression"
@@ -54,13 +54,8 @@ export default class ExpressionParser extends BaseParser {
                 this.stage = "awaiting oprerator";
                 return WAIT;
             case "awaiting oprerator":
-                if (
-                    token.type === "Equals" ||
-                    token.type === "NotEquals"
-                ) {
-                    this.conditionBuilder.setOperator(
-                        token.type === "Equals" ? "=" : "≠"
-                    );
+                if (token.type === "=" || token.type === "≠") {
+                    this.conditionBuilder.setOperator(token.type);
                     this.stage = "awaiting conditionFin";
                     return WAIT;
                 }

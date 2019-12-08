@@ -3,20 +3,46 @@ import { isInterface } from "./Interface";
 import { isMatchGroup } from "./MatchGroup";
 
 export type TokenType =
-    | "BlockOpen"
-    | "BlockClose"
-    | "IndexOpen"
-    | "IndexClose"
-    | "Dot"
-    | "Or"
-    | "And"
-    | "Colon"
-    | "SemiColon"
-    | "Slash"
-    | "Comma"
-    | "Equals"
-    | "NotEquals"
-    | "QuestionMark";
+    | "{"
+    | "}"
+    | "["
+    | "]"
+    | "."
+    | "|"
+    | "&"
+    | ":"
+    | ";"
+    | "/"
+    | ","
+    | "="
+    | "≠"
+    | "?"
+    | "("
+    | ")";
+
+const nonKeyWordTokenArray: TokenType[] = [
+    "{",
+    "}",
+    "[",
+    "]",
+    ".",
+    ",",
+    "|",
+    "&",
+    ":",
+    ";",
+    "/",
+    ",",
+    "=",
+    "≠",
+    "?",
+    "(",
+    ")"
+];
+
+export const AllNonKeywordTokenTypes: Set<TokenType> = new Set(
+    nonKeyWordTokenArray
+);
 
 export type Token =
     | { type: TokenType }
@@ -31,25 +57,10 @@ export const isTokenType = (input: any): input is TokenType => {
     if (typeof input !== "string") {
         return false;
     }
-    if (
-        input === "BlockOpen" ||
-        input === "BlockClose" ||
-        input === "IndexOpen" ||
-        input === "IndexClose" ||
-        input === "Dot" ||
-        input === "Or" ||
-        input === "And" ||
-        input === "Colon" ||
-        input === "SemiColon" ||
-        input === "Slash" ||
-        input === "Comma" ||
-        input === "Equals" ||
-        input === "NotEquals" ||
-        input === "QuestionMark"
-    ) {
+    if (input === "Keyword") {
         return true;
     }
-    return false;
+    return AllNonKeywordTokenTypes.has(input as TokenType);
 };
 
 export const isToken = (input: any): input is Token => {

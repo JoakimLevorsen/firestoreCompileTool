@@ -9,7 +9,7 @@ export default class ExpressionGroupParser extends BaseParser {
     private stage: "building expression" | "awaiting logic" =
         "building expression";
     private newExpression?: ExpressionGroup;
-    private expressionParser = this.spawn(ExpressionParser);
+    private deepParser?: ExpressionGroupParser | ExpressionParser;
 
     postConstructor() {}
 
@@ -24,7 +24,21 @@ export default class ExpressionGroupParser extends BaseParser {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "building expression":
-                const deepResponse = this.expressionParser.addToken(
+                if (!this.deepParser) {
+                    /* If no parser has been set, we either set an Expression or ExpressionGroup parser.
+                    Depending on if we encounter a (.
+                        */
+                    if (token.type === "(") {
+                        this.deepParser = this.spawn(
+                            ExpressionGroupParser
+                        );
+                    } else {
+                        this.deepParser = this.spawn(
+                            ExpressionParser
+                        );
+                    }
+                }
+                const deepResponse = this.deepParser.addToken(
                     token,
                     nextToken
                 );
@@ -46,9 +60,9 @@ export default class ExpressionGroupParser extends BaseParser {
                 // We check if this is the end of the expressionGroup
                 if (
                     nextToken &&
-                    (nextToken.type === "SemiColon" ||
-                        nextToken.type === "BlockClose" ||
-                        nextToken.type === "BlockOpen")
+                    (nextToken.type === ";" ||
+                        nextToken.type === "{" ||
+                        nextToken.type === "}")
                 ) {
                     const expression = this.newExpression!.ifOnlyExpressionReturn();
                     if (expression) {
@@ -65,13 +79,11 @@ export default class ExpressionGroupParser extends BaseParser {
                 this.stage = "awaiting logic";
                 return WAIT;
             case "awaiting logic":
-                if (token.type === "Or" || token.type === "And") {
+                if (token.type === "|" || token.type === "&") {
                     this.newExpression!.addLogic(
-                        token.type === "And" ? "&&" : "||"
+                        token.type === "&" ? "&&" : "||"
                     );
-                    this.expressionParser = this.spawn(
-                        ExpressionParser
-                    );
+                    this.deepParser = undefined;
                     this.stage = "building expression";
                     return WAIT;
                 }

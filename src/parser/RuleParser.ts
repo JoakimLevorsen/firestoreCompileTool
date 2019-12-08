@@ -36,7 +36,7 @@ export default class RuleParser extends BaseParser {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "awating start":
-                if (token.type === "BlockOpen") {
+                if (token.type === "{") {
                     // This means we're dealing with a normal rule block.
                     this.stage = "building rule";
                     return WAIT;
@@ -84,11 +84,11 @@ export default class RuleParser extends BaseParser {
                 this.returnable = parserReturn2.data;
                 return WAIT;
             case "awating finish":
-                if (token.type === "SemiColon") {
+                if (token.type === ";") {
                     // We ignore this for now.
                     return WAIT;
                 }
-                if (token.type === "BlockClose") {
+                if (token.type === "}") {
                     if (this.returnable) {
                         return {
                             data: this.returnable,

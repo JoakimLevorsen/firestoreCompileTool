@@ -76,7 +76,7 @@ export default class IfParser extends BaseParser {
                 this.stage = "awaiting true";
                 return WAIT;
             case "awaiting true":
-                if (token.type === "BlockOpen") {
+                if (token.type === "{") {
                     this.stage = "building true";
                     // Then we reset the parser
                     this.deepParser = this.spawn(IfParser);
@@ -105,7 +105,7 @@ export default class IfParser extends BaseParser {
                     // The lack of a break is intentional, since we'll fall into the next case
                     this.stage = "building false";
                 }
-                if (token.type === "SemiColon") {
+                if (token.type === ";") {
                     // We just ignore this for now
                     return WAIT;
                 } else {
@@ -115,7 +115,7 @@ export default class IfParser extends BaseParser {
                         return WAIT;
                     }
                     // This means we aren't building a false token, so we return the condition and the true
-                    if (token.type === "BlockClose") {
+                    if (token.type === "}") {
                         return {
                             data: this.blockBuilder.getIfBlock(),
                             type: "IfBlock"
