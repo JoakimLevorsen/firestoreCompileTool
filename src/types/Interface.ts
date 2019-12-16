@@ -12,6 +12,8 @@ export interface Interface {
     [id: string]: InterfaceContent;
 }
 
+export type InterfaceMap = { [id: string]: Interface };
+
 export const isInterface = (input: any): input is Interface => {
     if (typeof input !== "object") {
         return false;

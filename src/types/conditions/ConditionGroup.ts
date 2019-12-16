@@ -1,18 +1,18 @@
-import { Expression } from "./Expression";
+import { Condition } from "./Condition";
 
 type Logic = "&&" | "||";
 
 export class ExpressionGroup {
-    private firstVal: Expression;
-    private vals: Array<{ logic: Logic; val: Expression }>;
+    private firstVal: Condition;
+    private vals: Array<{ logic: Logic; val: Condition }>;
     private nextVal?: Logic;
 
-    constructor(base: Expression) {
+    constructor(base: Condition) {
         this.firstVal = base;
         this.vals = [];
     }
 
-    public addExpression(val: Expression) {
+    public addExpression(val: Condition) {
         const logic = this.nextVal;
         if (!logic) throw new Error("No logic for expression");
         this.vals.push({ logic, val });

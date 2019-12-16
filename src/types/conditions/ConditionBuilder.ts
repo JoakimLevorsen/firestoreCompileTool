@@ -3,9 +3,9 @@ import {
     Expression,
     Interface,
     isInterface,
-    KeywordObject,
-    RawValue
+    KeywordObject
 } from "..";
+import RawValue from "../RawValue";
 
 type equalsValues = "=" | "≠";
 type isValues = "is" | "only" | "isOnly";

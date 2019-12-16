@@ -1,6 +1,6 @@
-import { Expression, IfBlock, isExpression } from ".";
+import { Expression, isExpression, IfBlock, CodeBlock } from ".";
 
-export type Rule = Expression | IfBlock;
+export type Rule = Expression | IfBlock | CodeBlock;
 
 export type RuleHeader =
     | "read"
