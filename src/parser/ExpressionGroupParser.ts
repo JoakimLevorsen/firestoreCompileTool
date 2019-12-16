@@ -32,11 +32,10 @@ export default class ExpressionGroupParser extends BaseParser {
                         this.deepParser = this.spawn(
                             ExpressionGroupParser
                         );
-                    } else {
-                        this.deepParser = this.spawn(
-                            ExpressionParser
-                        );
+                        // Since this would create an infinite loop, we return here
+                        return WAIT;
                     }
+                    this.deepParser = this.spawn(ExpressionParser);
                 }
                 const deepResponse = this.deepParser.addToken(
                     token,
