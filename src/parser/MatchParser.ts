@@ -1,8 +1,8 @@
 import { WAIT } from ".";
 import ParserError from "./ParserError";
 import RuleParser, { extractRuleFromString } from "./RuleParser";
-import ExpressionParser from "./ExpressionParser";
 import { MatchGroup, Token, RuleHeader, RuleSet } from "../types";
+import ExpressionGroupParser from "./ExpressionGroupParser";
 import BaseParser from "./BaseParser";
 
 export default class MatchParser extends BaseParser {
@@ -17,7 +17,7 @@ export default class MatchParser extends BaseParser {
         | "awaiting first rule word"
         | "building rule" = "awaiting keyword";
     ruleToBuildType: RuleHeader[] = [];
-    deepParser!: RuleParser | ExpressionParser;
+    deepParser!: RuleParser | ExpressionGroupParser;
     subMatchParser?: MatchParser;
     subGroups?: MatchGroup[];
     twoBlockCloseInARow = false;
@@ -27,7 +27,8 @@ export default class MatchParser extends BaseParser {
     }
 
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ): ParserError | WAIT | { type: "Match"; data: MatchGroup } {
         const errorBuilder = this.buildError(token);
         switch (this.stage) {
@@ -45,7 +46,7 @@ export default class MatchParser extends BaseParser {
                     this.addToPath(token.value);
                     return WAIT;
                 }
-                if (token.type === "Slash") {
+                if (token.type === "/") {
                     // TODO
                     // Add more checks later
                     if (this.addingPathComponent) {
@@ -56,7 +57,7 @@ export default class MatchParser extends BaseParser {
                     }
                     return WAIT;
                 }
-                if (token.type === "BlockOpen") {
+                if (token.type === "{") {
                     if (!this.addingPathComponent) {
                         // We assume the path is done if not adding path component.
                         // this.stage = "awaiting token";
@@ -64,7 +65,7 @@ export default class MatchParser extends BaseParser {
                         return WAIT;
                     }
                 }
-                if (token.type === "IndexOpen") {
+                if (token.type === "[") {
                     if (this.addingPathComponent) {
                         return errorBuilder(
                             "Can't open path component, when previous wasn't finished",
@@ -74,7 +75,7 @@ export default class MatchParser extends BaseParser {
                     this.addingPathComponent = true;
                     return WAIT;
                 }
-                if (token.type === "IndexClose") {
+                if (token.type === "]") {
                     this.addingPathComponent = false;
                     return WAIT;
                 }
@@ -96,7 +97,8 @@ export default class MatchParser extends BaseParser {
                 /* If the subMatchParser exists, we are building a submatch, and will just continue giving that our data untill it's done*/
                 if (this.subMatchParser) {
                     const result = this.subMatchParser.addToken(
-                        token
+                        token,
+                        nextToken
                     );
                     if (
                         result instanceof ParserError ||
@@ -120,7 +122,10 @@ export default class MatchParser extends BaseParser {
                             this.subMatchParser = new MatchParser(
                                 this.interfaces
                             );
-                            this.subMatchParser.addToken(token);
+                            this.subMatchParser.addToken(
+                                token,
+                                nextToken
+                            );
                             return WAIT;
                         } else {
                             throw new Error(
@@ -133,16 +138,16 @@ export default class MatchParser extends BaseParser {
                     this.ruleToBuildType.push(rule);
                     return WAIT;
                 }
-                if (token.type === "Comma") {
+                if (token.type === ",") {
                     // We ignore this now, fix in future.
                     return WAIT;
                 }
-                if (token.type === "Colon") {
+                if (token.type === ":") {
                     // We wait for the first word of the new rule to se if it's a oneliner
                     this.stage = "awaiting first rule word";
                     return WAIT;
                 }
-                if (token.type === "BlockClose") {
+                if (token.type === "}") {
                     // Are we finishing a previous rule, or are we all done?
                     // TODO: WHY DID REMOVING THIS FIX ANYTHING?
                     // if (!this.twoBlockCloseInARow) {
@@ -161,7 +166,7 @@ export default class MatchParser extends BaseParser {
                         }
                     };
                 }
-                if (token.type === "SemiColon") {
+                if (token.type === ";") {
                     // We ignore this for now
                     return WAIT;
                 }
@@ -170,26 +175,28 @@ export default class MatchParser extends BaseParser {
                     this.stage
                 );
             case "awaiting first rule word":
-                if (
-                    token.type !== "Keyword" &&
-                    token.type !== "BlockOpen"
-                ) {
+                if (token.type !== "Keyword" && token.type !== "{") {
                     return errorBuilder("Expected keyword");
                 }
                 if (
-                    token.type === "BlockOpen" ||
+                    token.type === "{" ||
                     (token.type === "Keyword" &&
                         (token.value === "if" ||
                             token.value === "return"))
                 ) {
                     this.deepParser = this.spawn(RuleParser);
                 } else {
-                    this.deepParser = this.spawn(ExpressionParser);
+                    this.deepParser = this.spawn(
+                        ExpressionGroupParser
+                    );
                 }
                 this.stage = "building rule";
             // We don't return since we want to fall into the next case.
             case "building rule":
-                const parserReturn = this.deepParser.addToken(token);
+                const parserReturn = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
@@ -207,7 +214,7 @@ export default class MatchParser extends BaseParser {
                 this.ruleToBuildType = [];
                 // If this rule was a one liner, we've already passed a metaphorical blockClose
                 this.twoBlockCloseInARow =
-                    this.deepParser instanceof ExpressionParser;
+                    this.deepParser instanceof ExpressionGroupParser;
                 return WAIT;
             default:
                 return errorBuilder(

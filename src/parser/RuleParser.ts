@@ -30,12 +30,13 @@ export default class RuleParser extends BaseParser {
     }
 
     public addToken(
-        token: Token
+        token: Token,
+        nextToken: Token | null
     ): ParserError | WAIT | { type: "Rule"; data: Rule } {
         const builderError = this.buildError(token, this.stage);
         switch (this.stage) {
             case "awating start":
-                if (token.type === "BlockOpen") {
+                if (token.type === "{") {
                     // This means we're dealing with a normal rule block.
                     this.stage = "building rule";
                     return WAIT;
@@ -48,7 +49,10 @@ export default class RuleParser extends BaseParser {
                 }
                 return builderError("Unexpected token");
             case "building oneLiner":
-                const parserReturn = this.deepParser.addToken(token);
+                const parserReturn = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn === WAIT ||
                     parserReturn instanceof ParserError
@@ -57,7 +61,10 @@ export default class RuleParser extends BaseParser {
                 }
                 return { type: "Rule", data: parserReturn.data };
             case "building rule":
-                const parserReturn2 = this.deepParser.addToken(token);
+                const parserReturn2 = this.deepParser.addToken(
+                    token,
+                    nextToken
+                );
                 if (
                     parserReturn2 === WAIT ||
                     parserReturn2 instanceof ParserError
@@ -68,6 +75,7 @@ export default class RuleParser extends BaseParser {
                 // we can't return now since we need to catch the last }
                 if (
                     parserReturn2.type === "Expression" ||
+                    parserReturn2.type === "ExpressionGroup" ||
                     parserReturn2.data.ifFalse === undefined
                 ) {
                     return { type: "Rule", data: parserReturn2.data };
@@ -76,11 +84,11 @@ export default class RuleParser extends BaseParser {
                 this.returnable = parserReturn2.data;
                 return WAIT;
             case "awating finish":
-                if (token.type === "SemiColon") {
+                if (token.type === ";") {
                     // We ignore this for now.
                     return WAIT;
                 }
-                if (token.type === "BlockClose") {
+                if (token.type === "}") {
                     if (this.returnable) {
                         return {
                             data: this.returnable,

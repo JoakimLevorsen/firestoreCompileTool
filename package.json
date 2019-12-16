@@ -4,11 +4,12 @@
     "description": "",
     "main": "./lib/index.js",
     "scripts": {
-        "test": "yarn build && yarn start",
+        "buildRun": "yarn build && yarn start ./test/testFiles/testFile2.kakao ./output.rules",
         "build": "tsc && npm run lint",
         "buildNoLint": "tsc",
         "lint": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
-        "start": "node ./lib/index.js"
+        "start": "node ./lib/index.js",
+        "test": "mocha -r ts-node/register ./test/**/*.spec.ts"
     },
     "author": "",
     "license": "ISC",
@@ -22,13 +23,16 @@
         "path": "^0.12.7"
     },
     "devDependencies": {
+        "@types/chai": "^4.2.6",
+        "@types/mocha": "^5.2.7",
         "@types/node": "^12.12.7",
+        "chai": "^4.2.0",
         "eslint-config-prettier": "^6.5.0",
         "eslint-plugin-prettier": "^3.1.1",
         "mocha": "^6.2.2",
         "nodemon": "^1.19.4",
         "prettier": "^1.19.1",
-        "ts-node": "^8.4.1",
+        "ts-node": "^8.5.4",
         "typescript": "^3.7.2"
     },
     "bin": {

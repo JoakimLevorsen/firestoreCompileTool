@@ -1,9 +1,8 @@
-import chalk from "chalk";
-import { Block } from "../types";
-import { extractNextToken } from "./TokenParser";
+import { Block, Token } from "../types";
 import InterfaceParser from "./InterfaceParser";
 import MatchParser from "./matchParser";
 import ParserError from "./ParserError";
+import { extractNextToken } from "./TokenParser";
 
 export type WAIT = "WAIT";
 export const WAIT: WAIT = "WAIT";
@@ -11,22 +10,32 @@ export const WAIT: WAIT = "WAIT";
 const parsers = [InterfaceParser, MatchParser];
 
 const parse = (input: string, debug = false) => {
-    let done = false;
     let remaining = input;
     const block: Block = { interfaces: {}, matchGroups: [] };
     let myParsers = parsers.map(p => new p(block.interfaces));
     const blockHistory: Array<ReturnType<
         typeof extractNextToken
     >> = [];
-    while (!done) {
-        const nextBlock = extractNextToken(remaining);
-        blockHistory.push(nextBlock);
-        if (nextBlock === null) {
-            done = true;
+    let nextToken: ReturnType<typeof extractNextToken> = null;
+    do {
+        const thisToken = nextToken;
+        nextToken = extractNextToken(remaining);
+        if (nextToken) {
+            remaining = nextToken.remaining;
+        }
+        // For the first loop this token will be empty, but not next token
+        if (!thisToken && nextToken) {
+            continue;
+        }
+        if (thisToken === null) {
             break;
         }
+        blockHistory.push(thisToken);
         const parserResponses = myParsers.map(p =>
-            p.addToken(nextBlock.token)
+            p.addToken(
+                thisToken.token,
+                nextToken !== null ? nextToken.token : null
+            )
         );
         const parserErrorsThisRound: Error[] = [];
         parserResponses.forEach((p, i) => {
@@ -57,7 +66,11 @@ const parse = (input: string, debug = false) => {
             if (debug) {
                 console.log(
                     "Token history is",
-                    JSON.stringify(blockHistory)
+                    JSON.stringify(
+                        blockHistory.map(b =>
+                            b === null ? null : b.token
+                        )
+                    )
                 );
             }
             const firstError = parserErrorsThisRound[0];
@@ -67,14 +80,12 @@ const parse = (input: string, debug = false) => {
             throw new Error("Ran out of parsers");
         }
         if (
-            nextBlock.remaining === "" ||
-            /^\s*$/.test(nextBlock.remaining)
+            thisToken.remaining === "" ||
+            /^\s*$/.test(thisToken.remaining)
         ) {
-            done = true;
             break;
         }
-        remaining = nextBlock.remaining;
-    }
+    } while (nextToken !== null);
     return block;
 };
 
