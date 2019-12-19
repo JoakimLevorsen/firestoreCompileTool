@@ -1,6 +1,6 @@
 import { Token } from "../types";
 
-export class ParserError {
+export default class ParserError {
     private reason: string;
     private token: Token;
     private error: Error;
@@ -35,9 +35,3 @@ export class ParserError {
         } on ${JSON.stringify(this.token)}`;
     }
 }
-
-export const ParserErrorBuilder = (parser: Function) => (
-    stage: string,
-    token: Token
-) => (reason: string) =>
-    new ParserError(reason, token, parser, stage);

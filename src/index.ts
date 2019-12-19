@@ -5,7 +5,7 @@ import clear from "clear";
 import figlet from "figlet";
 import * as fs from "fs";
 import blockToRules from "./outputTools";
-import parse from "./parser";
+import parse from "./oldParsers";
 
 const [inputFile, outputFile] = process.argv;
 

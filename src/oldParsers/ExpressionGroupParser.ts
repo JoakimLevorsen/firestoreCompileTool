@@ -1,5 +1,5 @@
 import BaseParser from "./BaseParser";
-import { ExpressionGroup } from "../types/ExpressionGroup";
+import { ExpressionGroup } from "../types/conditions/ConditionGroup";
 import { Token, Expression } from "../types";
 import ParserError from "./ParserError";
 import { WAIT } from ".";

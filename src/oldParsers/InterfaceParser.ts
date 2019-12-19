@@ -1,7 +1,8 @@
-import { WAIT, ParserError } from ".";
+import { WAIT } from ".";
 import { Interface, InterfaceData, Token } from "../types";
 import BaseParser from "./BaseParser";
-import TypeParser from "./TypeParser";
+import ParserError from "./ParserError";
+import extractType from "./TypeParser";
 
 // String indicates fail reason, "WAIT" indicates that operation will continue,
 // and the type with data indicates that we finished.
@@ -120,7 +121,7 @@ export default class InterfaceParser extends BaseParser {
                     }
                     // If we got a keyword it must be a type we'll ad to the interface.
                     if (token.type === "Keyword") {
-                        const type = TypeParser(token.value);
+                        const type = extractType(token.value);
                         // If we can't find the type, fail it.
                         if (type === undefined) {
                             return new ParserError(

@@ -1,6 +1,7 @@
 import { InterfaceMap, Interface } from "../Interface";
 import { ConstantCollection, Constant } from "../expressions";
 import MatchBlock from "./MatchBlock";
+import { CollapsedBlock } from "./BlockChain";
 
 export class Block {
     private interfaces: InterfaceMap = {};
@@ -18,4 +19,9 @@ export class Block {
 
     public addMatchBlock = (mBlock: MatchBlock) =>
         this.matchBlocks.push(mBlock);
+
+    public getCollapsed = (): CollapsedBlock => ({
+        interfaces: this.interfaces,
+        constants: this.constants
+    });
 }
