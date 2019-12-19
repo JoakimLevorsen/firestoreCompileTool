@@ -1,435 +1,168 @@
+import { Type } from ".";
+import { CollapsedBlock } from "./blocks";
+import { Interface } from "readline";
 import {
-    Interface,
     InterfaceContent,
-    isInterface,
-    isInterfaceContent
-} from ".";
-import { Type } from "./Type";
+    isInterfaceContent,
+    isInterface
+} from "./Interface";
+import { isType } from "./Type";
+import { Token } from "./Token";
 
 type ANY = "ANY";
 const ANY: ANY = "ANY";
-type pureValues = Type | "ANY" | List | Map;
-type ValueType = pureValues | FUNCTION<pureValues> | ObjectType;
-interface FUNCTION<T extends ValueType> {
+type VALUE_TYPE = Type | ANY | FUNCTION;
+
+interface FUNCTION {
     type: "FUNCTION";
-    returns: T;
+    returns: VALUE_TYPE;
+    paramenters: VALUE_TYPE;
 }
 
-interface ObjectType {
-    [id: string]: ValueType;
+const isFUNCTION = (input: any): input is FUNCTION =>
+    typeof input === "object" &&
+    input.type === "FUNCTION" &&
+    input.returns &&
+    input.paramenters;
+
+interface OBJECT_TYPE {
+    [id: string]: VALUE_TYPE | OBJECT_TYPE;
 }
 
-interface List {
-    type: "List";
-}
+const isOBJECT_TYPE = (input: any): input is OBJECT_TYPE =>
+    typeof input === "object" &&
+    Object.keys(input).every(k => typeof k === "string") &&
+    Object.values(input).every(
+        v => isType(v) || isFUNCTION(v) || v === "ANY"
+    );
 
-interface Map {
-    type: "Map";
-    data: ObjectType;
-    keys: FUNCTION<List>;
-}
+const data: OBJECT_TYPE = { ANY };
 
-const isKeywordType = (
-    input: any
-): input is FUNCTION<ValueType> | List | Map => {
-    if (typeof input !== "object") {
-        return false;
-    }
-    if (input.type && typeof input.type === "string") {
-        switch (input.type) {
-            case "FUNCTION":
-            case "List":
-            case "Map":
-                return true;
-            default:
-                return false;
-        }
-    }
-    return false;
-};
-
-const ANY_DATA_CHILD: Map = {
-    data: { ANY },
-    keys: { type: "FUNCTION", returns: { type: "List" } },
-    type: "Map"
-};
-
-const data: Map = ANY_DATA_CHILD;
-
-const resource: { data: ObjectType; id: string } = {
-    data: { data },
+const resource: OBJECT_TYPE = {
+    data,
     id: "String"
 };
 
-const auth: ObjectType = { uid: "String" };
+const isResource = (input: any): input is typeof resource =>
+    typeof input === "object" &&
+    isOBJECT_TYPE(input) &&
+    input.data !== undefined &&
+    input.id === "String";
 
-const request = {
+const auth: OBJECT_TYPE = { uid: "String" };
+
+const request: OBJECT_TYPE = {
     auth,
     resource
 };
-
-const isResource = (input: any): input is typeof resource =>
-    input.id && typeof input.id === "string";
-
-const isRequest = (input: any): input is typeof request =>
-    input.auth && isResource(input.resource);
 
 const GlobalScope = {
     request,
     resource
 };
 
-type Target =
-    | typeof request
-    | typeof resource
-    | ValueType
-    | Interface
-    | InterfaceContent;
-interface TargetWithKey {
-    target: Target;
-    key?: string;
-}
+type target = VALUE_TYPE | OBJECT_TYPE | Interface | InterfaceContent;
 
 export default class KeywordObject {
-    public static toKeywordObject(
-        input: string,
-        interfaces?: { [id: string]: Interface },
-        variablePathComponents?: string[]
-    ): KeywordObject | null {
-        try {
-            return new KeywordObject(
-                input,
-                interfaces,
-                variablePathComponents
-            );
-        } catch {
-            return null;
-        }
-    }
+    private key: String | null;
+    private currentTarget: target;
 
-    private rootTarget: TargetWithKey | null = null;
-    private subTargets: TargetWithKey[] | null = null;
-    private variablePathComponents: string[];
-
-    constructor(
-        input: string,
-        interfaces?: { [id: string]: Interface },
-        variablePathComponents?: string[]
-    ) {
-        // We add a period to make the regex simpler
-        if (!/^([\w+\.])+$/.test(input + ".") || input.length === 0) {
-            throw new Error("Invalid keyword structure");
+    constructor(baseObject: string, scope: CollapsedBlock) {
+        // The assignment order is: constant, path, globalScope.
+        // We ignore interfaces
+        const con = scope.constants.get(baseObject);
+        if (con) {
+            this.currentTarget = con.getType();
+            this.key =
+                con instanceof KeywordObject && con.getKey()
+                    ? con.getKey()
+                    : null;
+            return;
         }
-        const keywordComponents = input.split(".");
-        this.variablePathComponents = variablePathComponents || [];
-
-        // Now we loop through the keywordComponents to assemble our KeywordObject
-        for (const keyword of keywordComponents) {
-            const currentTarget = this.currentTarget();
-            if (currentTarget === null) {
-                this.setRootTarget(keyword, interfaces);
-            } else {
-                this.addSubTarget(keyword);
-            }
+        const pVariable = scope.pathVariable;
+        if (pVariable === baseObject) {
+            this.key = "request.resource";
+            this.currentTarget = request.resource;
         }
-    }
-
-    public toString(): string {
-        if (!this.rootTarget) {
-            throw new Error(
-                "Cannot export to string with no rootTarget"
-            );
+        if (baseObject === "request" || baseObject === "resource") {
+            this.key = baseObject;
+            this.currentTarget =
+                baseObject === "request" ? request : resource;
         }
-        if (!this.subTargets || this.subTargets.length === 0) {
-            // This means we access a single object with no dot notation, so we just export that
-            return this.rootTarget.key!;
-        }
-        // Since we're using dot notation we run through all the keys to asseble our path.
-        let output = this.rootTarget.key!;
-        output += this.subTargets.reduce(
-            (pV, p) => (p.key ? `${pV}.${p.key}` : pV),
-            ""
+        throw new Error(
+            `Keyword ${baseObject} was not found in scope`
         );
-        return output;
     }
 
-    public toStringAsData(): string | null {
-        const currentTarget = this.currentTarget();
-        if (currentTarget === null) {
-            return null;
-        }
-        if (
-            (typeof currentTarget === "string" &&
-                currentTarget === "Map") ||
-            isInterface(currentTarget) ||
-            isInterfaceContent(currentTarget)
-        ) {
-            return this.toString();
-        }
-        if (typeof currentTarget === "string") {
-            return null;
-        }
-        if (isKeywordType(currentTarget)) {
-            // If we're a keyword type, we can only return if we are a map
-            if (currentTarget.type === "Map") {
-                return this.toString();
+    public static toKeywordObject(
+        from: Token,
+        scope: CollapsedBlock
+    ): KeywordObject | null {
+        // If the token isn't a keyword, that's wrong
+        if (from.type !== "Keyword") return null;
+        // We now split the keyword into segments.
+        const segments = from.value.split(".");
+        if (segments.length === 0) return null;
+        try {
+            const base = new KeywordObject(segments[0], scope);
+            const otherSegments = segments.splice(1);
+            for (const segment of otherSegments) {
+                base.addSubTarget(segment);
             }
+            return base;
+        } catch (e) {
             return null;
-        }
-        if (isResource(currentTarget)) {
-            this.addSubTargetToSelf({
-                key: "data",
-                target: currentTarget.data
-            });
-            return this.toString();
-        }
-        if (isRequest(currentTarget)) {
-            // This is not valid
-            return null;
-        }
-        // Now we know it's an ObjectType, and since that's allowed we'll return toString
-        return this.toString();
-    }
-
-    private setRootTarget(
-        keyword: string,
-        interfaces?: { [id: string]: Interface }
-    ) {
-        /*
-                Now we find the correct keyword based on the following order:
-                1. path
-                2. interfaces
-                3. GlobalScope
-                */
-        const requestResource = "request.resource";
-        if (
-            this.variablePathComponents &&
-            this.variablePathComponents.includes(keyword)
-        ) {
-            // This means we add request, then resource
-            this.addSubTargetToSelf({
-                key: "request",
-                target: GlobalScope.request
-            });
-            this.addSubTargetToSelf({
-                key: "resource",
-                target: GlobalScope.request.resource
-            });
-        } else if (interfaces && interfaces[keyword]) {
-            this.addSubTargetToSelf({
-                key: requestResource,
-                target: interfaces[keyword]
-            });
-        } else if (keyword === "request") {
-            this.addSubTargetToSelf({
-                key: "request",
-                target: GlobalScope.request
-            });
-        } else if (keyword === "resource") {
-            this.addSubTargetToSelf({
-                key: "resource",
-                target: GlobalScope.resource
-            });
-        } else {
-            throw new Error("Unknown keyword: " + keyword);
         }
     }
 
-    private addSubTarget(keyword: string) {
-        const currentTarget = this.currentTarget();
-        if (currentTarget === null) {
-            throw new Error("Internal error");
+    public addSubTarget(target: string) {
+        if (isType(this.currentTarget)) {
+            throw new Error(
+                `Sub items do not yet exist on ${this.currentTarget}`
+            );
         }
-        if (typeof currentTarget === "string") {
-            if (currentTarget === "Map") {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: ANY_DATA_CHILD
-                });
-            } else {
-                throw new Error(
-                    `Object with type ${currentTarget} does not have any children`
-                );
-            }
-        } else if (isInterface(currentTarget)) {
-            if (currentTarget[keyword]) {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: currentTarget[keyword]
-                });
-            } else {
-                throw new Error(
-                    `Interface with type ${currentTarget} does not have a child for key ${keyword}`
-                );
-            }
-        } else if (isInterfaceContent(currentTarget)) {
-            const extractedType = currentTarget.multiType
-                ? currentTarget.value.find(t => t === "Map")
-                : currentTarget.value;
-            if (extractedType === "Map") {
-                this.addSubTargetToSelf({
-                    key: keyword,
-                    target: extractedType
-                });
-            } else {
-                throw new Error(
-                    `Interface with type ${currentTarget} does not have a child for key ${keyword}`
-                );
-            }
-        } else {
-            if (isKeywordType(currentTarget)) {
-                switch (currentTarget.type) {
-                    case "FUNCTION":
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: currentTarget.returns
-                        });
-                        break;
-                    case "List":
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: ANY_DATA_CHILD
-                        });
-                        break;
-                    case "Map":
-                        const match =
-                            currentTarget.data[keyword] ||
-                            currentTarget.data[ANY];
-                        if (match) {
-                            this.addSubTargetToSelf({
-                                key: keyword,
-                                target: match
-                            });
-                        } else {
-                            throw new Error(
-                                `${keyword} was not found on ${JSON.stringify(
-                                    currentTarget
-                                )}`
-                            );
-                        }
-                }
-            } else if (isResource(currentTarget)) {
-                if (keyword === "id") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: "String"
-                    });
-                } else {
-                    const match = currentTarget.data[keyword];
-                    if (match) {
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: match
-                        });
-                    } else {
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: ANY_DATA_CHILD
-                        });
-                    }
-                }
-            } else {
-                if (keyword === "auth") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: request.auth
-                    });
-                } else if (keyword === "resource") {
-                    this.addSubTargetToSelf({
-                        key: keyword,
-                        target: request.resource
-                    });
-                } else {
-                    const match = (currentTarget as ObjectType)[
-                        keyword
-                    ];
-                    if (match) {
-                        this.addSubTargetToSelf({
-                            key: keyword,
-                            target: match
-                        });
-                    } else {
-                        throw new Error(
-                            `${keyword} was not found on ${currentTarget}`
-                        );
-                    }
-                }
-            }
+        if (isInterfaceContent(this.currentTarget)) {
+            throw new Error(
+                `Sub items have not yet been implemented for interfaces.`
+            );
         }
+        if (isFUNCTION(this.currentTarget)) {
+            throw new Error(`No subitems exist on a function`);
+        }
+        if (isInterface(this.currentTarget)) {
+            if (this.currentTarget[target]) {
+                this.key += `.${target}`;
+                this.currentTarget = this.currentTarget[target];
+                return;
+            }
+            throw new Error(
+                `${target} was not found on ${JSON.stringify(
+                    this.currentTarget
+                )}`
+            );
+        }
+        if (isResource(this.currentTarget)) {
+            if (target === "key") {
+                this.currentTarget = "String";
+                this.key += ".key";
+                return;
+            }
+            this.currentTarget = ANY;
+            this.key += `.data.${target}`;
+            return;
+        }
+        // Since it is any, we just assume everything is groovy.
+        this.currentTarget = ANY;
+        this.key += target;
     }
 
-    private currentTarget = (): Target | null => {
-        if (!this.rootTarget) {
-            return null;
-        }
-        if (this.subTargets && this.subTargets.length > 0) {
-            return this.subTargets[this.subTargets.length - 1].target;
-        }
-        return this.rootTarget.target;
-    };
-
-    private addSubTargetToSelf(item: TargetWithKey) {
-        const { key, target } = item;
-        if (this.rootTarget !== null) {
-            /* 
-            If were adding the key 'id' to the rootTarget 'request.resource' 
-            or 'resource' we don't need .data, otherwise we do*/
-
-            /* If we don't have subTargets or the only subTarget is resource
-             we might need to add .data first.*/
-            const noSubTargets =
-                this.subTargets === null ||
-                this.subTargets.length === 0;
-            if (
-                this.subTargets === null ||
-                this.subTargets.length < 2
-            ) {
-                // Only if our rootTarget is a resource and we don't have a subTarget
-                // Or the first subTarget is resource
-                if (
-                    (noSubTargets &&
-                        /resource$/.test(
-                            this.rootTarget.key || ""
-                        )) ||
-                    (this.subTargets &&
-                        this.subTargets[0] &&
-                        /resource$/.test(
-                            this.subTargets[0].key || ""
-                        ))
-                ) {
-                    // Though we don't need to add data for the following keys
-                    switch (key) {
-                        case "auth":
-                        case "id":
-                        case "data":
-                            break;
-                        default:
-                            this.subTargets!.push({
-                                key: "data",
-                                target: data
-                            });
-                    }
-                }
-            }
-            // if (
-            //     (this.subTargets === null ||
-            //         this.subTargets.length === 0) &&
-            //     (/resource$/.test(this.rootTarget.key || "") ||
-            //         (this.subTargets &&
-            //             this.subTargets[0] &&
-            //             /resource$/.test(
-            //                 this.subTargets[0].key || ""
-            //             ))) &&
-            //     key !== "auth" &&
-            //     key !== "id" &&
-            //     key !== "data"
-            // ) {
-            //     this.subTargets!.push({ target: data, key: "data" });
-            // }
-            this.subTargets!.push({ target, key });
-        } else {
-            this.rootTarget = { target, key };
-            this.subTargets = [];
-        }
+    public castAs(type: target) {
+        // If we are casting a request.resource or resource we need to add .data first
+        if (isResource(this.currentTarget)) this.key += ".data";
+        this.currentTarget = type;
     }
+
+    public getType = () => this.currentTarget;
+
+    public getKey = () => this.key;
 }

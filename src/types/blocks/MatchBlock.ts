@@ -18,4 +18,9 @@ export default class MatchBlock extends Block {
         }
         this.rules[key] = rule;
     }
+
+    public getPath = () => ({
+        path: this.path,
+        pathVariables: this.pathVariables
+    });
 }
