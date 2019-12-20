@@ -3,5 +3,12 @@
 import InterfaceValue from "./InterfaceValue";
 import KeywordValue from "./KeywordValue";
 import RawValue from "./RawValue";
+import { Token } from "../Token";
+import { CollapsedBlock } from "../blocks";
+
+export const valueForToken = (token: Token, scope: CollapsedBlock) =>
+    RawValue.toRawValue(token) ||
+    InterfaceValue.toInterfaceValue(token, scope) ||
+    KeywordValue.toKeywordValue(token, scope);
 
 export { InterfaceValue, KeywordValue, RawValue };

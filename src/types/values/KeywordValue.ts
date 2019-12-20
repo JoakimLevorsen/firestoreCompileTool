@@ -94,7 +94,7 @@ export default class KeywordValue {
         );
     }
 
-    public static toKeywordObject(
+    public static toKeywordValue(
         from: Token,
         scope: CollapsedBlock
     ): KeywordValue | null {

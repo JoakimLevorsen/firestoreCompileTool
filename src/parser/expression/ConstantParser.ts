@@ -2,8 +2,7 @@ import {
     Token,
     Constant,
     ConstantBuilder,
-    RawValue,
-    KeywordObject
+    valueForToken
 } from "../../types";
 import { ParserError, WAIT, ParserErrorBuilder } from "..";
 import BaseParser from "../BaseParser";
@@ -50,15 +49,7 @@ export default class ConstantParser extends BaseParser {
                 }
                 return errorBuilder("Expected ==");
             case "value":
-                let value:
-                    | RawValue
-                    | KeywordObject
-                    | null = RawValue.toRawValue(token);
-                if (!value && token.type === "Keyword")
-                    // TODO: KEYWORD OBJECT NEEDS BLOCKCHAIN SUPPORT
-                    value = KeywordObject.toKeywordObject(
-                        token.value
-                    );
+                const value = valueForToken(token, this.getScope());
                 if (value) {
                     return {
                         type: "Block",

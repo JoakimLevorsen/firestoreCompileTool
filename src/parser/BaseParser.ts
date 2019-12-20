@@ -1,5 +1,5 @@
 import { WAIT, ParserError } from ".";
-import { Token, Block } from "../types";
+import { Token, Block, collapseBlockChain } from "../types";
 
 type ParserConstructor<P extends BaseParser> = new (
     blockChain?: Block[]
@@ -29,4 +29,6 @@ export default abstract class BaseParser {
         // Spawn a new parser with indentical interfaces/path
         return new constructor(this.blockChain);
     }
+
+    public getScope = () => collapseBlockChain(this.blockChain);
 }
