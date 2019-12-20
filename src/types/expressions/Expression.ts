@@ -1,5 +1,4 @@
-import RawValue from "../RawValue";
-import { Constant, isConstant } from "./Constant";
+import { Constant, isConstant, RawValue } from "../";
 import { ReturnExpression } from "./ReturnExpression";
 
 export type Expression = RawValue | Constant | ReturnExpression;

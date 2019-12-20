@@ -3,20 +3,20 @@ import {
     Expression,
     Interface,
     isInterface,
-    KeywordObject
+    KeywordValue,
+    RawValue
 } from "..";
-import RawValue from "../RawValue";
 
 type equalsValues = "=" | "≠";
 type isValues = "is" | "only" | "isOnly";
 type comparisonTypes = equalsValues | isValues;
 
 export class ConditionBuilder {
-    private firstValue?: RawValue | KeywordObject;
+    private firstValue?: RawValue | KeywordValue;
     private operator?: comparisonTypes;
-    private secondValue?: RawValue | KeywordObject | Interface;
+    private secondValue?: RawValue | KeywordValue | Interface;
 
-    public setFirstValue(to: RawValue | KeywordObject) {
+    public setFirstValue(to: RawValue | KeywordValue) {
         this.firstValue = to;
         return this;
     }
@@ -26,7 +26,7 @@ export class ConditionBuilder {
         return this;
     }
 
-    public setSecondValue(to: RawValue | KeywordObject | Interface) {
+    public setSecondValue(to: RawValue | KeywordValue | Interface) {
         this.secondValue = to;
         return this;
     }
@@ -34,7 +34,7 @@ export class ConditionBuilder {
     public getCondition(): Condition {
         // First we check if it's the type
         if (
-            this.firstValue instanceof KeywordObject &&
+            this.firstValue instanceof KeywordValue &&
             (this.operator === "is" ||
                 this.operator === "isOnly" ||
                 this.operator === "only") &&
@@ -51,7 +51,7 @@ export class ConditionBuilder {
             this.firstValue &&
             (this.operator === "=" || this.operator === "≠") &&
             (this.secondValue instanceof RawValue ||
-                this.secondValue instanceof KeywordObject)
+                this.secondValue instanceof KeywordValue)
         ) {
             return new IsEqualCondition(
                 this.firstValue,

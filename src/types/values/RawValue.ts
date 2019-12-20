@@ -1,5 +1,4 @@
-import { Type } from ".";
-import { Token } from "./Token";
+import { Type, Token } from "..";
 
 // A raw value like: true, false, 1, 83, 'hello'
 

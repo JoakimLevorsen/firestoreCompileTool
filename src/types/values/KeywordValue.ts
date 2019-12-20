@@ -1,13 +1,13 @@
-import { Type } from ".";
-import { CollapsedBlock } from "./blocks";
+import { Type } from "..";
+import { CollapsedBlock } from "../blocks";
 import { Interface } from "readline";
 import {
     InterfaceContent,
     isInterfaceContent,
     isInterface
-} from "./Interface";
-import { isType } from "./Type";
-import { Token } from "./Token";
+} from "../Interface";
+import { isType } from "../Type";
+import { Token } from "../Token";
 
 type ANY = "ANY";
 const ANY: ANY = "ANY";
@@ -63,7 +63,7 @@ const GlobalScope = {
 
 type target = VALUE_TYPE | OBJECT_TYPE | Interface | InterfaceContent;
 
-export default class KeywordObject {
+export default class KeywordValue {
     private key: String | null;
     private currentTarget: target;
 
@@ -74,7 +74,7 @@ export default class KeywordObject {
         if (con) {
             this.currentTarget = con.getType();
             this.key =
-                con instanceof KeywordObject && con.getKey()
+                con instanceof KeywordValue && con.getKey()
                     ? con.getKey()
                     : null;
             return;
@@ -97,14 +97,14 @@ export default class KeywordObject {
     public static toKeywordObject(
         from: Token,
         scope: CollapsedBlock
-    ): KeywordObject | null {
+    ): KeywordValue | null {
         // If the token isn't a keyword, that's wrong
         if (from.type !== "Keyword") return null;
         // We now split the keyword into segments.
         const segments = from.value.split(".");
         if (segments.length === 0) return null;
         try {
-            const base = new KeywordObject(segments[0], scope);
+            const base = new KeywordValue(segments[0], scope);
             const otherSegments = segments.splice(1);
             for (const segment of otherSegments) {
                 base.addSubTarget(segment);
