@@ -1,7 +1,7 @@
 import { WAIT, ParserError } from ".";
 import { Token, Block, collapseBlockChain } from "../types";
 
-type ParserConstructor<P extends BaseParser> = new (
+export type ParserConstructor<P extends BaseParser> = new (
     blockChain?: Block[]
 ) => P;
 

@@ -1,10 +1,10 @@
-import { RawValue, KeywordObject } from "..";
+import { RawValue, KeywordValue } from "..";
 import { Constant } from "./Constant";
 
 export default class ConstantCollection {
-    private values: { [id: string]: RawValue | KeywordObject };
+    private values: { [id: string]: RawValue | KeywordValue };
 
-    constructor(values?: { [id: string]: RawValue | KeywordObject }) {
+    constructor(values?: { [id: string]: RawValue | KeywordValue }) {
         this.values = values || {};
     }
 

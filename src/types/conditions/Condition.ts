@@ -1,6 +1,9 @@
 import { IsEqualCondition, IsTypeCondition } from ".";
+import { LogicGroup } from "../../parser/GroupParser";
 
-export type Condition = IsTypeCondition | IsEqualCondition;
+type RawCondition = IsTypeCondition | IsEqualCondition;
+
+export type Condition = RawCondition | LogicGroup<Condition>;
 
 export const isCondition = (input: any): input is Condition =>
     input instanceof IsEqualCondition ||

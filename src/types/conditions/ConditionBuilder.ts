@@ -1,9 +1,8 @@
 import { Condition, IsEqualCondition, IsTypeCondition } from ".";
 import {
     Expression,
-    Interface,
-    isInterface,
     KeywordValue,
+    InterfaceValue,
     RawValue
 } from "..";
 
@@ -14,7 +13,7 @@ type comparisonTypes = equalsValues | isValues;
 export class ConditionBuilder {
     private firstValue?: RawValue | KeywordValue;
     private operator?: comparisonTypes;
-    private secondValue?: RawValue | KeywordValue | Interface;
+    private secondValue?: RawValue | KeywordValue | InterfaceValue;
 
     public setFirstValue(to: RawValue | KeywordValue) {
         this.firstValue = to;
@@ -26,7 +25,9 @@ export class ConditionBuilder {
         return this;
     }
 
-    public setSecondValue(to: RawValue | KeywordValue | Interface) {
+    public setSecondValue(
+        to: RawValue | KeywordValue | InterfaceValue
+    ) {
         this.secondValue = to;
         return this;
     }
@@ -38,12 +39,12 @@ export class ConditionBuilder {
             (this.operator === "is" ||
                 this.operator === "isOnly" ||
                 this.operator === "only") &&
-            isInterface(this.secondValue)
+            this.secondValue instanceof InterfaceValue
         ) {
             return new IsTypeCondition(
                 this.firstValue,
                 this.operator,
-                this.secondValue
+                this.secondValue.getInterface()
             );
         }
         // Then if it's an equal

@@ -64,7 +64,7 @@ const GlobalScope = {
 type target = VALUE_TYPE | OBJECT_TYPE | Interface | InterfaceContent;
 
 export default class KeywordValue {
-    private key: String | null;
+    private key: string | null;
     private currentTarget: target;
 
     constructor(baseObject: string, scope: CollapsedBlock) {
@@ -165,4 +165,14 @@ export default class KeywordValue {
     public getType = () => this.currentTarget;
 
     public getKey = () => this.key;
+
+    public toString = () => this.key;
+
+    public toStringAsData(): string {
+        // If this is a resource we add .data, otherwise its just the key
+        if (isResource(this.currentTarget)) {
+            return `${this.key}.data`;
+        }
+        return this.key || "";
+    }
 }

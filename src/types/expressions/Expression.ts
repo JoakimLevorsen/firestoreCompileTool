@@ -1,7 +1,11 @@
-import { Constant, isConstant, RawValue } from "../";
+import { Constant, isConstant, RawValue, KeywordValue } from "../";
 import { ReturnExpression } from "./ReturnExpression";
 
-export type Expression = RawValue | Constant | ReturnExpression;
+export type Expression =
+    | RawValue
+    | KeywordValue
+    | Constant
+    | ReturnExpression;
 
 export const isExpression = (input: any): input is Expression =>
     input instanceof RawValue ||

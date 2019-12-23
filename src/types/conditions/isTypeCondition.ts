@@ -1,13 +1,13 @@
-import { Interface, KeywordObject, typeToString } from "..";
+import { Interface, KeywordValue, typeToString } from "..";
 
 type Comparison = "is" | "only" | "isOnly";
 
 export class IsTypeCondition {
-    public firstValue: KeywordObject;
+    public firstValue: KeywordValue;
     public comparison: Comparison;
     public secondValue: Interface;
     constructor(
-        firstValue: KeywordObject,
+        firstValue: KeywordValue,
         comparison: Comparison,
         secondValue: Interface
     ) {

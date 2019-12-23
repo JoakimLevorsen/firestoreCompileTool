@@ -8,6 +8,7 @@ import { Token } from "../Token";
 
 export default class InterfaceValue {
     private value: Interface | InterfaceContent;
+    private key?: string;
 
     constructor(baseObject: string, scope: CollapsedBlock) {
         const match = scope.interfaces[baseObject];
@@ -45,6 +46,7 @@ export default class InterfaceValue {
             const match = this.value[target];
             if (match) {
                 this.value = match;
+                this.key = target;
                 return;
             }
             throw new Error(
@@ -54,5 +56,14 @@ export default class InterfaceValue {
         throw new Error(
             `Subtypes not yet supported for ${this.value.value}`
         );
+    }
+
+    public getInterface(): Interface {
+        if (isInterface(this.value)) {
+            return this.value;
+        }
+        const iVal: Interface = {};
+        iVal[this.key || ""] = this.value;
+        return iVal;
     }
 }

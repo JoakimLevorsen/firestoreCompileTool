@@ -1,9 +1,10 @@
 import { RawValue } from "..";
-import { Condition, isCondition } from "../conditions";
+import { Condition } from "../conditions";
+import { KeywordValue } from "../values";
 
 export class ReturnExpression {
-    private value: RawValue | Condition;
-    constructor(value: RawValue | Condition) {
+    private value: RawValue | Condition | KeywordValue;
+    constructor(value: RawValue | Condition | KeywordValue) {
         this.value = value;
     }
 
