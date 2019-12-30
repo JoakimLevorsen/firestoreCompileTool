@@ -1,11 +1,9 @@
-import { WAIT, ParserError } from ".";
+import { WAIT, ParserError, BaseParser, TypeParser } from ".";
 import { Interface, InterfaceData, Token } from "../types";
-import BaseParser from "./BaseParser";
-import TypeParser from "./TypeParser";
 
 // String indicates fail reason, "WAIT" indicates that operation will continue,
 // and the type with data indicates that we finished.
-export default class InterfaceParser extends BaseParser {
+export class InterfaceParser extends BaseParser {
     private interfaceName?: string;
     private interface: Interface = {};
     private nextProperty?: {

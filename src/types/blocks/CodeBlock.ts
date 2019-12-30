@@ -4,10 +4,13 @@ import { Expression, ReturnExpression } from "../expressions";
 
 export class CodeBlock extends Block {
     // A code block is a series of expressions and
-    private content: Array<IfBlock | Expression> = [];
+    private content: Array<CodeBlock | IfBlock | Expression> = [];
 
     public addContent = (item: IfBlock | Expression) =>
         this.content.push(item);
+
+    public insertFirst = (item: CodeBlock | IfBlock | Expression) =>
+        (this.content = [item, ...this.content]);
 
     public allPathsReturn(): boolean {
         for (const line of this.content) {

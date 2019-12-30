@@ -1,7 +1,7 @@
-import BaseParser, { ParserConstructor } from "./BaseParser";
 import { Token, BlockChain } from "../types";
 import { ParserError, ParserErrorBuilder } from "./ParserError";
 import { WAIT } from "../oldParsers";
+import { BaseParser, ParserConstructor } from ".";
 
 type logic = "&&" | "||";
 
@@ -10,7 +10,7 @@ export interface LogicGroup<T> {
     itemChain: Array<logic | LogicGroup<T> | T>;
 }
 
-export default class GroupParser<
+export class GroupParser<
     SubParser extends BaseParser,
     T
 > extends BaseParser {

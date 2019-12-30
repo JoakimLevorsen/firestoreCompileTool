@@ -1,15 +1,16 @@
 import { RuleSet, Rule, RuleHeader } from "../Rule";
 import { Block } from "./Block";
 
-export default class MatchBlock extends Block {
+export class MatchBlock extends Block {
     private rules: RuleSet = {};
     private path: string;
-    private pathVariables: string[];
+    // Only one path variable can exist pr block
+    private pathVariable?: string;
 
-    constructor(path: string, pathVariables: string[]) {
+    constructor(path: string, pathVariable?: string) {
         super();
         this.path = path;
-        this.pathVariables = pathVariables;
+        this.pathVariable = pathVariable;
     }
 
     public addRule(key: RuleHeader, rule: Rule) {
@@ -21,6 +22,21 @@ export default class MatchBlock extends Block {
 
     public getPath = () => ({
         path: this.path,
-        pathVariables: this.pathVariables
+        pathVariable: this.pathVariable
+    });
+}
+
+export class PathBuilder {
+    private path: string[] = [];
+    private pathVariable?: string;
+
+    addComponent(path: string, isVariable = false) {
+        this.path.push(path);
+        if (isVariable) this.pathVariable = path;
+    }
+
+    exportPath = () => ({
+        path: this.path,
+        pathVariable: this.pathVariable
     });
 }

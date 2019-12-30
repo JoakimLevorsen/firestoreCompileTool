@@ -1,8 +1,8 @@
-import { RawValue, KeywordObject } from "..";
+import { RawValue, KeywordValue } from "..";
 
 export interface Constant {
     name: string;
-    value: RawValue | KeywordObject;
+    value: RawValue | KeywordValue;
 }
 
 export const isConstant = (input: any): input is Constant => {
@@ -14,14 +14,14 @@ export const isConstant = (input: any): input is Constant => {
 
 export class ConstantBuilder {
     private name?: string;
-    private value?: RawValue | KeywordObject;
+    private value?: RawValue | KeywordValue;
 
     public setName(name: string) {
         this.name = name;
         return this;
     }
 
-    public setValue(value: RawValue | KeywordObject) {
+    public setValue(value: RawValue | KeywordValue) {
         this.value = value;
         return this;
     }

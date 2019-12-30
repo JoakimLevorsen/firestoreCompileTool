@@ -1,6 +1,7 @@
 import { Expression, isExpression, IfBlock, CodeBlock } from ".";
+import { Condition, isCondition } from "./conditions";
 
-export type Rule = Expression | IfBlock | CodeBlock;
+export type Rule = Condition | CodeBlock;
 
 export type RuleHeader =
     | "read"
@@ -11,12 +12,8 @@ export type RuleHeader =
 
 export type RuleSet = { [Header in RuleHeader]?: Rule };
 
-export const isRule = (input: any): input is Rule => {
-    if (isExpression(input) || input instanceof IfBlock) {
-        return true;
-    }
-    return false;
-};
+export const isRule = (input: any): input is Rule =>
+    isCondition(input) || input instanceof CodeBlock;
 
 export const isRuleHeader = (input: any): input is RuleHeader => {
     if (typeof input !== "string") {

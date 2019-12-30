@@ -5,17 +5,17 @@ export type ParserConstructor<P extends BaseParser> = new (
     blockChain?: Block[]
 ) => P;
 
-export default abstract class BaseParser {
+export abstract class BaseParser {
     // The chain of blocks to me
     protected blockChain: Block[];
 
     constructor(blockChain?: Block[]) {
         this.blockChain = blockChain || [];
-        this.postConstructor();
+        if (this.postConstructor) this.postConstructor();
     }
 
     // Setup after the constructor has run.
-    public abstract postConstructor(): void;
+    public abstract postConstructor?(): void;
 
     // The next token is also included, since it lets a parser determine if it is needed for the next one.
     public abstract addToken(

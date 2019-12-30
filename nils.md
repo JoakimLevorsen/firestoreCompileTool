@@ -69,4 +69,4 @@ return false;
 
 Where it is composed of an condition as a condition, a block to execute if true, and an optional false block.
 Notice that since variables don't exist, all if statements are effectively if {} else {}.
-This is since if you don't return in an if you can't really do anything else.
+This is since if you don't return in an if you can't really do anything else. Though to emulate more classical code languages, things contained inside the else is treated as a deeper scope.

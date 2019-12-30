@@ -1,4 +1,3 @@
-import BaseParser from "../BaseParser";
 import ConditionParser from "../ConditionParser";
 import {
     Token,
@@ -6,9 +5,14 @@ import {
     valueForToken,
     InterfaceValue
 } from "../../types";
-import { ParserError, WAIT, ParserErrorBuilder } from "..";
+import {
+    ParserError,
+    WAIT,
+    ParserErrorBuilder,
+    BaseParser
+} from "..";
 
-export default class ReturnParser extends BaseParser {
+export class ReturnParser extends BaseParser {
     private stage:
         | "awaiting keyword"
         | "building condition"

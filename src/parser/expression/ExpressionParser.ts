@@ -1,4 +1,3 @@
-import BaseParser from "../BaseParser";
 import {
     Expression,
     Token,
@@ -6,14 +5,19 @@ import {
     InterfaceValue,
     Condition
 } from "../../types";
-import { ParserError, WAIT, ParserErrorBuilder } from "..";
-import ReturnParser from "./ReturnParser";
+import {
+    ParserError,
+    WAIT,
+    ParserErrorBuilder,
+    BaseParser,
+    ReturnParser,
+    ConstantParser
+} from "..";
 import ConditionParserConstructor, {
     ConditionParser
 } from "../ConditionParser";
-import ConstantParser from "./ConstantParser";
 
-export default class ExpressionParser extends BaseParser {
+export class ExpressionParser extends BaseParser {
     private stage: "awaiting start" | "using subparser" =
         "awaiting start";
     private subParser?:

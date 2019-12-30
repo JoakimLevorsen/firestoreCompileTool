@@ -2,12 +2,17 @@ import {
     Token,
     Constant,
     ConstantBuilder,
-    valueForToken
+    valueForToken,
+    InterfaceValue
 } from "../../types";
-import { ParserError, WAIT, ParserErrorBuilder } from "..";
-import BaseParser from "../BaseParser";
+import {
+    ParserError,
+    WAIT,
+    ParserErrorBuilder,
+    BaseParser
+} from "..";
 
-export default class ConstantParser extends BaseParser {
+export class ConstantParser extends BaseParser {
     private stage: "keyword" | "name" | "equals" | "value" =
         "keyword";
     private partialError = ParserErrorBuilder(ConstantParser);
@@ -18,7 +23,7 @@ export default class ConstantParser extends BaseParser {
     addToken(
         token: Token,
         nextToken: Token | null
-    ): ParserError | WAIT | { type: "Block"; data: Constant } {
+    ): ParserError | WAIT | { type: "Constant"; data: Constant } {
         const errorBuilder = this.partialError(this.stage, token);
         switch (this.stage) {
             case "keyword":
@@ -50,9 +55,14 @@ export default class ConstantParser extends BaseParser {
                 return errorBuilder("Expected ==");
             case "value":
                 const value = valueForToken(token, this.getScope());
+                if (value instanceof InterfaceValue) {
+                    return errorBuilder(
+                        "Cannot set constants to interface values"
+                    );
+                }
                 if (value) {
                     return {
-                        type: "Block",
+                        type: "Constant",
                         data: this.builder
                             .setValue(value)
                             .getConstant()

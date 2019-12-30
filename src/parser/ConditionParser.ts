@@ -1,4 +1,10 @@
-import { ParserError, WAIT, ParserErrorBuilder } from ".";
+import {
+    ParserError,
+    WAIT,
+    ParserErrorBuilder,
+    BaseParser,
+    GroupParser
+} from ".";
 import {
     Token,
     Condition,
@@ -7,8 +13,6 @@ import {
     valueForToken,
     InterfaceValue
 } from "../types";
-import GroupParser from "./GroupParser";
-import BaseParser from "./BaseParser";
 
 // Since a condition is most likely wrapped in parentesees
 // or has && and/or || logic involved, we export a parser wrapped in a GroupParser.
