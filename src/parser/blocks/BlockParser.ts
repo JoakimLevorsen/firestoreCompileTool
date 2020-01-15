@@ -79,6 +79,8 @@ export class BlockParser extends BaseParser
                 deepParserReturn.data.interface
             );
         }
+        // Then we reset the deepParser
+        this.deepParser = null;
         return WAIT;
     }
 }

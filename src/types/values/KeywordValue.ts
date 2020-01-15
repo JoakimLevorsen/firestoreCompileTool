@@ -83,11 +83,13 @@ export default class KeywordValue {
         if (pVariable === baseObject) {
             this.key = "request.resource";
             this.currentTarget = request.resource;
+            return;
         }
         if (baseObject === "request" || baseObject === "resource") {
             this.key = baseObject;
             this.currentTarget =
                 baseObject === "request" ? request : resource;
+            return;
         }
         throw new Error(
             `Keyword ${baseObject} was not found in scope`

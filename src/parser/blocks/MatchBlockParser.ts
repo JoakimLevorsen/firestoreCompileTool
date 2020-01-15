@@ -18,11 +18,12 @@ export class MatchBlockParser extends BaseParser
     private ruleBuildingType?: RuleHeader;
     private matchDeepParser?: CodeBlockParser | ConditionParser;
     private stage:
+        | "awaiting keyword"
         | "awaiting path slash"
         | "awaiting path segment"
         | "awaiting rule header"
         | "awaiting rule header colon"
-        | "building rule" = "awaiting path slash";
+        | "building rule" = "awaiting keyword";
     private partialError = ParserErrorBuilder(MatchBlockParser);
     private addingPathVariable = false;
     private hasAddedPathVariable = false;
@@ -33,6 +34,15 @@ export class MatchBlockParser extends BaseParser
     ): ParserError | WAIT | { type: "MatchBlock"; data: MatchBlock } {
         const errorBuilder = this.partialError(this.stage, token);
         switch (this.stage) {
+            case "awaiting keyword":
+                if (
+                    token.type === "Keyword" &&
+                    token.value === "match"
+                ) {
+                    this.stage = "awaiting path slash";
+                    return WAIT;
+                }
+                return errorBuilder("Expected keyword 'match'");
             case "awaiting path slash":
                 if (token.type === "/") {
                     this.stage = "awaiting path segment";
@@ -66,6 +76,7 @@ export class MatchBlockParser extends BaseParser
                     );
                     if (this.addingPathVariable)
                         this.hasAddedPathVariable = true;
+                    else this.stage = "awaiting path slash";
                     return WAIT;
                 }
                 if (token.type === "[") {
@@ -78,14 +89,14 @@ export class MatchBlockParser extends BaseParser
                 }
                 if (token.type === "]") {
                     if (
-                        this.hasAddedPathVariable ||
+                        !this.hasAddedPathVariable ||
                         !this.addingPathVariable
                     )
                         return errorBuilder("Unexpected ]");
                     this.stage = "awaiting path slash";
                     return WAIT;
                 }
-                return errorBuilder("Unexpected token");
+                return errorBuilder(`Unexpected token`);
             case "awaiting rule header":
                 if (
                     token.type === "Keyword" &&

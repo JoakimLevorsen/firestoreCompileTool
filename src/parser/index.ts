@@ -1,8 +1,8 @@
 import { ParserError } from "./ParserError";
-import { Block } from "../types";
-import { extractNextToken } from "./TokenParser";
+import { Block, Token } from "../types";
 import { BlockParser } from "./blocks";
 import { WAIT } from "./WAIT";
+import TokenParser from "./TokenParser";
 
 export * from "./BaseParser";
 export * from "./ParserError";
@@ -15,23 +15,21 @@ export * from "./InterfaceParser";
 export * from "./TypeParser";
 
 const parse = (input: string, debug = false): Block | null => {
-    let remaining = input;
     const blockParser = new BlockParser();
-    let nextToken: ReturnType<typeof extractNextToken> = null;
+    const tokenParser = new TokenParser(input);
+    let nextToken: Token | null = null;
     do {
         const thisToken = nextToken;
-        nextToken = extractNextToken(remaining);
-        if (nextToken) {
-            remaining = nextToken.remaining;
-        }
+        nextToken = tokenParser.getNext();
         if (!thisToken && nextToken) continue;
         if (thisToken === null) break;
         const response = blockParser.addToken(
-            thisToken.token,
-            nextToken ? nextToken.token : null
+            thisToken,
+            nextToken ? nextToken : null
         );
         if (response instanceof ParserError) {
-            throw response;
+            console.log("failed on", tokenParser.line);
+            throw response.getError();
         }
         if (response !== WAIT) {
             return response.data;
