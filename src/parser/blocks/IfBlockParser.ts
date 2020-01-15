@@ -5,9 +5,9 @@ import {
     CodeBlock
 } from "../../types";
 import { ParserError, WAIT, ParserErrorBuilder } from "..";
-import ConditionParserConstructor from "../ConditionParser";
 import { CodeBlockParser, AbstractBlockParser } from ".";
 import { BaseParser } from "../BaseParser";
+import ConditionParser from "../ConditionParser";
 
 export class IfBlockParser extends BaseParser
     implements AbstractBlockParser {
@@ -24,16 +24,12 @@ export class IfBlockParser extends BaseParser
         | "else"
         | "after" = "awaiting keyword";
     private partialError = ParserErrorBuilder(IfBlockParser);
-    private conditionParser = ConditionParserConstructor(
-        this.blockChain
-    );
+    private conditionParser = this.spawn(ConditionParser);
     private blockBuilder = new IfBlockBuilder();
     private codeParser = this.spawn(CodeBlockParser);
     private blockStarted = false;
     private elseKeywordSeen = false;
     private elseBlock?: CodeBlock;
-
-    postConstructor() {}
 
     addToken(
         token: Token,

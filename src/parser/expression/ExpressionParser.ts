@@ -13,9 +13,7 @@ import {
     ReturnParser,
     ConstantParser
 } from "..";
-import ConditionParserConstructor, {
-    ConditionParser
-} from "../ConditionParser";
+import ConditionParser from "../ConditionParser";
 
 export class ExpressionParser extends BaseParser {
     private stage: "awaiting start" | "using subparser" =
@@ -71,9 +69,7 @@ export class ExpressionParser extends BaseParser {
                     } else if (token.value === "const") {
                         this.subParser = this.spawn(ConstantParser);
                     } else {
-                        this.subParser = ConditionParserConstructor(
-                            this.blockChain
-                        );
+                        this.subParser = this.spawn(ConditionParser);
                     }
                 } else return errorBuilder("Expected a keyword");
             case "using subparser":

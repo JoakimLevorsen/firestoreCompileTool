@@ -18,9 +18,7 @@ export class ReturnParser extends BaseParser {
         | "building condition"
         | "building expression" = "awaiting keyword";
     private partialError = ParserErrorBuilder(ReturnParser);
-    private conditionBuilder = ConditionParser(this.blockChain);
-
-    postConstructor() {}
+    private conditionBuilder = this.spawn(ConditionParser);
 
     addToken(
         token: Token,

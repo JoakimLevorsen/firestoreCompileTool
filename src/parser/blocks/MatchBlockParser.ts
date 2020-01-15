@@ -7,9 +7,7 @@ import {
 } from "../../types";
 import { ParserError, ParserErrorBuilder } from "../ParserError";
 import { WAIT } from "../WAIT";
-import ConditionParserConstructor, {
-    ConditionParser
-} from "../ConditionParser";
+import ConditionParser from "../ConditionParser";
 import { AbstractBlockParser, CodeBlockParser } from ".";
 import { BaseParser } from "../BaseParser";
 
@@ -28,8 +26,6 @@ export class MatchBlockParser extends BaseParser
     private partialError = ParserErrorBuilder(MatchBlockParser);
     private addingPathVariable = false;
     private hasAddedPathVariable = false;
-
-    postConstructor() {}
 
     addToken(
         token: Token,
@@ -122,8 +118,8 @@ export class MatchBlockParser extends BaseParser
                         // We now return since the codeBlock wont be fed the first {
                         return WAIT;
                     }
-                    this.matchDeepParser = ConditionParserConstructor(
-                        this.blockChain
+                    this.matchDeepParser = this.spawn(
+                        ConditionParser
                     );
                 }
                 const deepParserReturn = this.matchDeepParser.addToken(

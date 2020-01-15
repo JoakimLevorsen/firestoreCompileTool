@@ -1,31 +1,16 @@
-import {
-    Token,
-    BlockChain,
-    LogicGroup,
-    RuleExportable
-} from "../types";
+import { Token, LogicGroup, RuleExportable } from "../types";
 import { ParserError, ParserErrorBuilder } from "./ParserError";
-import { BaseParser, ParserConstructor, WAIT } from ".";
+import { WAIT } from ".";
+import BaseParser from "./BaseParser";
 
-export class GroupParser<
-    SubParser extends BaseParser,
+export default abstract class GroupParser<
     T extends RuleExportable
 > extends BaseParser {
     private data: LogicGroup<T> = new LogicGroup();
     private stage: "awaiting expression" | "awaiting logic" =
         "awaiting expression";
-    private parParser: GroupParser<SubParser, T> | null = null;
-    private subParser: SubParser | null = null;
-    private subParserConstructor: ParserConstructor<SubParser>;
+    private parParser: GroupParser<T> | null = null;
     private partialError = ParserErrorBuilder(GroupParser);
-
-    constructor(
-        blockChain: BlockChain,
-        SubConstructor: ParserConstructor<SubParser>
-    ) {
-        super(blockChain);
-        this.subParserConstructor = SubConstructor;
-    }
 
     postConstructor = () => {};
 
@@ -43,10 +28,7 @@ export class GroupParser<
         switch (this.stage) {
             case "awaiting expression":
                 if (token.type === "(") {
-                    this.parParser = new GroupParser(
-                        this.blockChain,
-                        this.subParserConstructor
-                    );
+                    this.parParser = this.spawnClone();
                     return WAIT;
                 }
                 if (this.parParser) {
@@ -65,15 +47,7 @@ export class GroupParser<
                     // Now we can return
                     return WAIT;
                 }
-                if (!this.subParser) {
-                    this.subParser = this.spawn(
-                        this.subParserConstructor
-                    );
-                }
-                const subResponse = this.subParser.addToken(
-                    token,
-                    nextToken
-                );
+                const subResponse = this.subParse(token, nextToken);
                 if (
                     subResponse instanceof ParserError ||
                     subResponse === WAIT
@@ -98,6 +72,19 @@ export class GroupParser<
                 return errorBuilder(`Expected logic, got ${token}`);
         }
     }
+
+    protected abstract spawnClone(): GroupParser<T>;
+
+    protected abstract subParse(
+        token: Token,
+        nextToken: Token | null
+    ):
+        | ParserError
+        | WAIT
+        | {
+              type: "Sub";
+              data: T;
+          };
 
     private addChild(item: T | LogicGroup<T>) {
         if (this.data.base) {

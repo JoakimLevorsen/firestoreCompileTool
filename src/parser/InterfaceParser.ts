@@ -17,9 +17,6 @@ export class InterfaceParser extends BaseParser {
         | "awaiting block"
         | "building block" = "awaiting keyword";
 
-    // tslint:disable-next-line: no-empty
-    public postConstructor() {}
-
     public addToken(
         token: Token,
         nextToken: Token | null

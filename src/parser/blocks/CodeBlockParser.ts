@@ -10,7 +10,6 @@ export class CodeBlockParser extends BaseParser
     private deepParser?: IfBlockParser | ExpressionParser;
     private block: CodeBlock = new CodeBlock();
 
-    postConstructor() {}
     addToken(
         token: Token,
         nextToken: Token | null,

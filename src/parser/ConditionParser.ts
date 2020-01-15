@@ -1,53 +1,38 @@
-import {
-    ParserError,
-    WAIT,
-    ParserErrorBuilder,
-    BaseParser,
-    GroupParser
-} from ".";
+import { ParserError, WAIT, ParserErrorBuilder } from ".";
 import {
     Token,
     Condition,
-    BlockChain,
     ConditionBuilder,
     valueForToken,
     InterfaceValue
 } from "../types";
+import GroupParser from "./GroupParser";
 
-// Since a condition is most likely wrapped in parentesees
-// or has && and/or || logic involved, we export a parser wrapped in a GroupParser.
-const ConditionParserConstructor = (
-    blockChain: BlockChain
-): GroupParser<InnerConditionParser, Condition> =>
-    new GroupParser(blockChain, InnerConditionParser);
-
-export default ConditionParserConstructor;
-
-export type ConditionParser = ReturnType<
-    typeof ConditionParserConstructor
->;
-
-class InnerConditionParser extends BaseParser {
-    private stage:
+export default class ConditionParser extends GroupParser<Condition> {
+    private subStage:
         | "awaiting first"
         | "awaiting comparison"
         | "awaiting second" = "awaiting first";
-    private partialError = ParserErrorBuilder(InnerConditionParser);
+    private subPartialError = ParserErrorBuilder(ConditionParser);
     private builder = new ConditionBuilder();
-    postConstructor = () => {};
 
-    addToken(
+    spawnClone = () => new ConditionParser(this.blockChain);
+
+    subParse(
         token: Token,
         nextToken: Token | null
     ):
         | ParserError
         | WAIT
         | {
-              type: "Condition";
+              type: "Sub";
               data: Condition;
           } {
-        const errorBuilder = this.partialError(this.stage, token);
-        switch (this.stage) {
+        const errorBuilder = this.subPartialError(
+            this.subStage,
+            token
+        );
+        switch (this.subStage) {
             case "awaiting first":
                 if (token.type !== "Keyword") {
                     return errorBuilder(
@@ -67,7 +52,7 @@ class InnerConditionParser extends BaseParser {
                     );
                 }
                 this.builder.setFirstValue(firstVal);
-                this.stage = "awaiting comparison";
+                this.subStage = "awaiting comparison";
                 return WAIT;
             case "awaiting comparison":
                 if (token.type === "=" || token.type === "≠") {
@@ -84,7 +69,7 @@ class InnerConditionParser extends BaseParser {
                         "Expected comparison of ==, ||, is, only or isOnly"
                     );
                 }
-                this.stage = "awaiting second";
+                this.subStage = "awaiting second";
                 return WAIT;
             case "awaiting second":
                 if (token.type !== "Keyword") {
@@ -101,7 +86,7 @@ class InnerConditionParser extends BaseParser {
                 }
                 this.builder.setSecondValue(secondVal);
                 return {
-                    type: "Condition",
+                    type: "Sub",
                     data: this.builder.getCondition()
                 };
         }
