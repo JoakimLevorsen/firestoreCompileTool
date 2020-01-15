@@ -106,6 +106,10 @@ export class MatchBlockParser extends BaseParser
                     this.stage = "awaiting rule header colon";
                     return WAIT;
                 }
+                if (token.type === ";") {
+                    // This is a leftover of a one liner, we ignore it
+                    return WAIT;
+                }
                 if (token.type === "}") {
                     return {
                         type: "MatchBlock",
