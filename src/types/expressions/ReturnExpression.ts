@@ -9,4 +9,6 @@ export class ReturnExpression {
     }
 
     public getValue = () => this.value;
+
+    public toRule = () => this.value.toRule()!;
 }

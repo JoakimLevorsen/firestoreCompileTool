@@ -6,3 +6,5 @@ export * from "./blocks";
 export * from "./expressions";
 export * from "./values";
 export * from "./conditions";
+export * from "./LogicGroup";
+export * from "./RuleExportble";

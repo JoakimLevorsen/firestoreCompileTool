@@ -3,8 +3,10 @@ import { ParserError } from "../ParserError";
 import { WAIT } from "../WAIT";
 import { AbstractBlockParser, IfBlockParser } from ".";
 import { ExpressionParser } from "..";
+import { BaseParser } from "../BaseParser";
 
-export class CodeBlockParser extends AbstractBlockParser {
+export class CodeBlockParser extends BaseParser
+    implements AbstractBlockParser {
     private deepParser?: IfBlockParser | ExpressionParser;
     private block: CodeBlock = new CodeBlock();
 
@@ -32,7 +34,7 @@ export class CodeBlockParser extends AbstractBlockParser {
                 this.deepParser = this.spawn(ExpressionParser);
             }
         }
-        const deepParserReturn = this.deepParser.addToken(
+        const deepParserReturn = this.deepParser!.addToken(
             token,
             nextToken
         );

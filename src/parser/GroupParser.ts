@@ -1,20 +1,17 @@
-import { Token, BlockChain } from "../types";
+import {
+    Token,
+    BlockChain,
+    LogicGroup,
+    RuleExportable
+} from "../types";
 import { ParserError, ParserErrorBuilder } from "./ParserError";
-import { WAIT } from "../oldParsers";
-import { BaseParser, ParserConstructor } from ".";
-
-type logic = "&&" | "||";
-
-export interface LogicGroup<T> {
-    base?: T | LogicGroup<T>;
-    itemChain: Array<logic | LogicGroup<T> | T>;
-}
+import { BaseParser, ParserConstructor, WAIT } from ".";
 
 export class GroupParser<
     SubParser extends BaseParser,
-    T
+    T extends RuleExportable
 > extends BaseParser {
-    private data: LogicGroup<T> = { itemChain: [] };
+    private data: LogicGroup<T> = new LogicGroup();
     private stage: "awaiting expression" | "awaiting logic" =
         "awaiting expression";
     private parParser: GroupParser<SubParser, T> | null = null;
@@ -69,8 +66,8 @@ export class GroupParser<
                     return WAIT;
                 }
                 if (!this.subParser) {
-                    this.subParser = new this.subParserConstructor(
-                        this.blockChain
+                    this.subParser = this.spawn(
+                        this.subParserConstructor
                     );
                 }
                 const subResponse = this.subParser.addToken(

@@ -8,8 +8,8 @@ import {
 import { WAIT } from "../WAIT";
 import { ParserError, BaseParser } from "..";
 
-export abstract class AbstractBlockParser extends BaseParser {
-    abstract addToken(
+export interface AbstractBlockParser extends BaseParser {
+    addToken(
         token: Token,
         nextToken: Token | null
     ):

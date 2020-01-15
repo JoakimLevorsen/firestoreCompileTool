@@ -11,8 +11,10 @@ import ConditionParserConstructor, {
     ConditionParser
 } from "../ConditionParser";
 import { AbstractBlockParser, CodeBlockParser } from ".";
+import { BaseParser } from "../BaseParser";
 
-export class MatchBlockParser extends AbstractBlockParser {
+export class MatchBlockParser extends BaseParser
+    implements AbstractBlockParser {
     private blockPath = new PathBuilder();
     private matchBlock?: MatchBlock;
     private ruleBuildingType?: RuleHeader;

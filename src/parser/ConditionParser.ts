@@ -16,11 +16,12 @@ import {
 
 // Since a condition is most likely wrapped in parentesees
 // or has && and/or || logic involved, we export a parser wrapped in a GroupParser.
-export default function ConditionParserConstructor(
-    blockChain?: BlockChain
-): GroupParser<InnerConditionParser, Condition> {
-    return new GroupParser(blockChain!, InnerConditionParser);
-}
+const ConditionParserConstructor = (
+    blockChain: BlockChain
+): GroupParser<InnerConditionParser, Condition> =>
+    new GroupParser(blockChain, InnerConditionParser);
+
+export default ConditionParserConstructor;
 
 export type ConditionParser = ReturnType<
     typeof ConditionParserConstructor

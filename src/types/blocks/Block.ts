@@ -1,7 +1,7 @@
 import { InterfaceMap, Interface } from "../Interface";
 import { ConstantCollection, Constant } from "../expressions";
-import MatchBlock from "./MatchBlock";
 import { CollapsedBlock } from "./BlockChain";
+import { MatchBlock } from ".";
 
 export class Block {
     private interfaces: InterfaceMap = {};
@@ -24,4 +24,10 @@ export class Block {
         interfaces: this.interfaces,
         constants: this.constants
     });
+
+    public toRule = (): string =>
+        this.matchBlocks.reduce(
+            (pV, v) => `${pV}\n${v.toRule()}`,
+            "\n"
+        );
 }

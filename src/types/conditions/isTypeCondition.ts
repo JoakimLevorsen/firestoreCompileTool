@@ -16,7 +16,7 @@ export class IsTypeCondition {
         this.secondValue = secondValue;
     }
 
-    public toString() {
+    public toRule() {
         if (this.comparison === "isOnly") {
             return `(${this.stringBody("is")} && ${this.stringHeader(
                 "only"

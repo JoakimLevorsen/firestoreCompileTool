@@ -1,5 +1,5 @@
 import { Token, isTokenType } from "../types";
-import { extractRawValueString } from "../types/RawValue";
+import { extractRawValueString } from "../types/values/RawValue";
 
 export const extractNextToken = (
     input: string

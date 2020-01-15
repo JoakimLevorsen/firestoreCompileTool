@@ -26,4 +26,26 @@ export class CodeBlock extends Block {
         }
         return false;
     }
+
+    public toRule = (): string => {
+        if (!this.allPathsReturn())
+            throw new Error(
+                "Cannot save block to rules that does not return"
+            );
+        // If we have an if block, we just export that
+        const ifBlock = this.content.find(
+            c => c instanceof IfBlock
+        ) as IfBlock;
+        if (ifBlock) {
+            return ifBlock.toRule();
+        }
+        // Since theres no ifBlock, we just return the Expression
+        const returnX = this.content.find(
+            c => c instanceof ReturnExpression
+        ) as ReturnExpression;
+        if (returnX) {
+            return returnX.toRule();
+        }
+        throw new Error("Could not export to rule");
+    };
 }

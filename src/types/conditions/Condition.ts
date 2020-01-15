@@ -1,5 +1,5 @@
 import { IsEqualCondition, IsTypeCondition } from ".";
-import { LogicGroup } from "../../parser/GroupParser";
+import { LogicGroup } from "..";
 
 type RawCondition = IsTypeCondition | IsEqualCondition;
 

@@ -1,17 +1,17 @@
-import { Expression } from "..";
 import { Condition } from "../conditions";
 import { Block } from "./Block";
 import { CodeBlock } from "./CodeBlock";
+import { ReturnExpression } from "../expressions";
 
 export class IfBlock extends Block {
     public condition: Condition;
-    public ifTrue: Expression | CodeBlock | IfBlock;
-    public ifFalse?: Expression | CodeBlock | IfBlock;
+    public ifTrue: ReturnExpression | CodeBlock | IfBlock;
+    public ifFalse?: ReturnExpression | CodeBlock | IfBlock;
 
     constructor(
         condition: Condition,
-        ifTrue: Expression | CodeBlock | IfBlock,
-        ifFalse?: Expression | CodeBlock | IfBlock
+        ifTrue: ReturnExpression | CodeBlock | IfBlock,
+        ifFalse?: ReturnExpression | CodeBlock | IfBlock
     ) {
         super();
         this.condition = condition;
@@ -39,29 +39,29 @@ export class IfBlock extends Block {
 
     public toString(): string {
         const { condition, ifFalse, ifTrue } = this;
-        if (this.ifFalse) {
-            return `( (${condition} && ${ifTrue}) || (${ifFalse}) )`;
+        if (ifFalse) {
+            return `( (${condition.toRule()} && (${ifTrue.toRule()})) || (${ifFalse.toRule()}) )`;
         }
-        return `(${condition} && ${ifTrue})`;
+        return `(${condition.toRule()} && (${ifTrue.toRule()}))`;
     }
 }
 
 export class IfBlockBuilder {
     private condition?: Condition;
-    private ifTrue?: Expression | CodeBlock | IfBlock;
-    private ifFalse?: Expression | CodeBlock | IfBlock;
+    private ifTrue?: ReturnExpression | CodeBlock | IfBlock;
+    private ifFalse?: ReturnExpression | CodeBlock | IfBlock;
 
     public setCondition(to: Condition) {
         this.condition = to;
         return this;
     }
 
-    public setIfTrue(to: Expression | CodeBlock | IfBlock) {
+    public setIfTrue(to: ReturnExpression | CodeBlock | IfBlock) {
         this.ifTrue = to;
         return this;
     }
 
-    public setIfFalse(to: Expression | CodeBlock | IfBlock) {
+    public setIfFalse(to: ReturnExpression | CodeBlock | IfBlock) {
         this.ifFalse = to;
         return this;
     }

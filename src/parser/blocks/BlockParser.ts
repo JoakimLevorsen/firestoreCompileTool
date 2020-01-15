@@ -7,8 +7,10 @@ import {
     MatchBlockParser,
     ConstantParser
 } from "..";
+import { BaseParser } from "../BaseParser";
 
-export class BlockParser extends AbstractBlockParser {
+export class BlockParser extends BaseParser
+    implements AbstractBlockParser {
     private deepParser:
         | InterfaceParser
         | MatchBlockParser
@@ -56,7 +58,7 @@ export class BlockParser extends AbstractBlockParser {
                     );
             }
         }
-        const deepParserReturn = this.deepParser.addToken(
+        const deepParserReturn = this.deepParser!.addToken(
             token,
             nextToken
         );

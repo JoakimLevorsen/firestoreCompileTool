@@ -7,8 +7,10 @@ import {
 import { ParserError, WAIT, ParserErrorBuilder } from "..";
 import ConditionParserConstructor from "../ConditionParser";
 import { CodeBlockParser, AbstractBlockParser } from ".";
+import { BaseParser } from "../BaseParser";
 
-export class IfBlockParser extends AbstractBlockParser {
+export class IfBlockParser extends BaseParser
+    implements AbstractBlockParser {
     /*
     This parsers stages are more complicated,
     true: is the codeblock to run if true 

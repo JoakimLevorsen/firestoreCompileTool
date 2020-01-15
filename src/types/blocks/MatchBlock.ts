@@ -24,6 +24,15 @@ export class MatchBlock extends Block {
         path: this.path,
         pathVariable: this.pathVariable
     });
+
+    public toRule = (): string => `match ${this.path} {
+        ${Object.keys(this.rules).map(
+            rK =>
+                `allow ${rK}: ${this.rules[
+                    rK as RuleHeader
+                ]!.toRule()};`
+        )}
+    }`;
 }
 
 export class PathBuilder {

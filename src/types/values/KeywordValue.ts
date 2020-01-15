@@ -168,6 +168,8 @@ export default class KeywordValue {
 
     public toString = () => this.key;
 
+    public toRule = () => this.key;
+
     public toStringAsData(): string {
         // If this is a resource we add .data, otherwise its just the key
         if (isResource(this.currentTarget)) {

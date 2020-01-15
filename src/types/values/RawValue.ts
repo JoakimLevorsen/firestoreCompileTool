@@ -84,6 +84,8 @@ export default class RawValue {
 
     public toString = () => this.value;
 
+    public toRule = () => this.value;
+
     public static toRawValue = (keyword: Token): RawValue | null => {
         try {
             return new RawValue(keyword);

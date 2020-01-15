@@ -1,7 +1,6 @@
-import { Block } from "./Block";
 import { InterfaceMap } from "../Interface";
 import { ConstantCollection } from "../expressions";
-import MatchBlock from "./MatchBlock";
+import { MatchBlock, Block } from ".";
 
 // BlockChain, a chain of blocks.
 
@@ -26,11 +25,10 @@ export const collapseBlockChain = (
         cBlock.interfaces = { ...interfaces, ...cBlock.interfaces };
         cBlock.constants = cBlock.constants.combine(constants);
         if (block instanceof MatchBlock) {
-            const { path, pathVariables } = block.getPath();
+            const { path, pathVariable } = block.getPath();
             if (cBlock.path) cBlock.path += path;
             else cBlock.path = path;
-            cBlock.pathVariable =
-                pathVariables[pathVariables.length - 1];
+            cBlock.pathVariable = pathVariable;
         }
     }
     return cBlock;

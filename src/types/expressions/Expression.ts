@@ -10,4 +10,5 @@ export type Expression =
 export const isExpression = (input: any): input is Expression =>
     input instanceof RawValue ||
     isConstant(input) ||
-    input instanceof ReturnExpression;
+    input instanceof ReturnExpression ||
+    input instanceof KeywordValue;

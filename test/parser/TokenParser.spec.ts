@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import "mocha";
-import { extractNextToken } from "../../src/parser/TokenParser";
+import { extractNextToken } from "../../src/oldParsers/TokenParser";
 import { Token, TokenType } from "../../src/types";
 import { testFiles } from "../constants/TokenParser";
 

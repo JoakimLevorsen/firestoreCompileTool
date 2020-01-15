@@ -1,6 +1,6 @@
-import { KeywordObject, RawValue } from "..";
+import { KeywordValue, RawValue } from "..";
 
-type SubValue = RawValue | KeywordObject;
+type SubValue = RawValue | KeywordValue;
 
 export class IsEqualCondition {
     public values: [SubValue, SubValue];
@@ -18,7 +18,7 @@ export class IsEqualCondition {
         }
     }
 
-    public toString(): string {
+    public toRule(): string {
         const [firstValue, secondValue] = this.values;
         const comparison = this.equal ? "==" : "!=";
         return `${firstValue} ${comparison} ${secondValue}`;
