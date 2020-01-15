@@ -30,7 +30,7 @@ match /users/[user] {
 match /resturants/[resturant] {
     read: request.auth != null;
     create: {
-        if resturant isOnly Resturant {
+        if (resturant isOnly Resturant) {
             return resturant.owner == request.auth.uid;
         }
         return false;
