@@ -58,6 +58,7 @@ export class IfBlockParser extends BaseParser
                     return conditionReturn;
                 }
                 this.blockBuilder.setCondition(conditionReturn.data);
+                console.log("did set true condition");
                 this.stage = "true";
                 return WAIT;
             case "true":

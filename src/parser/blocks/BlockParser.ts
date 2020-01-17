@@ -16,11 +16,12 @@ export class BlockParser extends BaseParser
         | MatchBlockParser
         | ConstantParser
         | null = null;
-    private block: Block = new Block();
 
-    postConstructor() {
-        // We create the global state
-        this.blockChain.push(new Block());
+    // Since this is the highest level parser, it's parent block must be it's own
+    protected block = this.parentBlock;
+
+    public getBlock() {
+        return this.block;
     }
 
     addToken(
@@ -70,7 +71,7 @@ export class BlockParser extends BaseParser
         }
         // We got a result, so we save it and reset the parser for the next block
         if (deepParserReturn.type === "MatchBlock") {
-            this.block.addMatchBlock(deepParserReturn.data);
+            // If this is a MatchBlock, it has already been added as a child.
         } else if (deepParserReturn.type === "Constant") {
             this.block.addConstant(deepParserReturn.data);
         } else {

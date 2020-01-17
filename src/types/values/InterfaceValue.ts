@@ -3,15 +3,15 @@ import {
     InterfaceContent,
     isInterface
 } from "../Interface";
-import { CollapsedBlock } from "../blocks";
 import { Token } from "../Token";
+import { Block } from "../blocks";
 
 export default class InterfaceValue {
     private value: Interface | InterfaceContent;
     private key?: string;
 
-    constructor(baseObject: string, scope: CollapsedBlock) {
-        const match = scope.interfaces[baseObject];
+    constructor(baseObject: string, scope: Block) {
+        const match = scope.getInterfaces()[baseObject];
         if (match) {
             this.value = match;
         } else
@@ -22,7 +22,7 @@ export default class InterfaceValue {
 
     public static toInterfaceValue(
         from: Token,
-        scope: CollapsedBlock
+        scope: Block
     ): InterfaceValue | null {
         // If the token isn't a keyword, that's wrong
         if (from.type !== "Keyword") return null;

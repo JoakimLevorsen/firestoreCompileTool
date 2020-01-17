@@ -54,7 +54,7 @@ export class ConstantParser extends BaseParser {
                 }
                 return errorBuilder("Expected ==");
             case "value":
-                const value = valueForToken(token, this.getScope());
+                const value = valueForToken(token, this.parentBlock);
                 if (value instanceof InterfaceValue) {
                     return errorBuilder(
                         "Cannot set constants to interface values"

@@ -44,6 +44,13 @@ export default abstract class GroupParser<
                     }
                     // Now we assign the response to our selves
                     this.addChild(response.data);
+                    if (nextToken?.type === "(") {
+                        return {
+                            type: "Collection",
+                            data: this.data
+                        };
+                    }
+                    this.stage = "awaiting logic";
                     // Now we can return
                     return WAIT;
                 }
@@ -55,8 +62,13 @@ export default abstract class GroupParser<
                     return subResponse;
                 }
                 this.addChild(subResponse.data);
-                // We check if we should return
-                if (token.type === ")" || nextToken?.type === ";") {
+                this.resetSub();
+                if (
+                    nextToken?.type === ")" ||
+                    nextToken?.type === ";" ||
+                    nextToken?.type === "{"
+                ) {
+                    console.log("Returning condition 2");
                     return { type: "Collection", data: this.data };
                 }
                 this.stage = "awaiting logic";
@@ -68,6 +80,11 @@ export default abstract class GroupParser<
                     );
                     this.stage = "awaiting expression";
                     return WAIT;
+                }
+                // We check if we should return
+                if (token.type === ")") {
+                    console.log("Returning condition");
+                    return { type: "Collection", data: this.data };
                 }
                 return errorBuilder(`Expected logic, got ${token}`);
         }
@@ -85,6 +102,8 @@ export default abstract class GroupParser<
               type: "Sub";
               data: T;
           };
+
+    protected abstract resetSub(): void;
 
     private addChild(item: T | LogicGroup<T>) {
         if (this.data.base) {

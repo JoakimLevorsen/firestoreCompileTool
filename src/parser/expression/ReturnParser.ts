@@ -48,7 +48,7 @@ export class ReturnParser extends BaseParser {
                 }
                 const firstVal = valueForToken(
                     token,
-                    this.getScope()
+                    this.parentBlock
                 );
                 if (firstVal === null) {
                     return errorBuilder(

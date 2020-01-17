@@ -16,7 +16,12 @@ export default class ConditionParser extends GroupParser<Condition> {
     private subPartialError = ParserErrorBuilder(ConditionParser);
     private builder = new ConditionBuilder();
 
-    spawnClone = () => new ConditionParser(this.blockChain);
+    spawnClone = () => new ConditionParser(this.parentBlock);
+
+    resetSub() {
+        this.subStage = "awaiting first";
+        this.builder = new ConditionBuilder();
+    }
 
     subParse(
         token: Token,
@@ -36,12 +41,14 @@ export default class ConditionParser extends GroupParser<Condition> {
             case "awaiting first":
                 if (token.type !== "Keyword") {
                     return errorBuilder(
-                        `Expected keyword not ${token}`
+                        `Expected keyword 1 not ${JSON.stringify(
+                            token
+                        )}`
                     );
                 }
                 const firstVal = valueForToken(
                     token,
-                    this.getScope()
+                    this.parentBlock
                 );
                 if (firstVal === null) {
                     return errorBuilder(`Could not extract value`);
@@ -69,22 +76,35 @@ export default class ConditionParser extends GroupParser<Condition> {
                         "Expected comparison of ==, ||, is, only or isOnly"
                     );
                 }
+                console.log(
+                    `Set comparison to ${JSON.stringify(token)}`
+                );
                 this.subStage = "awaiting second";
                 return WAIT;
             case "awaiting second":
                 if (token.type !== "Keyword") {
                     return errorBuilder(
-                        `Expected keyword not ${token}`
+                        `Expected keyword 2 not ${JSON.stringify(
+                            token
+                        )} ${JSON.stringify(this.builder)}`
                     );
                 }
                 const secondVal = valueForToken(
                     token,
-                    this.getScope()
+                    this.parentBlock
                 );
                 if (secondVal === null) {
+                    console.log(
+                        "Block is",
+                        JSON.stringify(this.parentBlock)
+                    );
                     return errorBuilder(`Could not extract value`);
                 }
                 this.builder.setSecondValue(secondVal);
+                console.log(
+                    "Did return value " +
+                        JSON.stringify(this.builder.getCondition())
+                );
                 return {
                     type: "Sub",
                     data: this.builder.getCondition()

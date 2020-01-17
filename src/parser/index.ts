@@ -15,7 +15,7 @@ export * from "./InterfaceParser";
 export * from "./TypeParser";
 
 const parse = (input: string, debug = false): Block | null => {
-    const blockParser = new BlockParser();
+    const blockParser = new BlockParser(new Block());
     const tokenParser = new TokenParser(input);
     let nextToken: Token | null = null;
     do {
@@ -33,8 +33,9 @@ const parse = (input: string, debug = false): Block | null => {
         }
         if (response !== WAIT) {
             return response.data;
-        }
+        } else console.log("Should wait");
     } while (true);
+    return blockParser.getBlock();
     return null;
 };
 

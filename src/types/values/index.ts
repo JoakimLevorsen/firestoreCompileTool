@@ -4,9 +4,9 @@ import InterfaceValue from "./InterfaceValue";
 import KeywordValue from "./KeywordValue";
 import RawValue from "./RawValue";
 import { Token } from "../Token";
-import { CollapsedBlock } from "../blocks";
+import { Block } from "../blocks";
 
-export const valueForToken = (token: Token, scope: CollapsedBlock) =>
+export const valueForToken = (token: Token, scope: Block) =>
     RawValue.toRawValue(token) ||
     InterfaceValue.toInterfaceValue(token, scope) ||
     KeywordValue.toKeywordValue(token, scope);

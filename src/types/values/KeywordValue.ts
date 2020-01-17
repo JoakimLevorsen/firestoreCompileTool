@@ -1,5 +1,4 @@
 import { Type } from "..";
-import { CollapsedBlock } from "../blocks";
 import { Interface } from "readline";
 import {
     InterfaceContent,
@@ -8,6 +7,7 @@ import {
 } from "../Interface";
 import { isType } from "../Type";
 import { Token } from "../Token";
+import { Block, MatchBlock } from "../blocks";
 
 type ANY = "ANY";
 const ANY: ANY = "ANY";
@@ -67,10 +67,10 @@ export default class KeywordValue {
     private key: string | null;
     private currentTarget: target;
 
-    constructor(baseObject: string, scope: CollapsedBlock) {
+    constructor(baseObject: string, scope: Block) {
         // The assignment order is: constant, path, globalScope.
         // We ignore interfaces
-        const con = scope.constants.get(baseObject);
+        const con = scope.getConstants().get(baseObject);
         if (con) {
             this.currentTarget = con.getType();
             this.key =
@@ -79,11 +79,14 @@ export default class KeywordValue {
                     : null;
             return;
         }
-        const pVariable = scope.pathVariable;
-        if (pVariable === baseObject) {
-            this.key = "request.resource";
-            this.currentTarget = request.resource;
-            return;
+        const matchBlock = scope.latestMatchBlock;
+        if (matchBlock) {
+            const pVariable = matchBlock.getPath().pathVariable;
+            if (pVariable === baseObject) {
+                this.key = "request.resource";
+                this.currentTarget = request.resource;
+                return;
+            }
         }
         if (baseObject === "request" || baseObject === "resource") {
             this.key = baseObject;
@@ -98,7 +101,7 @@ export default class KeywordValue {
 
     public static toKeywordValue(
         from: Token,
-        scope: CollapsedBlock
+        scope: Block
     ): KeywordValue | null {
         // If the token isn't a keyword, that's wrong
         if (from.type !== "Keyword") return null;

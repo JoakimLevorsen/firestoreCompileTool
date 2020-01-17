@@ -1,16 +1,17 @@
 import { WAIT, ParserError } from ".";
-import { Token, Block, collapseBlockChain } from "../types";
+import { Token, Block } from "../types";
 
 export type ParserConstructor<P extends BaseParser> = new (
-    blockChain?: Block[]
+    parentBlock: Block
 ) => P;
 
 export default abstract class BaseParser {
-    // The chain of blocks to me
-    protected blockChain: Block[];
+    // The block of the parent item, if a parser creates it's own block, it will be a child of this
+    protected parentBlock: Block;
+    protected block?: Block;
 
-    constructor(blockChain?: Block[]) {
-        this.blockChain = blockChain || [];
+    constructor(parentBlock: Block) {
+        this.parentBlock = parentBlock;
         if (this.postConstructor) this.postConstructor();
     }
 
@@ -27,10 +28,8 @@ export default abstract class BaseParser {
         constructor: ParserConstructor<P>
     ): P {
         // Spawn a new parser with indentical interfaces/path
-        return new constructor(this.blockChain);
+        return new constructor(this.block || this.parentBlock);
     }
-
-    public getScope = () => collapseBlockChain(this.blockChain);
 }
 
 export { BaseParser };

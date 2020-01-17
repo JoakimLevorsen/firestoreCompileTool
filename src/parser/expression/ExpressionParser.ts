@@ -46,7 +46,7 @@ export class ExpressionParser extends BaseParser {
                 if (nextToken && nextToken.type === ";") {
                     const firstValue = valueForToken(
                         token,
-                        this.getScope()
+                        this.parentBlock
                     );
                     if (firstValue === null) {
                         return errorBuilder(

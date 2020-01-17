@@ -14,7 +14,7 @@ import { BaseParser } from "../BaseParser";
 export class MatchBlockParser extends BaseParser
     implements AbstractBlockParser {
     private blockPath = new PathBuilder();
-    private matchBlock?: MatchBlock;
+    protected block = this.parentBlock.spawnChild(MatchBlock);
     private ruleBuildingType?: RuleHeader;
     private matchDeepParser?: CodeBlockParser | ConditionParser;
     private stage:
@@ -25,6 +25,7 @@ export class MatchBlockParser extends BaseParser
         | "awaiting rule header colon"
         | "building rule" = "awaiting keyword";
     private partialError = ParserErrorBuilder(MatchBlockParser);
+    private subMatchParser?: MatchBlockParser;
     private addingPathVariable = false;
     private hasAddedPathVariable = false;
 
@@ -61,10 +62,7 @@ export class MatchBlockParser extends BaseParser
                             ? `${pV}/[${v}]`
                             : `${pV}/${v}`
                     );
-                    this.matchBlock = new MatchBlock(
-                        stringPath,
-                        pathVariable
-                    );
+                    this.block.setPath(stringPath, pathVariable);
                     return WAIT;
                 }
                 return errorBuilder("Expected a / or {");
@@ -74,9 +72,9 @@ export class MatchBlockParser extends BaseParser
                         token.value,
                         this.addingPathVariable
                     );
-                    if (this.addingPathVariable)
+                    if (this.addingPathVariable) {
                         this.hasAddedPathVariable = true;
-                    else this.stage = "awaiting path slash";
+                    } else this.stage = "awaiting path slash";
                     return WAIT;
                 }
                 if (token.type === "[") {
@@ -98,6 +96,31 @@ export class MatchBlockParser extends BaseParser
                 }
                 return errorBuilder(`Unexpected token`);
             case "awaiting rule header":
+                if (!this.subMatchParser) {
+                    if (
+                        token.type === "Keyword" &&
+                        token.value === "match"
+                    ) {
+                        this.subMatchParser = this.spawn(
+                            MatchBlockParser
+                        );
+                    }
+                }
+                if (this.subMatchParser) {
+                    let subResponse = this.subMatchParser.addToken(
+                        token,
+                        nextToken
+                    );
+                    if (
+                        subResponse === WAIT ||
+                        subResponse instanceof ParserError
+                    ) {
+                        return subResponse;
+                    }
+                    this.subMatchParser = undefined;
+                    this.block.addChild(subResponse.data);
+                    return WAIT;
+                }
                 if (
                     token.type === "Keyword" &&
                     isRuleHeader(token.value)
@@ -106,14 +129,14 @@ export class MatchBlockParser extends BaseParser
                     this.stage = "awaiting rule header colon";
                     return WAIT;
                 }
-                if (token.type === ";") {
+                if (token.type === ";" || token.type === ",") {
                     // This is a leftover of a one liner, we ignore it
                     return WAIT;
                 }
                 if (token.type === "}") {
                     return {
                         type: "MatchBlock",
-                        data: this.matchBlock!
+                        data: this.block
                     };
                 }
                 return errorBuilder("Unexpected token");
@@ -127,12 +150,14 @@ export class MatchBlockParser extends BaseParser
                 if (!this.matchDeepParser) {
                     // We now assign the deepParser depending on the current token
                     if (token.type === "{") {
+                        console.log("Content is block");
                         this.matchDeepParser = this.spawn(
                             CodeBlockParser
                         );
                         // We now return since the codeBlock wont be fed the first {
                         return WAIT;
                     }
+                    console.log("Content isn´t block");
                     this.matchDeepParser = this.spawn(
                         ConditionParser
                     );
@@ -155,12 +180,13 @@ export class MatchBlockParser extends BaseParser
                         );
                     }
                 }
-                this.matchBlock!.addRule(
+                this.block.addRule(
                     this.ruleBuildingType!,
                     deepParserReturn.data
                 );
                 this.ruleBuildingType = undefined;
                 this.stage = "awaiting rule header";
+                this.matchDeepParser = undefined;
                 return WAIT;
         }
     }

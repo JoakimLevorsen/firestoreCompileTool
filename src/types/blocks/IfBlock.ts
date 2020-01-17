@@ -24,6 +24,9 @@ export class IfBlock extends Block {
     // Does ifTrue return? and ifFalse exists does it also?
     public allPathsReturn = () => {
         const { ifFalse, ifTrue } = this;
+        // First we check ifTrue returns
+        if (ifTrue instanceof CodeBlock && !ifTrue.allPathsReturn())
+            return false;
         if (ifFalse) {
             if (
                 ifFalse instanceof CodeBlock &&
@@ -31,19 +34,18 @@ export class IfBlock extends Block {
             ) {
                 return false;
             }
+            return true;
         }
-        if (ifTrue instanceof CodeBlock && !ifTrue.allPathsReturn())
-            return false;
-        return true;
+        return false;
     };
 
-    public toString(): string {
+    public toRule = (): string => {
         const { condition, ifFalse, ifTrue } = this;
         if (ifFalse) {
             return `( (${condition.toRule()} && (${ifTrue.toRule()})) || (${ifFalse.toRule()}) )`;
         }
         return `(${condition.toRule()} && (${ifTrue.toRule()}))`;
-    }
+    };
 }
 
 export class IfBlockBuilder {

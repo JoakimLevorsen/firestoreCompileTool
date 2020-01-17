@@ -8,7 +8,7 @@ import { BaseParser } from "../BaseParser";
 export class CodeBlockParser extends BaseParser
     implements AbstractBlockParser {
     private deepParser?: IfBlockParser | ExpressionParser;
-    private block: CodeBlock = new CodeBlock();
+    protected block = this.parentBlock.spawnChild(CodeBlock);
 
     addToken(
         token: Token,
@@ -18,9 +18,22 @@ export class CodeBlockParser extends BaseParser
         // This parser can have two states, using a subparser, or awaiting a new one
         if (!this.deepParser) {
             if (token.type !== "Keyword") {
-                if (token.type === "}" && eatCloseBlock) {
-                    return { type: "CodeBlock", data: this.block };
+                if (token.type === ";") {
+                    if (!eatCloseBlock && nextToken?.type === "}") {
+                        return {
+                            type: "CodeBlock",
+                            data: this.block
+                        };
+                    }
+                    return WAIT;
                 }
+                if (token.type === "}" && eatCloseBlock) {
+                    return {
+                        type: "CodeBlock",
+                        data: this.block
+                    };
+                }
+                console.log("nextBlock is", nextToken);
                 return new ParserError(
                     "Unexpected Token",
                     token,
@@ -43,6 +56,8 @@ export class CodeBlockParser extends BaseParser
         ) {
             return deepParserReturn;
         }
+        // We'll reset the parser for the next item
+        this.deepParser = undefined;
         if (deepParserReturn.type === "Expression") {
             if (isCondition(deepParserReturn.data)) {
                 return new ParserError(
@@ -58,6 +73,7 @@ export class CodeBlockParser extends BaseParser
         if (!eatCloseBlock && nextToken?.type === "}") {
             return { type: "CodeBlock", data: this.block };
         }
+        console.log("Next token is", nextToken);
         return WAIT;
     }
 }

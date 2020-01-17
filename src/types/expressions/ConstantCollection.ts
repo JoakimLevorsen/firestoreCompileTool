@@ -20,4 +20,8 @@ export default class ConstantCollection {
     // Combine and override with other
     public combine = (other: ConstantCollection) =>
         new ConstantCollection({ ...this.values, ...other.values });
+
+    public get clone() {
+        return new ConstantCollection({ ...this.values });
+    }
 }
