@@ -25,12 +25,17 @@ export class MatchBlock extends Block {
     });
 
     public toRule = (): string => `match ${this.path} {
-        ${Object.keys(this.rules).map(
-            rK =>
-                `allow ${rK}: ${this.rules[
-                    rK as RuleHeader
-                ]!.toRule()};`
-        )}
+        ${Object.keys(this.rules)
+            .map(
+                rK =>
+                    `allow ${rK}: ${this.rules[
+                        rK as RuleHeader
+                    ]!.toRule()};`
+            )
+            .reduce((pV, v) => (pV === "" ? v : `${pV}\n${v}`), "")}
+        ${this.childMatchBlocks
+            .map(b => b.toRule())
+            .reduce((pV, v) => (pV === "" ? v : `${pV}\n${v}`), "")}
     }`;
 }
 

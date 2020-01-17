@@ -36,6 +36,10 @@ export class Block {
         ) as MatchBlock[];
     }
 
+    public get childMatchBlocks() {
+        return this.children.filter(b => b instanceof MatchBlock);
+    }
+
     public get latestMatchBlock(): MatchBlock | null {
         if (this instanceof MatchBlock) return this;
         let item: Block = this;
@@ -78,7 +82,8 @@ export class Block {
     public addConstant = (con: Constant) => this.constants.add(con);
 
     public toRule = (): string =>
-        this.children
-            .filter(b => b instanceof MatchBlock)
-            .reduce((pV, v) => `${pV}\n${v.toRule()}`, "\n");
+        this.childMatchBlocks.reduce(
+            (pV, v) => `${pV}\n${v.toRule()}`,
+            "\n"
+        );
 }

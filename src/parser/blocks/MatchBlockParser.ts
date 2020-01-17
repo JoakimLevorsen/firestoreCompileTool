@@ -59,7 +59,7 @@ export class MatchBlockParser extends BaseParser
                     } = this.blockPath.exportPath();
                     const stringPath = path.reduce((pV, v) =>
                         pathVariable === v
-                            ? `${pV}/[${v}]`
+                            ? `${pV}/{${v}}`
                             : `${pV}/${v}`
                     );
                     this.block.setPath(stringPath, pathVariable);
@@ -118,7 +118,6 @@ export class MatchBlockParser extends BaseParser
                         return subResponse;
                     }
                     this.subMatchParser = undefined;
-                    this.block.addChild(subResponse.data);
                     return WAIT;
                 }
                 if (

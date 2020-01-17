@@ -42,7 +42,7 @@ export class IfBlock extends Block {
     public toRule = (): string => {
         const { condition, ifFalse, ifTrue } = this;
         if (ifFalse) {
-            return `( (${condition.toRule()} && (${ifTrue.toRule()})) || (${ifFalse.toRule()}) )`;
+            return `((${condition.toRule()} && (${ifTrue.toRule()})) || (${ifFalse.toRule()}) )`;
         }
         return `(${condition.toRule()} && (${ifTrue.toRule()}))`;
     };

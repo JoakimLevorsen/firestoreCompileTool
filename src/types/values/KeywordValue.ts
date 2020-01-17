@@ -158,7 +158,7 @@ export default class KeywordValue {
         }
         // Since it is any, we just assume everything is groovy.
         this.currentTarget = ANY;
-        this.key += target;
+        this.key += `.${target}`;
     }
 
     public castAs(type: target) {

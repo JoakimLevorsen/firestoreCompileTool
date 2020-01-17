@@ -6,6 +6,7 @@ import figlet from "figlet";
 import * as fs from "fs";
 // import blockToRules from "./outputTools";
 import parse from "./parser";
+import { formatFile } from "./outputTools";
 
 // const [inputFile, outputFile] = process.argv;
 
@@ -25,6 +26,7 @@ const b = parse(file);
 // console.log("Old parser got", JSON.stringify(Oldb));
 console.log("Output is", b);
 const rules = b?.toRule();
+const formatted = formatFile(rules || "");
 
-fs.writeFileSync("./output.x", rules);
+fs.writeFileSync("./output.x", formatted);
 // }
