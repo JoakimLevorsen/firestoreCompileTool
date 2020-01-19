@@ -24,7 +24,6 @@ const file = fs.readFileSync("./test/testFiles/2.kakao").toString();
 const b = parse(file);
 
 // console.log("Old parser got", JSON.stringify(Oldb));
-console.log("Output is", b);
 const rules = b?.toRule();
 const formatted = formatFile(rules || "");
 

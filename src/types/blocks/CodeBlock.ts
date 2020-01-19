@@ -26,6 +26,20 @@ export class CodeBlock extends Block {
         return false;
     }
 
+    public onlyReturnsFalse(): boolean {
+        if (!this.allPathsReturn()) return false;
+        if (this.content.length === 1) {
+            const line = this.content[0];
+            if (
+                line instanceof RawValue &&
+                line.toRule() === "false"
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public toRule = (): string => {
         if (!this.allPathsReturn())
             throw new Error(
