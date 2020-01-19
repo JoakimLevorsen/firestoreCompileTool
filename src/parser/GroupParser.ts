@@ -68,7 +68,6 @@ export default abstract class GroupParser<
                     nextToken?.type === ";" ||
                     nextToken?.type === "{"
                 ) {
-                    console.log("Returning condition 2");
                     return { type: "Collection", data: this.data };
                 }
                 this.stage = "awaiting logic";
@@ -83,7 +82,6 @@ export default abstract class GroupParser<
                 }
                 // We check if we should return
                 if (token.type === ")") {
-                    console.log("Returning condition");
                     return { type: "Collection", data: this.data };
                 }
                 return errorBuilder(`Expected logic, got ${token}`);

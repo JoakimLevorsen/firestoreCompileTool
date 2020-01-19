@@ -76,9 +76,6 @@ export default class ConditionParser extends GroupParser<Condition> {
                         "Expected comparison of ==, ||, is, only or isOnly"
                     );
                 }
-                console.log(
-                    `Set comparison to ${JSON.stringify(token)}`
-                );
                 this.subStage = "awaiting second";
                 return WAIT;
             case "awaiting second":
@@ -94,17 +91,9 @@ export default class ConditionParser extends GroupParser<Condition> {
                     this.parentBlock
                 );
                 if (secondVal === null) {
-                    console.log(
-                        "Block is",
-                        JSON.stringify(this.parentBlock)
-                    );
                     return errorBuilder(`Could not extract value`);
                 }
                 this.builder.setSecondValue(secondVal);
-                console.log(
-                    "Did return value " +
-                        JSON.stringify(this.builder.getCondition())
-                );
                 return {
                     type: "Sub",
                     data: this.builder.getCondition()

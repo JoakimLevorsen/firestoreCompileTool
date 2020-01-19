@@ -1,6 +1,12 @@
 import { expect } from "chai";
 import "mocha";
-import { RawValue, Token, Type } from "../../src/types";
+import {
+    RawValue,
+    Token,
+    Type,
+    valueForToken,
+    Block
+} from "../../src/types";
 
 const stringToToken = (value: string): Token => ({
     type: "Keyword",
@@ -33,7 +39,11 @@ describe("RawValue", () => {
         }' expected to return type '${val[1]}' and toString value '${
             val[2]
         }'`, () => {
-            const object = new RawValue(val[0]);
+            const object = valueForToken(
+                val[0],
+                new Block()
+            ) as RawValue;
+            expect(object).to.be.instanceOf(RawValue);
             expect(object.getType()).to.equal(val[1]);
             expect(object.toString()).to.equal(val[2]);
         });

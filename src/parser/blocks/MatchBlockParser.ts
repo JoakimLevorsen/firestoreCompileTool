@@ -149,14 +149,12 @@ export class MatchBlockParser extends BaseParser
                 if (!this.matchDeepParser) {
                     // We now assign the deepParser depending on the current token
                     if (token.type === "{") {
-                        console.log("Content is block");
                         this.matchDeepParser = this.spawn(
                             CodeBlockParser
                         );
                         // We now return since the codeBlock wont be fed the first {
                         return WAIT;
                     }
-                    console.log("Content isn´t block");
                     this.matchDeepParser = this.spawn(
                         ConditionParser
                     );

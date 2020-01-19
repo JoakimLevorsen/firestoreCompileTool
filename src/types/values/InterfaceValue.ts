@@ -66,4 +66,6 @@ export default class InterfaceValue {
         iVal[this.key || ""] = this.value;
         return iVal;
     }
+
+    public getValue = () => this.value;
 }

@@ -33,7 +33,6 @@ export class CodeBlockParser extends BaseParser
                         data: this.block
                     };
                 }
-                console.log("nextBlock is", nextToken);
                 return new ParserError(
                     "Unexpected Token",
                     token,
@@ -73,7 +72,6 @@ export class CodeBlockParser extends BaseParser
         if (!eatCloseBlock && nextToken?.type === "}") {
             return { type: "CodeBlock", data: this.block };
         }
-        console.log("Next token is", nextToken);
         return WAIT;
     }
 }
