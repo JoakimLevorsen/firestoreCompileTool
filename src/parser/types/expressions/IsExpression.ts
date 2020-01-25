@@ -1,14 +1,15 @@
 import Expression, { ComparisonType } from ".";
 import { Position } from "../SyntaxComponent";
 
-export type IsOperators = "is" | "isOnly" | "only";
+export const IsOperators = <const>["is", "isOnly", "only"];
+export type IsOperator = typeof IsOperators[number];
 
 export default class IsExpression extends Expression {
-    protected operator: IsOperators;
+    protected operator: IsOperator;
 
     constructor(
         position: Position,
-        operator: IsOperators,
+        operator: IsOperator,
         left: ComparisonType,
         right: ComparisonType
     ) {

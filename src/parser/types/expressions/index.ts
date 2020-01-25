@@ -4,10 +4,12 @@ import { LiteralOrIndentifier } from "../LiteralOrIndentifier";
 import { EqualityOperators } from "./EqualityExpression";
 import { IsOperators } from "./IsExpression";
 
-export type Operator =
-    | EqualityOperators
-    | LogicOperators
-    | IsOperators;
+export const Operators = [
+    ...EqualityOperators,
+    ...LogicOperators,
+    ...IsOperators
+];
+export type Operator = typeof Operators[number];
 
 export type ComparisonType = LiteralOrIndentifier | Expression;
 

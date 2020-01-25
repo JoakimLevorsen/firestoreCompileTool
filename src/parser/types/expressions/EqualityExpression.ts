@@ -1,14 +1,15 @@
 import Expression, { ComparisonType } from ".";
 import { Position } from "../SyntaxComponent";
 
-export type EqualityOperators = "==" | "!=";
+export const EqualityOperators = <const>["==", "!="];
+export type EqualityOperator = typeof EqualityOperators[number];
 
 export default class EqualityExpression extends Expression {
-    protected operator: EqualityOperators;
+    protected operator: EqualityOperator;
 
     constructor(
         position: Position,
-        operator: EqualityOperators,
+        operator: EqualityOperator,
         left: ComparisonType,
         right: ComparisonType
     ) {
