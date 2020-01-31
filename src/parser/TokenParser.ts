@@ -42,11 +42,6 @@ const nonKeywordRegex = escapedNonKeywordTokens.map(
     })
 );
 
-interface TokenParserReturn {
-    token: Token;
-    location: number;
-}
-
 export class TokenParser {
     private location: number = 0;
     private original: string;
@@ -57,7 +52,7 @@ export class TokenParser {
         this.remaining = input;
     }
 
-    nextToken(): TokenParserReturn {
+    nextToken(): Token {
         // const spaceMatch = this.remaining.match(/^\s*/);
         // let firstSpacing = 0;
         // if (spaceMatch && spaceMatch[0]) {
@@ -66,21 +61,21 @@ export class TokenParser {
         // this.location += firstSpacing;
         const { location, remaining } = this;
         // const toConsider = this.remaining.substr(firstSpacing);
-        if (remaining === "")
-            return { token: { type: "EOF" }, location };
+        if (remaining === "") return { type: "EOF", location };
         for (const { type, regex } of nonKeywordRegex) {
             const escaped = remaining.match(regex);
             if (escaped == null) continue;
             this.remaining = escaped.input!.substr(escaped[0].length);
             this.location += escaped[0].length;
-            return { token: { type: type }, location };
+            return { type: type, location };
         }
         const kMatch = remaining.match(keywordRegex);
         if (kMatch && kMatch[1]) {
             this.remaining = remaining.substr(kMatch[1].length);
             this.location += kMatch[1].length;
             return {
-                token: { type: "Keyword", value: kMatch[1] },
+                type: "Keyword",
+                value: kMatch[1],
                 location
             };
         }
@@ -91,12 +86,12 @@ export class TokenParser {
 
     static extractAll(from: string) {
         const parser = new TokenParser(from);
-        const tokens: TokenParserReturn[] = [];
-        let token: TokenParserReturn;
+        const tokens: Token[] = [];
+        let token: Token;
         do {
             token = parser.nextToken();
             tokens.push(token);
-        } while (token.token.type !== "EOF");
+        } while (token.type !== "EOF");
         return tokens;
     }
 }
