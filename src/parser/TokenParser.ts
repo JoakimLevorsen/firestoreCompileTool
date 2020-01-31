@@ -1,16 +1,46 @@
 import { nonKeywordTokens, Token } from "./types/Token";
 
+const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
+    switch (raw) {
+        case ".":
+        case "(":
+        case ")":
+        case "{":
+        case "}":
+        case "[":
+        case "]":
+        case "||":
+        case "|":
+            let escaped = "";
+            for (const c of raw) {
+                escaped += `\\${c}`;
+            }
+            return { escaped, raw };
+        case "?:":
+            return { escaped: "\\?:", raw };
+        default:
+            return { raw };
+    }
+});
+
 const keywordRegex = new RegExp(
-    `^(.*)(${nonKeywordTokens.reduce(
-        (pV, v) => (pV == "" ? `${pV}|${v}` : v),
-        ""
-    )})`
+    `^([^\t\f\v ${escapedNonKeywordTokens
+        .filter(({ raw }) => !/^\w*$/.test(raw))
+        .reduce(
+            (pV, v) =>
+                pV != ""
+                    ? `${pV}${v.escaped || v.raw}`
+                    : v.escaped || v.raw,
+            ""
+        )}]+)`
 );
 
-const nonKeywordRegex = nonKeywordTokens.map(type => ({
-    type,
-    regex: new RegExp(`^${type}`)
-}));
+const nonKeywordRegex = escapedNonKeywordTokens.map(
+    ({ escaped, raw }) => ({
+        type: raw,
+        regex: new RegExp(`^${escaped || raw}`)
+    })
+);
 
 interface TokenParserReturn {
     token: Token;
@@ -28,32 +58,34 @@ export class TokenParser {
     }
 
     nextToken(): TokenParserReturn {
-        const { location } = this;
-        const spaceMatch = this.remaining.match(/^\s*/);
-        let firstSpacing = 0;
-        if (spaceMatch && spaceMatch[0]) {
-            firstSpacing = spaceMatch[0].length;
-        }
-        this.location += firstSpacing;
-        const toConsider = this.remaining.substr(firstSpacing);
-        if (toConsider === "")
+        // const spaceMatch = this.remaining.match(/^\s*/);
+        // let firstSpacing = 0;
+        // if (spaceMatch && spaceMatch[0]) {
+        //     firstSpacing = spaceMatch[0].length;
+        // }
+        // this.location += firstSpacing;
+        const { location, remaining } = this;
+        // const toConsider = this.remaining.substr(firstSpacing);
+        if (remaining === "")
             return { token: { type: "EOF" }, location };
         for (const { type, regex } of nonKeywordRegex) {
-            const result = toConsider.match(regex);
-            if (result == null) continue;
-            this.remaining = result[1];
-            this.location += result[0].length - result[1].length;
-            return { token: { type }, location };
+            const escaped = remaining.match(regex);
+            if (escaped == null) continue;
+            this.remaining = escaped.input!.substr(escaped[0].length);
+            this.location += escaped[0].length;
+            return { token: { type: type }, location };
         }
-        const kMatch = toConsider.match(keywordRegex);
+        const kMatch = remaining.match(keywordRegex);
         if (kMatch && kMatch[1]) {
+            this.remaining = remaining.substr(kMatch[1].length);
+            this.location += kMatch[1].length;
             return {
                 token: { type: "Keyword", value: kMatch[1] },
                 location
             };
         }
         throw new Error(
-            "Token could not be extracted from " + toConsider
+            "Token could not be extracted from " + remaining
         );
     }
 
@@ -63,6 +95,7 @@ export class TokenParser {
         let token: TokenParserReturn;
         do {
             token = parser.nextToken();
+            tokens.push(token);
         } while (token.token.type !== "EOF");
         return tokens;
     }

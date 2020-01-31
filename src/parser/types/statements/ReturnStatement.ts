@@ -1,6 +1,6 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { BinaryExpression } from "../expressions/BinaryExpression";
-import Expression from "../expressions";
+import Expression from "../expressions/Expression";
 import Indentifier from "../Indentifier";
 import BooleanLiteral from "../literal/BooleanLiteral";
 

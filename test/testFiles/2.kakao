@@ -21,7 +21,7 @@ match /users/[user] {
     read: request.auth != null;
     write: {
         if request.auth.uid == user.id {
-            return user isOnly User;
+            return user isOnly User || false;
         }
         return false;
     },

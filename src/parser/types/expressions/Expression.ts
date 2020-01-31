@@ -1,15 +1,6 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
-import { LogicOperators } from "./LogicalExpression";
 import { LiteralOrIndentifier } from "../LiteralOrIndentifier";
-import { EqualityOperators } from "./EqualityExpression";
-import { IsOperators } from "./IsExpression";
-
-export const Operators = [
-    ...EqualityOperators,
-    ...LogicOperators,
-    ...IsOperators
-];
-export type Operator = typeof Operators[number];
+import { Operator } from "./Operators";
 
 export type ComparisonType = LiteralOrIndentifier | Expression;
 

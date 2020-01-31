@@ -1,11 +1,11 @@
-import Expression, { ComparisonType } from ".";
+import Expression, { ComparisonType } from "./Expression";
 import { Position } from "../SyntaxComponent";
 
 export const LogicOperators = <const>["&&", "||"];
 export type LogicOperator = typeof LogicOperators[number];
 
 export default class LogicalExpression extends Expression {
-    protected operator: LogicOperator;
+    protected op: LogicOperator;
 
     constructor(
         position: Position,
@@ -14,6 +14,6 @@ export default class LogicalExpression extends Expression {
         right: ComparisonType
     ) {
         super(position, operator, left, right);
-        this.operator = operator;
+        this.op = operator;
     }
 }

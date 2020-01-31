@@ -1,4 +1,4 @@
-import Expression, { ComparisonType } from ".";
+import Expression, { ComparisonType } from "./Expression";
 import { Position } from "../SyntaxComponent";
 
 export const IsOperators = <const>["is", "isOnly", "only"];
