@@ -1,0 +1,145 @@
+import Parser from "../Parser";
+import LiteralOrIndentifierExtractor from "../IndentifierOrLiteralExtractor";
+import { LiteralParser } from "../literal";
+import { tokenHasType, spaceTokens } from "../../types/Token";
+import Indentifier from "../../types/Indentifier";
+import BooleanLiteral from "../../types/literal/BooleanLiteral";
+import { LiteralOrIndentifier } from "../../types/LiteralOrIndentifier";
+import NumericLiteralParser from "../literal/NumericLiteralParser";
+import StringLiteralParser from "../literal/StringLiteralParser";
+import MemberExpression from "../../types/expressions/MemberExpression";
+import NumericLiteral from "../../types/literal/NumericLiteral";
+
+export default class MemberExpressionParser extends Parser {
+    private stage:
+        | "awaiting first"
+        | "awaiting seperator"
+        | "awaiting second" = "awaiting first";
+    private seperatorType?: "Dot" | "[]";
+    private subParser?: LiteralParser;
+    private memParser?: MemberExpressionParser;
+    private firstItem?: LiteralOrIndentifier;
+    private secondItem?: LiteralOrIndentifier | MemberExpression;
+    private start?: number;
+
+    public addToken(
+        token: import("../../types/Token").Token
+    ): LiteralOrIndentifier | MemberExpression | null {
+        const error = this.errorCreator(token);
+        if (!this.start) this.start = token.location;
+        switch (this.stage) {
+            case "awaiting first":
+                if (!this.subParser) {
+                    const result = LiteralOrIndentifierExtractor(
+                        token,
+                        this.errorCreator
+                    );
+                    if (
+                        result instanceof Indentifier ||
+                        result instanceof BooleanLiteral
+                    ) {
+                        this.firstItem = result;
+                        return this.firstItem;
+                    } else if (
+                        result instanceof NumericLiteralParser ||
+                        result instanceof StringLiteralParser
+                    ) {
+                        this.subParser = result;
+                    } else {
+                        this.firstItem = result.value;
+                        this.subParser = result.parser;
+                        return this.firstItem;
+                    }
+                    return null;
+                }
+            case "awaiting seperator":
+                if (token.type === "." || token.type === "[") {
+                    this.seperatorType =
+                        token.type === "." ? "Dot" : "[]";
+                    this.stage = "awaiting second";
+                    return null;
+                }
+                throw error("Unexpected token");
+            case "awaiting second": {
+                if (
+                    !this.memParser &&
+                    tokenHasType(token.type, [...spaceTokens])
+                )
+                    return null;
+                if (!this.memParser) {
+                    this.memParser = new MemberExpressionParser(
+                        this.errorCreator
+                    );
+                }
+                if (this.memParser.canAccept(token)) {
+                    const result = this.memParser.addToken(token);
+                    if (result) this.secondItem = result;
+                    return null;
+                }
+                if (this.secondItem && this.seperatorType === "Dot") {
+                    return new MemberExpression(
+                        {
+                            start: this.start,
+                            end: token.location + token.type.length
+                        },
+                        this.firstItem!,
+                        this.secondItem!
+                    );
+                }
+                if (
+                    this.secondItem &&
+                    this.seperatorType === "[]" &&
+                    token.type === "]"
+                )
+                    return new MemberExpression(
+                        {
+                            start: this.start,
+                            end: token.location + token.type.length
+                        },
+                        this.firstItem!,
+                        this.secondItem!
+                    );
+                throw error("Internal error");
+            }
+        }
+    }
+
+    public canAccept(
+        token: import("../../types/Token").Token
+    ): boolean {
+        switch (this.stage) {
+            case "awaiting first":
+                if (this.subParser) {
+                    return this.subParser.canAccept(token);
+                }
+                try {
+                    LiteralOrIndentifierExtractor(
+                        token,
+                        this.errorCreator
+                    );
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            case "awaiting seperator":
+                return tokenHasType(token.type, [
+                    ...spaceTokens,
+                    "[",
+                    "."
+                ]);
+            case "awaiting second":
+                if (this.memParser)
+                    return this.memParser.canAccept(token);
+                // If the type is [] we'll allow spaces
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return true;
+                if (
+                    this.seperatorType === "[]" &&
+                    this.secondItem &&
+                    token.type === "]"
+                )
+                    return true;
+                return false;
+        }
+    }
+}

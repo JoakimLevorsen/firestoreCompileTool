@@ -10,3 +10,8 @@ export default (error: ErrorCreator) =>
         new NumericLiteralParser(error),
         new StringLiteralParser(error)
     );
+
+export type LiteralParser =
+    | BooleanLiteralParser
+    | NumericLiteralParser
+    | StringLiteralParser;

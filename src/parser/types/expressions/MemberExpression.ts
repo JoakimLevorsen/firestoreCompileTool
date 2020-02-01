@@ -1,15 +1,10 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { LiteralOrIndentifier } from "../LiteralOrIndentifier";
 import Indentifier from "../Indentifier";
-import NumericLiteral from "../literal/NumericLiteral";
-import StringLiteral from "../literal/StringLiteral";
+import Literal from "../literal/Literal";
 
 type MemberType = LiteralOrIndentifier | MemberExpression;
-type PropertyType =
-    | NumericLiteral
-    | StringLiteral
-    | Indentifier
-    | MemberExpression;
+type PropertyType = Literal | Indentifier | MemberExpression;
 
 export default class MemberExpression extends SyntaxComponent {
     protected object: MemberType;

@@ -14,20 +14,18 @@ const tokenTypes = <const>[
     ":",
     ";",
     ",",
-    "\n",
-    " ",
-    "\t",
-    "\r",
     "|",
     '"',
     "'"
 ];
+export const spaceTokens = <const>["\n", " ", "\t", "\r"];
 type tokenTypes = typeof tokenTypes[number];
 
 // We sort reverse alphabetically, so || comes before | in the list, and is not read as | and |
 export const nonKeywordTokens = [
     ...tokenTypes,
-    ...Operators
+    ...Operators,
+    ...spaceTokens
 ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
 type nonKeywordTokens = typeof nonKeywordTokens[number];
 
