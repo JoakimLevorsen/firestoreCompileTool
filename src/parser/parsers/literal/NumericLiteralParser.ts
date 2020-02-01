@@ -1,6 +1,6 @@
-import Parser from "../Parser";
-import { Token, tokenHasType } from "../../types/Token";
 import NumericLiteral from "../../types/literal/NumericLiteral";
+import { Token, tokenHasType } from "../../types/Token";
+import Parser from "../Parser";
 
 export default class NumericLiteralParser extends Parser {
     private value: {
@@ -10,19 +10,10 @@ export default class NumericLiteralParser extends Parser {
     } = {};
     private start: number = NaN;
 
-    private numberValue() {
-        const { bigNum, smallNum } = this.value;
-        if (!bigNum && !smallNum) return NaN;
-        let number = 0;
-        if (bigNum) number += bigNum;
-        if (smallNum) number += +`0.${smallNum}`;
-        return number;
-    }
-
     public addToken(
         token: Token
     ): import("../../types/SyntaxComponent").default | null {
-        if (!this.start) this.start = token.location;
+        if (this.start === undefined) this.start = token.location;
         const { bigNum, seperator, smallNum } = this.value;
         const error = this.errorCreator(token);
         if (
@@ -69,5 +60,14 @@ export default class NumericLiteralParser extends Parser {
             }
         }
         return false;
+    }
+
+    private numberValue() {
+        const { bigNum, smallNum } = this.value;
+        if (!bigNum && !smallNum) return NaN;
+        let value = 0;
+        if (bigNum) value += bigNum;
+        if (smallNum) value += +`0.${smallNum}`;
+        return value;
     }
 }

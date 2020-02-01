@@ -25,7 +25,7 @@ export default class MemberExpressionParser extends Parser {
         token: import("../../types/Token").Token
     ): LiteralOrIdentifier | MemberExpression | null {
         const error = this.errorCreator(token);
-        if (!this.start) this.start = token.location;
+        if (this.start === undefined) this.start = token.location;
         switch (this.stage) {
             case "awaiting first":
                 if (!this.subParser) {
@@ -33,6 +33,7 @@ export default class MemberExpressionParser extends Parser {
                         token,
                         this.errorCreator
                     );
+                    this.stage = "awaiting seperator";
                     if (
                         result instanceof Indentifier ||
                         result instanceof BooleanLiteral
@@ -56,6 +57,9 @@ export default class MemberExpressionParser extends Parser {
                     this.seperatorType =
                         token.type === "." ? "Dot" : "[]";
                     this.stage = "awaiting second";
+                    this.memParser = new MemberExpressionParser(
+                        this.errorCreator
+                    );
                     return null;
                 }
                 throw error("Unexpected token");
@@ -72,14 +76,24 @@ export default class MemberExpressionParser extends Parser {
                 }
                 if (this.memParser.canAccept(token)) {
                     const result = this.memParser.addToken(token);
-                    if (result) this.secondItem = result;
+                    if (result) {
+                        this.secondItem = result;
+                        return new MemberExpression(
+                            {
+                                start: this.start,
+                                end: this.secondItem.getEnd()
+                            },
+                            this.firstItem!,
+                            this.secondItem
+                        );
+                    }
                     return null;
                 }
                 if (this.secondItem && this.seperatorType === "Dot") {
                     return new MemberExpression(
                         {
                             start: this.start,
-                            end: token.location + token.type.length
+                            end: this.secondItem.getEnd()
                         },
                         this.firstItem!,
                         this.secondItem!
@@ -93,7 +107,7 @@ export default class MemberExpressionParser extends Parser {
                     return new MemberExpression(
                         {
                             start: this.start,
-                            end: token.location + token.type.length
+                            end: this.secondItem.getEnd()
                         },
                         this.firstItem!,
                         this.secondItem!

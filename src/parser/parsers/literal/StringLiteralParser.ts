@@ -1,6 +1,6 @@
-import Parser from "../Parser";
-import { tokenHasType } from "../../types/Token";
 import StringLiteral from "../../types/literal/StringLiteral";
+import { tokenHasType } from "../../types/Token";
+import Parser from "../Parser";
 
 export default class StringLiteralParser extends Parser {
     private state: "Not Opened" | "Open" | "Closed" = "Not Opened";
@@ -11,7 +11,7 @@ export default class StringLiteralParser extends Parser {
     public addToken(
         token: import("../../types/Token").Token
     ): import("../../types/SyntaxComponent").default | null {
-        if (!this.start) this.start = token.location;
+        if (this.start === undefined) this.start = token.location;
         const error = this.errorCreator(token);
         switch (this.state) {
             case "Not Opened": {
