@@ -9,4 +9,14 @@ export default class InterfaceMemberDeclaration extends SyntaxComponent {
         this.name = name;
         this.type = types;
     }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof InterfaceMemberDeclaration))
+            return false;
+        return (
+            this.name === other.name &&
+            this.type.length === other.type.length &&
+            this.type.every((v, i) => v === other.type[i])
+        );
+    }
 }

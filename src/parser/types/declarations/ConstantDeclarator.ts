@@ -1,8 +1,8 @@
-import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { BinaryExpression } from "../expressions/BinaryExpression";
-import { LiteralOrIndentifier } from "../LiteralOrIndentifier";
+import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
+import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-export type ConstantValue = BinaryExpression | LiteralOrIndentifier;
+export type ConstantValue = BinaryExpression | LiteralOrIdentifier;
 
 export default class ConstantDeclarator extends SyntaxComponent {
     private indentifier: string;
@@ -16,5 +16,13 @@ export default class ConstantDeclarator extends SyntaxComponent {
         super(position);
         this.indentifier = indentifier;
         this.value = value;
+    }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof ConstantDeclarator)) return false;
+        return (
+            this.indentifier === other.indentifier &&
+            this.value === other.value
+        );
     }
 }

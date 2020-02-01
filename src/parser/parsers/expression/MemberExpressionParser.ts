@@ -1,14 +1,13 @@
-import Parser from "../Parser";
+import MemberExpression from "../../types/expressions/MemberExpression";
+import Indentifier from "../../types/Identifier";
+import BooleanLiteral from "../../types/literal/BooleanLiteral";
+import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
+import { spaceTokens, tokenHasType } from "../../types/Token";
 import LiteralOrIndentifierExtractor from "../IndentifierOrLiteralExtractor";
 import { LiteralParser } from "../literal";
-import { tokenHasType, spaceTokens } from "../../types/Token";
-import Indentifier from "../../types/Indentifier";
-import BooleanLiteral from "../../types/literal/BooleanLiteral";
-import { LiteralOrIndentifier } from "../../types/LiteralOrIndentifier";
 import NumericLiteralParser from "../literal/NumericLiteralParser";
 import StringLiteralParser from "../literal/StringLiteralParser";
-import MemberExpression from "../../types/expressions/MemberExpression";
-import NumericLiteral from "../../types/literal/NumericLiteral";
+import Parser from "../Parser";
 
 export default class MemberExpressionParser extends Parser {
     private stage:
@@ -18,13 +17,13 @@ export default class MemberExpressionParser extends Parser {
     private seperatorType?: "Dot" | "[]";
     private subParser?: LiteralParser;
     private memParser?: MemberExpressionParser;
-    private firstItem?: LiteralOrIndentifier;
-    private secondItem?: LiteralOrIndentifier | MemberExpression;
+    private firstItem?: LiteralOrIdentifier;
+    private secondItem?: LiteralOrIdentifier | MemberExpression;
     private start?: number;
 
     public addToken(
         token: import("../../types/Token").Token
-    ): LiteralOrIndentifier | MemberExpression | null {
+    ): LiteralOrIdentifier | MemberExpression | null {
         const error = this.errorCreator(token);
         if (!this.start) this.start = token.location;
         switch (this.stage) {

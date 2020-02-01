@@ -1,9 +1,9 @@
-import SyntaxComponent, { Position } from "../SyntaxComponent";
-import { LiteralOrIndentifier } from "../LiteralOrIndentifier";
-import Indentifier from "../Indentifier";
+import Indentifier from "../Identifier";
 import Literal from "../literal/Literal";
+import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
+import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-type MemberType = LiteralOrIndentifier | MemberExpression;
+type MemberType = LiteralOrIdentifier | MemberExpression;
 type PropertyType = Literal | Indentifier | MemberExpression;
 
 export default class MemberExpression extends SyntaxComponent {
@@ -18,5 +18,13 @@ export default class MemberExpression extends SyntaxComponent {
         super(position);
         this.object = object;
         this.property = property;
+    }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof MemberExpression)) return false;
+        return (
+            this.object.equals(other.object) &&
+            this.property.equals(other.property)
+        );
     }
 }

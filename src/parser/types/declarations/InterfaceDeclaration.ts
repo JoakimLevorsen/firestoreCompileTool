@@ -15,8 +15,17 @@ export default class InterfaceDeclaration extends SyntaxComponent {
         this.content = content;
     }
 
-    add(content: InterfaceMemberDeclaration) {
+    public add(content: InterfaceMemberDeclaration) {
         this.content.push(content);
         this.setEnd(this.getEnd() + content.getEnd());
+    }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof InterfaceDeclaration)) return false;
+        return (
+            this.name === other.name &&
+            this.content.length === other.content.length &&
+            this.content.every((v, i) => v.equals(other.content[i]))
+        );
     }
 }

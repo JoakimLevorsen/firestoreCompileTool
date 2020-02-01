@@ -1,6 +1,6 @@
-import { Token } from "../types/Token";
 import { ErrorCreator } from "../ParserError";
-import Indentifier from "../types/Indentifier";
+import Indentifier from "../types/Identifier";
+import { Token } from "../types/Token";
 
 const IndentifierExtractor = (
     token: Token,

@@ -1,6 +1,6 @@
 {
     "defaultSeverity": "error",
-    "extends": ["tslint:recommended"],
+    "extends": ["tslint:recommended", "tslint-config-prettier"],
     "jsRules": {},
     "rules": {
         "arrow-parens": false,
@@ -8,7 +8,9 @@
         "semicolon": {
             "options": "always"
         },
-        "interface-name": false
+        "interface-name": false,
+        "curly": false,
+        "object-literal-sort-keys": false
     },
     "rulesDirectory": []
 }

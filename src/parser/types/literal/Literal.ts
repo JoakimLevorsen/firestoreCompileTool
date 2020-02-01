@@ -10,4 +10,9 @@ export default abstract class Literal extends SyntaxComponent {
         super(position);
         this.value = value;
     }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof Literal)) return false;
+        return this.value === other.value;
+    }
 }

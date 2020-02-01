@@ -1,12 +1,12 @@
-import { Token } from "../types/Token";
 import { ErrorCreator } from "../ParserError";
-import Indentifier from "../types/Indentifier";
+import Indentifier from "../types/Identifier";
+import BooleanLiteral from "../types/literal/BooleanLiteral";
+import NumericLiteral from "../types/literal/NumericLiteral";
+import { Token } from "../types/Token";
+import IndentifierExtractor from "./IndentifierExtractor";
 import BooleanLiteralParser from "./literal/BooleanLiteralParser";
 import NumericLiteralParser from "./literal/NumericLiteralParser";
 import StringLiteralParser from "./literal/StringLiteralParser";
-import BooleanLiteral from "../types/literal/BooleanLiteral";
-import NumericLiteral from "../types/literal/NumericLiteral";
-import IndentifierExtractor from "./IndentifierExtractor";
 
 const IdentifierOrLiteralExtractor = (
     token: Token,

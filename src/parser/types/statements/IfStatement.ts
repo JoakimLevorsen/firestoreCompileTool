@@ -1,5 +1,5 @@
-import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { BinaryExpression } from "../expressions/BinaryExpression";
+import SyntaxComponent from "../SyntaxComponent";
 import BlockStatement from "./BlockStatement";
 
 export default class IfStatement extends SyntaxComponent {
@@ -23,5 +23,24 @@ export default class IfStatement extends SyntaxComponent {
         this.test = test;
         this.consequent = consequent;
         this.alternate = alternate;
+    }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof IfStatement)) return false;
+        if (
+            (this.alternate && !other.alternate) ||
+            (!this.alternate && other.alternate)
+        )
+            return false;
+        if (
+            this.alternate &&
+            other.alternate &&
+            !this.alternate.equals(other.alternate)
+        )
+            return false;
+        return (
+            this.test.equals(other.test) &&
+            this.consequent.equals(other.consequent)
+        );
     }
 }

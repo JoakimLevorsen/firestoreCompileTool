@@ -12,4 +12,12 @@ export default class BlockStatement extends SyntaxComponent {
         this.setEnd(item.getEnd());
         this.body.push(item);
     }
+
+    protected internalEquals(other: SyntaxComponent): boolean {
+        if (!(other instanceof BlockStatement)) return false;
+        return (
+            this.body.length === other.body.length &&
+            this.body.every((v, i) => v.equals(other.body[i]))
+        );
+    }
 }
