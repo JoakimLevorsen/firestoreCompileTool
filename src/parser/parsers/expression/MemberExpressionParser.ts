@@ -10,7 +10,7 @@ import StringLiteralParser from "../literal/StringLiteralParser";
 import Parser from "../Parser";
 
 export default class MemberExpressionParser extends Parser {
-    private stage:
+    private state:
         | "awaiting first"
         | "awaiting seperator"
         | "awaiting second" = "awaiting first";
@@ -26,7 +26,7 @@ export default class MemberExpressionParser extends Parser {
     ): LiteralOrIdentifier | MemberExpression | null {
         const error = this.errorCreator(token);
         if (this.start === undefined) this.start = token.location;
-        switch (this.stage) {
+        switch (this.state) {
             case "awaiting first":
                 if (!this.subParser) {
                     const result = LiteralOrIndentifierExtractor(
@@ -37,7 +37,7 @@ export default class MemberExpressionParser extends Parser {
                         result instanceof Indentifier ||
                         result instanceof BooleanLiteral
                     ) {
-                        this.stage = "awaiting seperator";
+                        this.state = "awaiting seperator";
                         this.firstItem = result;
                         return this.firstItem;
                     } else if (
@@ -61,12 +61,12 @@ export default class MemberExpressionParser extends Parser {
                     return null;
                 }
                 // If this token was not acceptable, we fall trough to the next case
-                this.stage = "awaiting seperator";
+                this.state = "awaiting seperator";
             case "awaiting seperator":
                 if (token.type === "." || token.type === "[") {
                     this.seperatorType =
                         token.type === "." ? "Dot" : "[]";
-                    this.stage = "awaiting second";
+                    this.state = "awaiting second";
                     this.memParser = new MemberExpressionParser(
                         this.errorCreator
                     );
@@ -130,7 +130,7 @@ export default class MemberExpressionParser extends Parser {
     public canAccept(
         token: import("../../types/Token").Token
     ): boolean {
-        switch (this.stage) {
+        switch (this.state) {
             case "awaiting first":
                 if (this.subParser) {
                     return this.subParser.canAccept(token);

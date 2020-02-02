@@ -6,6 +6,7 @@ import MemberExpression from "../../../../src/parser/types/expressions/MemberExp
 import Identifier from "../../../../src/parser/types/Identifier";
 import StringLiteral from "../../../../src/parser/types/literal/StringLiteral";
 import SyntaxComponent from "../../../../src/parser/types/SyntaxComponent";
+import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 
 const testItems = [
@@ -36,6 +37,27 @@ const testItems = [
 ];
 
 describe("MemberExpressionParser", () => {
+    describe(`Running Literal tests`, () =>
+        LiteralTestSet.forEach(({ input, expected }) =>
+            it(`Parsing ${input}`, () => {
+                const tokens = tokenize(input);
+                const error = ParserErrorCreator(tokens);
+                const actual = ParserRunner(
+                    tokens,
+                    new MemberExpressionParser(error)
+                );
+                expect(typeof actual).to.not.be.equal("string");
+                expect(actual).to.not.be.instanceOf(Array).and.not.be
+                    .null;
+                if (
+                    typeof actual !== "string" &&
+                    !(actual instanceof Array) &&
+                    actual !== null
+                ) {
+                    expect(actual.equals(expected)).to.be.true;
+                }
+            })
+        ));
     testItems.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);

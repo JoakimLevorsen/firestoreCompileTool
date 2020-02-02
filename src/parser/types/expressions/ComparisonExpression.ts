@@ -1,10 +1,14 @@
 import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
+import MemberExpression from "./MemberExpression";
 import { Operator } from "./Operators";
 
-export type ComparisonType = LiteralOrIdentifier | Expression;
+export type ComparisonType =
+    | LiteralOrIdentifier
+    | ComparisonExpression
+    | MemberExpression;
 
-export default abstract class Expression extends SyntaxComponent {
+export default abstract class ComparisonExpression extends SyntaxComponent {
     protected operator: Operator;
     protected left: ComparisonType;
     protected right: ComparisonType;
@@ -22,7 +26,7 @@ export default abstract class Expression extends SyntaxComponent {
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {
-        if (!(other instanceof Expression)) return false;
+        if (!(other instanceof ComparisonExpression)) return false;
         return (
             this.left.equals(other.left) &&
             this.operator === other.operator &&
