@@ -72,6 +72,8 @@ export default class MemberExpressionParser extends Parser {
                     );
                     return null;
                 }
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return this.firstItem!;
                 throw error("Unexpected token");
             case "awaiting second": {
                 if (

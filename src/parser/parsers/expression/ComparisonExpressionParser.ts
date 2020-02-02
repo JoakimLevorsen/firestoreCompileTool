@@ -131,12 +131,15 @@ export default class ComparisonExpressionParser extends Parser {
     ): boolean {
         switch (this.state) {
             case "first":
-                if (this.subParser)
-                    return this.subParser.canAccept(token);
-                if (token.type === "(") return true;
-                return new MemberExpressionParser(
-                    this.errorCreator
-                ).canAccept(token);
+                if (this.subParser) {
+                    const allowed = this.subParser.canAccept(token);
+                    if (allowed) return true;
+                } else {
+                    if (token.type === "(") return true;
+                    return new MemberExpressionParser(
+                        this.errorCreator
+                    ).canAccept(token);
+                }
             // If not we fall through to the operator stage
             case "operator":
                 return tokenHasType(token.type, Operators);

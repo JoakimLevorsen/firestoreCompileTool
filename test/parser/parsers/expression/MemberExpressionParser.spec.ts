@@ -9,7 +9,7 @@ import SyntaxComponent from "../../../../src/parser/types/SyntaxComponent";
 import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 
-const testItems = [
+export const MemberExpressionParserTestSet = [
     {
         input: "item",
         expected: new Identifier({ start: 0, end: 4 }, "item")
@@ -58,7 +58,7 @@ describe("MemberExpressionParser", () => {
                 }
             })
         ));
-    testItems.forEach(({ input, expected }) =>
+    MemberExpressionParserTestSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
             const error = ParserErrorCreator(tokens);
