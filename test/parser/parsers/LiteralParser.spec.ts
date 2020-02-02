@@ -1,10 +1,10 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../src/parser/ParserError";
-import StringLiteral from "../../../src/parser/types/literal/StringLiteral";
+import LiteralParser from "../../../src/parser/parsers/literal";
 import BooleanLiteral from "../../../src/parser/types/literal/BooleanLiteral";
 import NumericLiteral from "../../../src/parser/types/literal/NumericLiteral";
-import LiteralParser from "../../../src/parser/parsers/literal";
+import StringLiteral from "../../../src/parser/types/literal/StringLiteral";
 import ParserRunner, { tokenize } from "./ParserRunner";
 
 const BooleanCreator = (input: boolean) => ({
@@ -23,22 +23,26 @@ const NumericCreator = (input: number) => ({
     )
 });
 
-const StringCreator = (input: string) => ({
-    input,
-    expected: new StringLiteral(
-        { start: 0, end: input.length - 1 },
-        input
-    )
-});
+const StringCreator = (input: string) => {
+    // For the result string we remove the " or ' since they wouldn't be there
+    const resultString = input.substr(1, input.length - 2);
+    return {
+        input,
+        expected: new StringLiteral(
+            { start: 0, end: input.length - 1 },
+            resultString
+        )
+    };
+};
 
 export const LiteralTestSet = [
-    // BooleanCreator(true),
-    // BooleanCreator(false),
-    // NumericCreator(0),
-    // NumericCreator(1000),
-    // NumericCreator(0.0001),
-    // NumericCreator(1000.0001),
-    // NumericCreator(0.0001),
+    BooleanCreator(true),
+    BooleanCreator(false),
+    NumericCreator(0),
+    NumericCreator(1000),
+    NumericCreator(0.0001),
+    NumericCreator(1000.0001),
+    NumericCreator(0.0001),
     StringCreator("'input'"),
     StringCreator('"test"'),
     StringCreator('"Hey\'there"')
