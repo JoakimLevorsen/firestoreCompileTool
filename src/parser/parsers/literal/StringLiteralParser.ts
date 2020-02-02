@@ -11,7 +11,7 @@ export default class StringLiteralParser extends Parser {
     public addToken(
         token: import("../../types/Token").Token
     ): import("../../types/SyntaxComponent").default | null {
-        if (this.start === undefined) this.start = token.location;
+        if (isNaN(this.start)) this.start = token.location;
         const error = this.errorCreator(token);
         switch (this.state) {
             case "Not Opened": {

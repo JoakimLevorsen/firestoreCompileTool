@@ -4,12 +4,14 @@ import NumericLiteralParser from "./NumericLiteralParser";
 import StringLiteralParser from "./StringLiteralParser";
 import { ErrorCreator } from "../../ParserError";
 
-export default (error: ErrorCreator) =>
+const LiteralParser = (error: ErrorCreator) =>
     new ParserGroup(
         new BooleanLiteralParser(error),
         new NumericLiteralParser(error),
         new StringLiteralParser(error)
     );
+
+export default LiteralParser;
 
 export type LiteralParser =
     | BooleanLiteralParser

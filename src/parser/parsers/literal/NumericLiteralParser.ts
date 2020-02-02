@@ -13,7 +13,7 @@ export default class NumericLiteralParser extends Parser {
     public addToken(
         token: Token
     ): import("../../types/SyntaxComponent").default | null {
-        if (this.start === undefined) this.start = token.location;
+        if (isNaN(this.start)) this.start = token.location;
         const { bigNum, seperator, smallNum } = this.value;
         const error = this.errorCreator(token);
         if (
@@ -24,11 +24,10 @@ export default class NumericLiteralParser extends Parser {
             return null;
         }
         if (bigNum && smallNum) throw error("Already filled");
-        if (token.type !== "Keyword" || !isNaN(+token.value))
+        if (token.type !== "Keyword" || isNaN(+token.value))
             throw error("Could not extract number");
-        const numToken = +token.value;
-        if (!bigNum) {
-            this.value.bigNum = numToken;
+        if (bigNum === undefined) {
+            this.value.bigNum = +token.value;
             return new NumericLiteral(
                 {
                     start: this.start,
@@ -37,8 +36,8 @@ export default class NumericLiteralParser extends Parser {
                 this.numberValue()
             );
         }
-        if (!smallNum) {
-            this.value.smallNum = numToken;
+        if (smallNum === undefined) {
+            this.value.smallNum = +`0.${token.value}`;
             return new NumericLiteral(
                 {
                     start: this.start,
@@ -64,10 +63,11 @@ export default class NumericLiteralParser extends Parser {
 
     private numberValue() {
         const { bigNum, smallNum } = this.value;
-        if (!bigNum && !smallNum) return NaN;
+        if (bigNum === undefined && smallNum === undefined)
+            return NaN;
         let value = 0;
-        if (bigNum) value += bigNum;
-        if (smallNum) value += +`0.${smallNum}`;
+        if (bigNum !== undefined) value += bigNum;
+        if (smallNum !== undefined) value += smallNum;
         return value;
     }
 }
