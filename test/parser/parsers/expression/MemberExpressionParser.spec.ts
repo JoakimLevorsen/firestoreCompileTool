@@ -22,14 +22,14 @@ const testItems = [
         )
     },
     {
-        input: "item.item['item']",
+        input: "item.item['item3']",
         expected: new MemberExpression(
             { start: 0, end: 17 },
             new Identifier({ start: 0, end: 4 }, "item"),
             new MemberExpression(
                 { start: 5, end: 17 },
                 new Identifier({ start: 5, end: 9 }, "item"),
-                new StringLiteral({ start: 10, end: 16 }, "item")
+                new StringLiteral({ start: 10, end: 16 }, "item3")
             )
         )
     }

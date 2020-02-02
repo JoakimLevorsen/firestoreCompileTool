@@ -4,7 +4,7 @@ import BooleanLiteral from "../../types/literal/BooleanLiteral";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import LiteralOrIndentifierExtractor from "../IndentifierOrLiteralExtractor";
-import { LiteralParser } from "../literal";
+import LiteralParser from "../literal";
 import NumericLiteralParser from "../literal/NumericLiteralParser";
 import StringLiteralParser from "../literal/StringLiteralParser";
 import Parser from "../Parser";
@@ -33,11 +33,11 @@ export default class MemberExpressionParser extends Parser {
                         token,
                         this.errorCreator
                     );
-                    this.stage = "awaiting seperator";
                     if (
                         result instanceof Indentifier ||
                         result instanceof BooleanLiteral
                     ) {
+                        this.stage = "awaiting seperator";
                         this.firstItem = result;
                         return this.firstItem;
                     } else if (
@@ -52,6 +52,16 @@ export default class MemberExpressionParser extends Parser {
                     }
                     return null;
                 }
+                if (this.subParser.canAccept(token)) {
+                    const result = this.subParser.addToken(token);
+                    if (result) {
+                        this.firstItem = result;
+                        return result;
+                    }
+                    return null;
+                }
+                // If this token was not acceptable, we fall trough to the next case
+                this.stage = "awaiting seperator";
             case "awaiting seperator":
                 if (token.type === "." || token.type === "[") {
                     this.seperatorType =
@@ -107,7 +117,7 @@ export default class MemberExpressionParser extends Parser {
                     return new MemberExpression(
                         {
                             start: this.start,
-                            end: this.secondItem.getEnd()
+                            end: this.secondItem.getEnd() + 1
                         },
                         this.firstItem!,
                         this.secondItem!
@@ -141,8 +151,14 @@ export default class MemberExpressionParser extends Parser {
                     "."
                 ]);
             case "awaiting second":
-                if (this.memParser)
-                    return this.memParser.canAccept(token);
+                if (this.memParser) {
+                    const canAccept = this.memParser.canAccept(token);
+                    if (canAccept) return true;
+                    if (this.seperatorType === "Dot")
+                        return canAccept;
+                    // If the seperator is [] we'll accept it if that is the case
+                    return token.type === "]";
+                }
                 // If the type is [] we'll allow spaces
                 if (tokenHasType(token.type, [...spaceTokens]))
                     return true;

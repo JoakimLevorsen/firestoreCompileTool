@@ -1,12 +1,12 @@
-import Parser from "../Parser";
+import LiteralParser from ".";
 import BooleanLiteral from "../../types/literal/BooleanLiteral";
 
-export default class BooleanLiteralParser extends Parser {
+export default class BooleanLiteralParser extends LiteralParser {
     private hasReturned = false;
 
     public addToken(
         token: import("../../types/Token").Token
-    ): import("../../types/SyntaxComponent").default | null {
+    ): BooleanLiteral | null {
         const error = this.errorCreator(token);
         if (this.hasReturned)
             throw error("Did not expect more tokens");

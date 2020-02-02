@@ -1,19 +1,12 @@
-import ParserGroup from "../ParserGroup";
-import BooleanLiteralParser from "./BooleanLiteralParser";
-import NumericLiteralParser from "./NumericLiteralParser";
-import StringLiteralParser from "./StringLiteralParser";
 import { ErrorCreator } from "../../ParserError";
+import Literal from "../../types/literal/Literal";
+import { Token } from "../../types/Token";
+import Parser from "../Parser";
 
-const LiteralParser = (error: ErrorCreator) =>
-    new ParserGroup(
-        new BooleanLiteralParser(error),
-        new NumericLiteralParser(error),
-        new StringLiteralParser(error)
-    );
+export default abstract class LiteralParser extends Parser {
+    constructor(withError: ErrorCreator) {
+        super(withError);
+    }
 
-export default LiteralParser;
-
-export type LiteralParser =
-    | BooleanLiteralParser
-    | NumericLiteralParser
-    | StringLiteralParser;
+    public abstract addToken(token: Token): Literal | null;
+}

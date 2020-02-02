@@ -1,8 +1,8 @@
+import LiteralParser from ".";
 import StringLiteral from "../../types/literal/StringLiteral";
 import { tokenHasType } from "../../types/Token";
-import Parser from "../Parser";
 
-export default class StringLiteralParser extends Parser {
+export default class StringLiteralParser extends LiteralParser {
     private state: "Not Opened" | "Open" | "Closed" = "Not Opened";
     private openToken?: '"' | "'";
     private value: string = "";
@@ -10,7 +10,7 @@ export default class StringLiteralParser extends Parser {
 
     public addToken(
         token: import("../../types/Token").Token
-    ): import("../../types/SyntaxComponent").default | null {
+    ): StringLiteral | null {
         if (isNaN(this.start)) this.start = token.location;
         const error = this.errorCreator(token);
         switch (this.state) {

@@ -1,8 +1,8 @@
+import LiteralParser from ".";
 import NumericLiteral from "../../types/literal/NumericLiteral";
 import { Token, tokenHasType } from "../../types/Token";
-import Parser from "../Parser";
 
-export default class NumericLiteralParser extends Parser {
+export default class NumericLiteralParser extends LiteralParser {
     private value: {
         bigNum?: number;
         seperator?: boolean;
@@ -10,9 +10,7 @@ export default class NumericLiteralParser extends Parser {
     } = {};
     private start: number = NaN;
 
-    public addToken(
-        token: Token
-    ): import("../../types/SyntaxComponent").default | null {
+    public addToken(token: Token): NumericLiteral | null {
         if (isNaN(this.start)) this.start = token.location;
         const { bigNum, seperator, smallNum } = this.value;
         const error = this.errorCreator(token);

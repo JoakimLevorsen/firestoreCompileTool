@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../src/parser/ParserError";
-import LiteralParser from "../../../src/parser/parsers/literal";
+import LiteralParserGroup from "../../../src/parser/parsers/literal/LiteralParserGroup";
 import BooleanLiteral from "../../../src/parser/types/literal/BooleanLiteral";
 import NumericLiteral from "../../../src/parser/types/literal/NumericLiteral";
 import StringLiteral from "../../../src/parser/types/literal/StringLiteral";
@@ -53,7 +53,10 @@ describe("LiteralParser", () => {
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
             const error = ParserErrorCreator(tokens);
-            const actual = ParserRunner(tokens, LiteralParser(error));
+            const actual = ParserRunner(
+                tokens,
+                LiteralParserGroup(error)
+            );
             expect(actual).to.be.instanceOf(Array);
             if (actual instanceof Array) {
                 expect(actual.length).to.be.equal(1);
