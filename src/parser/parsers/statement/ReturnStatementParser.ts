@@ -9,6 +9,7 @@ export default class ReturnStatementParser extends Parser {
         this.errorCreator
     );
     private hasGottonKeyword = false;
+    private hasGottenSpaceAfterKeyword = false;
     private internalValue?: SyntaxComponent;
     private start = NaN;
 
@@ -17,7 +18,19 @@ export default class ReturnStatementParser extends Parser {
     ): import("../../types/SyntaxComponent").default | null {
         if (isNaN(this.start)) this.start = token.location;
         const error = this.errorCreator(token);
-        if (tokenHasType(token.type, [...spaceTokens])) return null;
+        if (
+            !this.hasGottonKeyword ||
+            !this.hasGottenSpaceAfterKeyword
+        ) {
+            if (tokenHasType(token.type, [...spaceTokens])) {
+                if (
+                    this.hasGottonKeyword &&
+                    !this.hasGottenSpaceAfterKeyword
+                )
+                    this.hasGottenSpaceAfterKeyword = true;
+                return null;
+            }
+        }
         if (!this.hasGottonKeyword) {
             if (token.type !== "return")
                 throw error("Unexpected token");
@@ -33,6 +46,7 @@ export default class ReturnStatementParser extends Parser {
                     result
                 );
             }
+            return null;
         }
         if (token.type === ";" && this.internalValue) {
             return new ReturnStatement(

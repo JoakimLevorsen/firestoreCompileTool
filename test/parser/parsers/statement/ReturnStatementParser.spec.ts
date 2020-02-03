@@ -2,6 +2,8 @@ import { expect } from "chai";
 import "mocha";
 import { ParserErrorCreator } from "../../../../src/parser/ParserError";
 import ReturnStatementParser from "../../../../src/parser/parsers/statement/ReturnStatementParser";
+import EqualityExpression from "../../../../src/parser/types/expressions/EqualityExpression";
+import Identifier from "../../../../src/parser/types/Identifier";
 import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral";
 import ReturnStatement from "../../../../src/parser/types/statements/ReturnStatement";
 import SyntaxComponent from "../../../../src/parser/types/SyntaxComponent";
@@ -33,6 +35,25 @@ const values = [
         expected: new BooleanLiteral(
             { start: offset, end: offset + 5 },
             false
+        )
+    },
+    {
+        input: "a",
+        expected: new Identifier(
+            { start: offset, end: offset + 1 },
+            "a"
+        )
+    },
+    {
+        input: "a == true",
+        expected: new EqualityExpression(
+            { start: offset, end: offset + 9 },
+            "==",
+            new Identifier({ start: offset, end: offset + 1 }, "a"),
+            new BooleanLiteral(
+                { start: offset + 5, end: offset + 9 },
+                true
+            )
         )
     }
 ];

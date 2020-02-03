@@ -122,7 +122,10 @@ export default class ComparisonExpressionParser extends Parser {
                 }
             // If not we fall through to the operator stage
             case "operator":
-                return tokenHasType(token.type, Operators);
+                return tokenHasType(token.type, [
+                    ...Operators,
+                    ...spaceTokens
+                ]);
             case "second":
                 if (this.subParser) {
                     if (this.subParser.canAccept(token)) return true;
