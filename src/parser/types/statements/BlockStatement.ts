@@ -1,10 +1,13 @@
-import SyntaxComponent from "../SyntaxComponent";
+import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 export default class BlockStatement extends SyntaxComponent {
     private body: SyntaxComponent[];
 
-    constructor(withBody: SyntaxComponent[] = []) {
-        super({ start: 0, end: 0 });
+    constructor(
+        position: Position,
+        withBody: SyntaxComponent[] = []
+    ) {
+        super(position);
         this.body = withBody;
     }
 

@@ -22,7 +22,9 @@ const ParserRunner = <P extends Parser | ParserGroup>(
 ) => {
     let lastReturn: SyntaxComponent | SyntaxComponent[] | null = null;
     for (const token of input) {
-        if (!parser.canAccept(token)) return lastReturn;
+        if (!parser.canAccept(token)) {
+            return lastReturn;
+        }
         const pReturn = parser.addToken(token);
         // if (pReturn !== null) {
         lastReturn = pReturn || null;
