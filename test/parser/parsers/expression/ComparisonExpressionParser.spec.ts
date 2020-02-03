@@ -5,10 +5,12 @@ import ComparisonExpressionParser from "../../../../src/parser/parsers/expressio
 import EqualityExpression from "../../../../src/parser/types/expressions/EqualityExpression";
 import IsExpression from "../../../../src/parser/types/expressions/IsExpression";
 import LogicalExpression from "../../../../src/parser/types/expressions/LogicalExpression";
+import MemberExpression from "../../../../src/parser/types/expressions/MemberExpression";
 import {
     Operator,
     Operators
 } from "../../../../src/parser/types/expressions/Operators";
+import Identifier from "../../../../src/parser/types/Identifier";
 import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral";
 import Literal from "../../../../src/parser/types/literal/Literal";
 import NumericLiteral from "../../../../src/parser/types/literal/NumericLiteral";
@@ -20,8 +22,13 @@ import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 import { MemberExpressionParserTestSet } from "./MemberExpressionParser.spec";
 
+const itemTestSet = [
+    ...LiteralTestSet
+    // ...MemberExpressionParserTestSet
+];
+
 const secondSet = (start: number) =>
-    LiteralTestSet.map(({ input, expected }) => {
+    itemTestSet.map(({ input, expected }) => {
         const end = start + input.length;
         if (expected instanceof BooleanLiteral)
             return {
@@ -53,8 +60,8 @@ const secondSet = (start: number) =>
 const constructorForCompType = (
     position: Position,
     op: Operator,
-    first: Literal,
-    second: Literal
+    first: Literal | MemberExpression | Identifier,
+    second: Literal | MemberExpression | Identifier
 ) => {
     switch (op) {
         case "!=":
@@ -73,21 +80,26 @@ const constructorForCompType = (
     }
 };
 
-const ComparisonTestSet = LiteralTestSet.map(first =>
-    Operators.map(comp =>
-        secondSet(first.input.length + 1 + comp.length + 1).map(
-            second => ({
-                input: `${first.input} ${comp} ${second.input}`,
-                expected: constructorForCompType(
-                    { start: 0, end: second.expected.getEnd() },
-                    comp,
-                    first.expected,
-                    second.expected
-                )
-            })
+const ComparisonTestSet = itemTestSet
+    .map(first =>
+        Operators.map(comp =>
+            secondSet(first.input.length + 1 + comp.length + 1).map(
+                second => ({
+                    input: `${first.input} ${comp} ${second.input}`,
+                    expected: constructorForCompType(
+                        { start: 0, end: second.expected.getEnd() },
+                        comp,
+                        first.expected,
+                        second.expected
+                    )
+                })
+            )
         )
     )
-);
+    .reduce((pV, v) => {
+        pV.forEach((_, i) => (pV[i] = pV[i].concat(v[i])));
+        return pV;
+    });
 
 describe("ComparisonExpressionParser", () => {
     describe(`Running Literal tests`, () =>
@@ -128,33 +140,29 @@ describe("ComparisonExpressionParser", () => {
             })
         ));
     describe("Testing all Comparison items", () =>
-        ComparisonTestSet.forEach(first =>
-            first.forEach(comp =>
-                it(`testing ${comp[0].expected.getOperator()}`, () => {
-                    comp.forEach(({ input, expected }) => {
-                        let parsed;
-                        try {
-                            const tokens = tokenize(input);
-                            const error = ParserErrorCreator(tokens);
-                            parsed = ParserRunner(
-                                tokens,
-                                new ComparisonExpressionParser(error)
-                            );
-                        } catch (e) {
-                            // tslint:disable-next-line: no-console
-                            console.error("got error", e);
-                            throw e;
-                        }
-                        expect(parsed).to.not.be.null;
-                        expect(parsed).to.be.instanceOf(
-                            SyntaxComponent
+        ComparisonTestSet.forEach(comp =>
+            it(`testing ${comp[0].expected.getOperator()}`, () => {
+                comp.forEach(({ input, expected }) => {
+                    let parsed;
+                    try {
+                        const tokens = tokenize(input);
+                        const error = ParserErrorCreator(tokens);
+                        parsed = ParserRunner(
+                            tokens,
+                            new ComparisonExpressionParser(error)
                         );
-                        if (parsed instanceof SyntaxComponent) {
-                            const equal = parsed.equals(expected);
-                            expect(equal).to.be.true;
-                        }
-                    });
-                })
-            )
+                    } catch (e) {
+                        // tslint:disable-next-line: no-console
+                        console.error("got error", e);
+                        throw e;
+                    }
+                    expect(parsed).to.not.be.null;
+                    expect(parsed).to.be.instanceOf(SyntaxComponent);
+                    if (parsed instanceof SyntaxComponent) {
+                        const equal = parsed.equals(expected);
+                        expect(equal).to.be.true;
+                    }
+                });
+            })
         ));
 });
