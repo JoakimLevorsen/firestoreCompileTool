@@ -1,3 +1,4 @@
+import { ParserError } from "../../ParserError";
 import ComparisonExpression from "../../types/expressions/ComparisonExpression";
 import EqualityExpression from "../../types/expressions/EqualityExpression";
 import IsExpression from "../../types/expressions/IsExpression";
@@ -9,7 +10,7 @@ import {
 } from "../../types/expressions/Operators";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal/Literal";
-import { Token, tokenHasType } from "../../types/Token";
+import { spaceTokens, Token, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";
 import MemberExpressionParser from "./MemberExpressionParser";
 
@@ -38,6 +39,8 @@ export default class ComparisonExpressionParser extends Parser {
         switch (this.state) {
             case "first":
                 if (!this.subParser) {
+                    if (tokenHasType(token.type, [...spaceTokens]))
+                        return null;
                     this.subParser = this.createSubParser(token);
                 }
                 if (this.subParser.canAccept(token)) {
@@ -55,10 +58,16 @@ export default class ComparisonExpressionParser extends Parser {
                     }
                     throw error("Unexpected tokens");
                 }
+                if (tokenHasType(token.type, [...spaceTokens])) {
+                    this.state = "operator";
+                    return this.firstValue || null;
+                }
                 if (tokenHasType(token.type, Operators)) {
                     this.state = "operator";
                 } else throw error("Unexpected token");
             case "operator":
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return null;
                 if (tokenHasType(token.type, Operators)) {
                     this.comparison = token.type as Operator;
                     this.state = "second";
@@ -76,49 +85,14 @@ export default class ComparisonExpressionParser extends Parser {
                     const result = this.subParser.addToken(token);
                     if (result) {
                         this.secondValue = result;
-                        return result;
+                        return this.getReturnValue(token, error);
                     }
                     return null;
                 }
                 if (token.type === ")") {
                     if (!this.secondValue)
                         throw error("Unexpected token");
-                    switch (this.comparison) {
-                        case "&&":
-                        case "||":
-                            return new LogicalExpression(
-                                {
-                                    start: this.start,
-                                    end: token.location
-                                },
-                                this.comparison,
-                                this.firstValue!,
-                                this.secondValue
-                            );
-                        case "==":
-                        case "!=":
-                            return new EqualityExpression(
-                                {
-                                    start: this.start,
-                                    end: token.location
-                                },
-                                this.comparison,
-                                this.firstValue!,
-                                this.secondValue
-                            );
-                        case undefined:
-                            throw error("Internal Error");
-                        default:
-                            return new IsExpression(
-                                {
-                                    start: this.start,
-                                    end: token.location
-                                },
-                                this.comparison,
-                                this.firstValue!,
-                                this.secondValue
-                            );
-                    }
+                    return this.getReturnValue(token, error);
                 }
                 throw error("Unexpected token");
             case "done":
@@ -133,12 +107,18 @@ export default class ComparisonExpressionParser extends Parser {
             case "first":
                 if (this.subParser) {
                     const allowed = this.subParser.canAccept(token);
-                    if (allowed) return true;
+                    if (allowed === true) return true;
                 } else {
+                    if (tokenHasType(token.type, [...spaceTokens]))
+                        return true;
                     if (token.type === "(") return true;
                     return new MemberExpressionParser(
                         this.errorCreator
                     ).canAccept(token);
+                }
+                if (tokenHasType(token.type, [...spaceTokens])) {
+                    this.state = "operator";
+                    return true;
                 }
             // If not we fall through to the operator stage
             case "operator":
@@ -163,6 +143,46 @@ export default class ComparisonExpressionParser extends Parser {
             return new ComparisonExpressionParser(this.errorCreator);
         } else {
             return new MemberExpressionParser(this.errorCreator);
+        }
+    }
+
+    private getReturnValue(
+        token: Token,
+        error: (msg: string) => ParserError
+    ) {
+        const end =
+            token.location +
+            (token.type === "Keyword"
+                ? token.value.length
+                : token.type.length);
+        const { start } = this;
+        const position = { start, end };
+        switch (this.comparison) {
+            case "&&":
+            case "||":
+                return new LogicalExpression(
+                    position,
+                    this.comparison,
+                    this.firstValue!,
+                    this.secondValue!
+                );
+            case "==":
+            case "!=":
+                return new EqualityExpression(
+                    position,
+                    this.comparison,
+                    this.firstValue!,
+                    this.secondValue!
+                );
+            case undefined:
+                throw error("Internal Error");
+            default:
+                return new IsExpression(
+                    position,
+                    this.comparison,
+                    this.firstValue!,
+                    this.secondValue!
+                );
         }
     }
 }

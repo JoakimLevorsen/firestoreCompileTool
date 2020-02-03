@@ -87,10 +87,7 @@ const ComparisonTestSet = LiteralTestSet.map(first =>
             })
         )
     )
-)
-    .flat()
-    .flat()
-    .flat();
+);
 
 describe("ComparisonExpressionParser", () => {
     describe(`Running Literal tests`, () =>
@@ -130,25 +127,34 @@ describe("ComparisonExpressionParser", () => {
                 }
             })
         ));
-    it("Testing all Comparison items", () =>
-        ComparisonTestSet.forEach(({ input, expected }) => {
-            let parsed;
-            try {
-                const tokens = tokenize(input);
-                const error = ParserErrorCreator(tokens);
-                parsed = ParserRunner(
-                    tokens,
-                    new ComparisonExpressionParser(error)
-                );
-            } catch (e) {
-                // tslint:disable-next-line: no-console
-                console.error("got error", e);
-                throw e;
-            }
-            expect(parsed).to.not.be.null;
-            expect(parsed).to.be.instanceOf(SyntaxComponent);
-            if (parsed instanceof SyntaxComponent) {
-                expect(parsed.equals(expected)).to.be.true;
-            }
-        }));
+    describe("Testing all Comparison items", () =>
+        ComparisonTestSet.forEach(first =>
+            first.forEach(comp =>
+                it(`testing ${comp[0].expected.getOperator()}`, () => {
+                    comp.forEach(({ input, expected }) => {
+                        let parsed;
+                        try {
+                            const tokens = tokenize(input);
+                            const error = ParserErrorCreator(tokens);
+                            parsed = ParserRunner(
+                                tokens,
+                                new ComparisonExpressionParser(error)
+                            );
+                        } catch (e) {
+                            // tslint:disable-next-line: no-console
+                            console.error("got error", e);
+                            throw e;
+                        }
+                        expect(parsed).to.not.be.null;
+                        expect(parsed).to.be.instanceOf(
+                            SyntaxComponent
+                        );
+                        if (parsed instanceof SyntaxComponent) {
+                            const equal = parsed.equals(expected);
+                            expect(equal).to.be.true;
+                        }
+                    });
+                })
+            )
+        ));
 });

@@ -147,11 +147,7 @@ export default class MemberExpressionParser extends Parser {
                     return false;
                 }
             case "awaiting seperator":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "[",
-                    "."
-                ]);
+                return tokenHasType(token.type, ["[", "."]);
             case "awaiting second":
                 if (this.memParser) {
                     const canAccept = this.memParser.canAccept(token);

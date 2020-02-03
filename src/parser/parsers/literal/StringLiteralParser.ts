@@ -26,7 +26,10 @@ export default class StringLiteralParser extends LiteralParser {
                 if (token.type === this.openToken) {
                     this.state = "Closed";
                     return new StringLiteral(
-                        { start: this.start, end: token.location },
+                        {
+                            start: this.start,
+                            end: token.location + token.type.length
+                        },
                         this.value
                     );
                 }

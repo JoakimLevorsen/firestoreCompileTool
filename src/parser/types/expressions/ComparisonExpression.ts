@@ -25,6 +25,8 @@ export default abstract class ComparisonExpression extends SyntaxComponent {
         this.right = right;
     }
 
+    public getOperator = () => this.operator;
+
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof ComparisonExpression)) return false;
         return (
