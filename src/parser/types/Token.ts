@@ -1,7 +1,6 @@
 import { Operators } from "./expressions/Operators";
-import { TokenParser } from "../TokenParser";
 
-const tokenTypes = <const>[
+const tokenTypes = [
     "(",
     ")",
     "{",
@@ -17,15 +16,24 @@ const tokenTypes = <const>[
     "|",
     '"',
     "'"
-];
-export const spaceTokens = <const>["\n", " ", "\t", "\r"];
-type tokenTypes = typeof tokenTypes[number];
+] as const;
+
+export const spaceTokens = ["\n", " ", "\t", "\r"] as const;
+export const wordTokens = [
+    "const",
+    "return",
+    "if",
+    "else",
+    "match",
+    "interface"
+] as const;
 
 // We sort reverse alphabetically, so || comes before | in the list, and is not read as | and |
 export const nonKeywordTokens = [
     ...tokenTypes,
     ...Operators,
-    ...spaceTokens
+    ...spaceTokens,
+    ...wordTokens
 ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
 type nonKeywordTokens = typeof nonKeywordTokens[number];
 

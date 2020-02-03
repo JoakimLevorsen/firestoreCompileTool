@@ -3,12 +3,10 @@ import Indentifier from "../Identifier";
 import BooleanLiteral from "../literal/BooleanLiteral";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-type body = BinaryExpression | Indentifier | BooleanLiteral;
-
 export default class ReturnStatement extends SyntaxComponent {
-    private body: body;
+    private body: SyntaxComponent;
 
-    constructor(position: Position, newBody: body) {
+    constructor(position: Position, newBody: SyntaxComponent) {
         super(position);
         this.body = newBody;
     }
