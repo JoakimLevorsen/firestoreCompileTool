@@ -43,7 +43,7 @@ const secondSet = (start: number) =>
             return {
                 input,
                 expected: new StringLiteral(
-                    { start, end },
+                    { start, end: end - 1 },
                     expected.value
                 )
             };

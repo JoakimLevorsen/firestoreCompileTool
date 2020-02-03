@@ -25,10 +25,12 @@ export default class StringLiteralParser extends LiteralParser {
             case "Open": {
                 if (token.type === this.openToken) {
                     this.state = "Closed";
+                    // We only add one since start represents the first " or '
+                    const end = this.start + 1 + this.value.length;
                     return new StringLiteral(
                         {
                             start: this.start,
-                            end: token.location + token.type.length
+                            end
                         },
                         this.value
                     );

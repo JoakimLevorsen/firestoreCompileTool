@@ -152,9 +152,7 @@ export default class ComparisonExpressionParser extends Parser {
     ) {
         const end =
             token.location +
-            (token.type === "Keyword"
-                ? token.value.length
-                : token.type.length);
+            (token.type === "Keyword" ? token.value.length : 0);
         const { start } = this;
         const position = { start, end };
         switch (this.comparison) {
