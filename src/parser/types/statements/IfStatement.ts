@@ -5,13 +5,13 @@ import BlockStatement from "./BlockStatement";
 export default class IfStatement extends SyntaxComponent {
     protected test: BinaryExpression;
     protected consequent: BlockStatement;
-    protected alternate?: BlockStatement;
+    protected alternate?: BlockStatement | IfStatement;
 
     constructor(
         start: number,
         test: BinaryExpression,
         consequent: BlockStatement,
-        alternate?: BlockStatement
+        alternate?: BlockStatement | IfStatement
     ) {
         const end =
             start +
