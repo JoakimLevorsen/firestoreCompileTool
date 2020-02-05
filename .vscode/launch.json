@@ -22,6 +22,21 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Mocha Test this file",
+            "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+            "args": [
+                "-r",
+                "ts-node/register",
+                "${file}",
+                "--timeout",
+                "999999"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "skipFiles": ["<node_internals>/**"]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceFolder}/src/index.ts",
             "skipFiles": ["<node_internals>/**"],
