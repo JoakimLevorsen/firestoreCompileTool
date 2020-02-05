@@ -28,7 +28,7 @@ const keywordRegex = new RegExp(
         .filter(({ raw }) => !/^\w*$/.test(raw))
         .reduce(
             (pV, v) =>
-                pV != ""
+                pV !== ""
                     ? `${pV}${v.escaped || v.raw}`
                     : v.escaped || v.raw,
             ""
@@ -43,16 +43,24 @@ const nonKeywordRegex = escapedNonKeywordTokens.map(
 );
 
 export class TokenParser {
+    public static extractAll(from: string) {
+        const parser = new TokenParser(from);
+        const tokens: Token[] = [];
+        let token: Token;
+        do {
+            token = parser.nextToken();
+            tokens.push(token);
+        } while (token.type !== "EOF");
+        return tokens;
+    }
     private location: number = 0;
-    private original: string;
     private remaining: string;
 
     constructor(input: string) {
-        this.original = input;
         this.remaining = input;
     }
 
-    nextToken(): Token {
+    public nextToken(): Token {
         // const spaceMatch = this.remaining.match(/^\s*/);
         // let firstSpacing = 0;
         // if (spaceMatch && spaceMatch[0]) {
@@ -67,7 +75,7 @@ export class TokenParser {
             if (escaped == null) continue;
             this.remaining = escaped.input!.substr(escaped[0].length);
             this.location += escaped[0].length;
-            return { type: type, location };
+            return { type, location };
         }
         const kMatch = remaining.match(keywordRegex);
         if (kMatch && kMatch[1]) {
@@ -82,16 +90,5 @@ export class TokenParser {
         throw new Error(
             "Token could not be extracted from " + remaining
         );
-    }
-
-    static extractAll(from: string) {
-        const parser = new TokenParser(from);
-        const tokens: Token[] = [];
-        let token: Token;
-        do {
-            token = parser.nextToken();
-            tokens.push(token);
-        } while (token.type !== "EOF");
-        return tokens;
     }
 }

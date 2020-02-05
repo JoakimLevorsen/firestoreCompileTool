@@ -1,6 +1,6 @@
-import { Token } from "../types/Token";
-import SyntaxComponent from "../types/SyntaxComponent";
 import { ErrorCreator } from "../ParserError";
+import SyntaxComponent from "../types/SyntaxComponent";
+import { Token } from "../types/Token";
 
 export default abstract class Parser {
     protected errorCreator: ErrorCreator;

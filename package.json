@@ -7,7 +7,7 @@
         "buildRun": "yarn build && yarn start ./test/testFiles/testFile2.kakao ./output.rules",
         "build": "tsc && npm run lint",
         "buildNoLint": "tsc",
-        "lint": "eslint --print-config .eslintrc.json | eslint-config-prettier-check",
+        "lint": "tslint --project ./",
         "start": "node ./lib/index.js",
         "test": "mocha -r ts-node/register ./test/**/*.spec.ts"
     },

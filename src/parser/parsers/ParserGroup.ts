@@ -1,6 +1,6 @@
-import Parser from "./Parser";
 import SyntaxComponent from "../types/SyntaxComponent";
 import { Token } from "../types/Token";
+import Parser from "./Parser";
 
 export default class ParserGroup {
     private parsers: Parser[];

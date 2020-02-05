@@ -1,7 +1,7 @@
-import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import Identifier from "../Identifier";
 import Literal from "../literal/Literal";
+import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 type ValueType = BinaryExpression | Identifier | Literal;
 
@@ -14,11 +14,11 @@ export default class ConstStatement extends SyntaxComponent {
         super(position);
     }
 
-    public get name() {
-        return this.name;
+    public get name(): string {
+        return this._name;
     }
 
-    public get value() {
+    public get value(): ValueType {
         return this._value;
     }
 

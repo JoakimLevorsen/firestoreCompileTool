@@ -1,15 +1,10 @@
 import { Token } from "./types/Token";
 
 export class ParserError extends Error {
-    private token: Token;
-    private msg: string;
-    private file: Token[];
-
     constructor(fromToken: Token, file: Token[], msg: string) {
-        super();
-        this.token = fromToken;
-        this.file = file;
-        this.msg = msg;
+        super(`'${msg}' occured on ${fromToken}`);
+        // tslint:disable-next-line: no-console
+        console.log("File was", file);
     }
 }
 
