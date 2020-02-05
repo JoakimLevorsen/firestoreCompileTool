@@ -1,11 +1,10 @@
-import { Position } from "../SyntaxComponent";
 import Literal from "./Literal";
 
 export default class BooleanLiteral extends Literal {
     protected _value: boolean;
 
-    constructor(position: Position, value: boolean) {
-        super(position, value);
+    constructor(start: number, value: boolean) {
+        super({ start, end: start + String(value).length }, value);
         this._value = value;
     }
 

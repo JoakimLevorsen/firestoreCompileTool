@@ -29,30 +29,20 @@ const itemTestSet = [
 
 const secondSet = (start: number) =>
     itemTestSet.map(({ input, expected }) => {
-        const end = start + input.length;
         if (expected instanceof BooleanLiteral)
             return {
                 input,
-                expected: new BooleanLiteral(
-                    { start, end },
-                    expected.value
-                )
+                expected: new BooleanLiteral(start, expected.value)
             };
         if (expected instanceof NumericLiteral)
             return {
                 input,
-                expected: new NumericLiteral(
-                    { start, end },
-                    expected.value
-                )
+                expected: new NumericLiteral(start, expected.value)
             };
         if (expected instanceof StringLiteral)
             return {
                 input,
-                expected: new StringLiteral(
-                    { start, end: end - 1 },
-                    expected.value
-                )
+                expected: new StringLiteral(start, expected.value)
             };
         throw new Error("Unexpected behavior");
     });

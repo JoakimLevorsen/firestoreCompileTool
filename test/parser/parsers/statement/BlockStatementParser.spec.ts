@@ -13,10 +13,7 @@ export const BlockTestSet = [
         return true
     }`,
         expected: new BlockStatement({ start: 0, end: 27 }, [
-            new ReturnStatement(
-                1,
-                new BooleanLiteral({ start: 17, end: 21 }, true)
-            )
+            new ReturnStatement(1, new BooleanLiteral(17, true))
         ])
     }
 ];

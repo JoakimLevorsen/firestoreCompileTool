@@ -26,23 +26,11 @@ export default class NumericLiteralParser extends LiteralParser {
             throw error("Could not extract number");
         if (bigNum === undefined) {
             this.value.bigNum = +token.value;
-            return new NumericLiteral(
-                {
-                    start: this.start,
-                    end: token.location + token.value.length
-                },
-                this.numberValue()
-            );
+            return new NumericLiteral(this.start, this.numberValue());
         }
         if (smallNum === undefined) {
             this.value.smallNum = +`0.${token.value}`;
-            return new NumericLiteral(
-                {
-                    start: this.start,
-                    end: token.location + token.value.length
-                },
-                this.numberValue()
-            );
+            return new NumericLiteral(this.start, this.numberValue());
         }
         throw error("Did not expect more tokens");
     }

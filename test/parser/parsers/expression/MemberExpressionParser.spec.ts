@@ -12,25 +12,25 @@ import ParserRunner, { tokenize } from "../ParserRunner";
 export const MemberExpressionParserTestSet = [
     {
         input: "item",
-        expected: new Identifier({ start: 0, end: 4 }, "item")
+        expected: new Identifier(0, "item")
     },
     {
         input: "item.item",
         expected: new MemberExpression(
             { start: 0, end: 9 },
-            new Identifier({ start: 0, end: 4 }, "item"),
-            new Identifier({ start: 5, end: 9 }, "item")
+            new Identifier(0, "item"),
+            new Identifier(5, "item")
         )
     },
     {
         input: "item.item['item3']",
         expected: new MemberExpression(
             { start: 0, end: 17 },
-            new Identifier({ start: 0, end: 4 }, "item"),
+            new Identifier(0, "item"),
             new MemberExpression(
                 { start: 5, end: 17 },
-                new Identifier({ start: 5, end: 9 }, "item"),
-                new StringLiteral({ start: 10, end: 16 }, "item3")
+                new Identifier(5, "item"),
+                new StringLiteral(10, "item3")
             )
         )
     }

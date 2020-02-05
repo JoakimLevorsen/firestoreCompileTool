@@ -9,18 +9,12 @@ import ParserRunner, { tokenize } from "./ParserRunner";
 
 const BooleanCreator = (input: boolean) => ({
     input: `${input}`,
-    expected: new BooleanLiteral(
-        { start: 0, end: `${input}`.length },
-        input
-    )
+    expected: new BooleanLiteral(0, input)
 });
 
 const NumericCreator = (input: number) => ({
     input: input.toString(),
-    expected: new NumericLiteral(
-        { start: 0, end: input.toString().length },
-        input
-    )
+    expected: new NumericLiteral(0, input)
 });
 
 const StringCreator = (input: string) => {
@@ -28,10 +22,7 @@ const StringCreator = (input: string) => {
     const resultString = input.substr(1, input.length - 2);
     return {
         input,
-        expected: new StringLiteral(
-            { start: 0, end: input.length - 1 },
-            resultString
-        )
+        expected: new StringLiteral(0, resultString)
     };
 };
 

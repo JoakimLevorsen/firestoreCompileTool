@@ -16,10 +16,7 @@ export default class BooleanLiteralParser extends LiteralParser {
         ) {
             this.hasReturned = true;
             return new BooleanLiteral(
-                {
-                    start: token.location,
-                    end: token.location + token.value.length
-                },
+                token.location,
                 token.value === "true"
             );
         }

@@ -3,8 +3,8 @@ import { Token } from "./types/Token";
 export class ParserError extends Error {
     constructor(fromToken: Token, file: Token[], msg: string) {
         super(`'${msg}' occured on ${fromToken}`);
-        // tslint:disable-next-line: no-console
-        console.log("File was", file);
+        // tslint:disable-next-line: no-unused-expression
+        file;
     }
 }
 

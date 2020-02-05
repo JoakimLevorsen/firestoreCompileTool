@@ -15,12 +15,9 @@ export const IfStatementTestSet = [
         input: `if true {return true}`,
         expected: new IfStatement(
             0,
-            new BooleanLiteral({ start: 3, end: 7 }, true),
+            new BooleanLiteral(3, true),
             new BlockStatement({ start: 8, end: 21 }, [
-                new ReturnStatement(
-                    9,
-                    new BooleanLiteral({ start: 16, end: 20 }, true)
-                )
+                new ReturnStatement(9, new BooleanLiteral(16, true))
             ])
         )
     },
@@ -33,14 +30,11 @@ export const IfStatementTestSet = [
             new EqualityExpression(
                 { start: 2, end: 12 },
                 "==",
-                new Identifier({ start: 3, end: 4 }, "a"),
-                new BooleanLiteral({ start: 8, end: 12 }, true)
+                new Identifier(3, "a"),
+                new BooleanLiteral(8, true)
             ),
             new BlockStatement({ start: 13, end: 48 }, [
-                new ReturnStatement(
-                    14,
-                    new BooleanLiteral({ start: 34, end: 38 }, true)
-                )
+                new ReturnStatement(14, new BooleanLiteral(34, true))
             ])
         )
     },
@@ -52,18 +46,12 @@ export const IfStatementTestSet = [
         }`,
         expected: new IfStatement(
             0,
-            new BooleanLiteral({ start: 3, end: 7 }, true),
+            new BooleanLiteral(3, true),
             new BlockStatement({ start: 8, end: 43 }, [
-                new ReturnStatement(
-                    9,
-                    new BooleanLiteral({ start: 29, end: 33 }, true)
-                )
+                new ReturnStatement(9, new BooleanLiteral(29, true))
             ]),
             new BlockStatement({ start: 48, end: 85 }, [
-                new ReturnStatement(
-                    50,
-                    new BooleanLiteral({ start: 70, end: 75 }, false)
-                )
+                new ReturnStatement(50, new BooleanLiteral(70, false))
             ])
         )
     }

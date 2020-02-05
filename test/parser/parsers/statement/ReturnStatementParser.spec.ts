@@ -28,35 +28,23 @@ const ReturnStatementGenerator = (
 const values = [
     {
         input: "true",
-        expected: new BooleanLiteral(
-            { start: offset, end: offset + 4 },
-            true
-        )
+        expected: new BooleanLiteral(offset, true)
     },
     {
         input: "false",
-        expected: new BooleanLiteral(
-            { start: offset, end: offset + 5 },
-            false
-        )
+        expected: new BooleanLiteral(offset, false)
     },
     {
         input: "a",
-        expected: new Identifier(
-            { start: offset, end: offset + 1 },
-            "a"
-        )
+        expected: new Identifier(offset, "a")
     },
     {
         input: "a == true",
         expected: new EqualityExpression(
             { start: offset, end: offset + 9 },
             "==",
-            new Identifier({ start: offset, end: offset + 1 }, "a"),
-            new BooleanLiteral(
-                { start: offset + 5, end: offset + 9 },
-                true
-            )
+            new Identifier(offset, "a"),
+            new BooleanLiteral(offset + 5, true)
         )
     }
 ];

@@ -1,9 +1,9 @@
 import { ErrorCreator } from "../ParserError";
-import Indentifier from "../types/Identifier";
+import Identifier from "../types/Identifier";
 import BooleanLiteral from "../types/literal/BooleanLiteral";
 import NumericLiteral from "../types/literal/NumericLiteral";
 import { Token } from "../types/Token";
-import IndentifierExtractor from "./IndentifierExtractor";
+import IdentifierExtractor from "./IdentifierExtractor";
 import BooleanLiteralParser from "./literal/BooleanLiteralParser";
 import NumericLiteralParser from "./literal/NumericLiteralParser";
 import StringLiteralParser from "./literal/StringLiteralParser";
@@ -12,7 +12,7 @@ const IdentifierOrLiteralExtractor = (
     token: Token,
     error: ErrorCreator
 ):
-    | Indentifier
+    | Identifier
     | BooleanLiteral
     | NumericLiteralParser
     | { parser: NumericLiteralParser; value: NumericLiteral }
@@ -32,7 +32,7 @@ const IdentifierOrLiteralExtractor = (
         sParser.addToken(token);
         return sParser;
     }
-    return IndentifierExtractor(token, error);
+    return IdentifierExtractor(token, error);
 };
 
 export default IdentifierOrLiteralExtractor;

@@ -3,7 +3,7 @@ import Indentifier from "../../types/Identifier";
 import BooleanLiteral from "../../types/literal/BooleanLiteral";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
 import { spaceTokens, tokenHasType } from "../../types/Token";
-import LiteralOrIndentifierExtractor from "../IndentifierOrLiteralExtractor";
+import LiteralOrIndentifierExtractor from "../IdentifierOrLiteralExtractor";
 import LiteralParser from "../literal";
 import NumericLiteralParser from "../literal/NumericLiteralParser";
 import StringLiteralParser from "../literal/StringLiteralParser";
