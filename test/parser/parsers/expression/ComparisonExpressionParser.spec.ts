@@ -6,15 +6,15 @@ import EqualityExpression from "../../../../src/parser/types/expressions/Equalit
 import IsExpression from "../../../../src/parser/types/expressions/IsExpression";
 import LogicalExpression from "../../../../src/parser/types/expressions/LogicalExpression";
 import MemberExpression from "../../../../src/parser/types/expressions/MemberExpression";
-import {
-    Operator,
-    Operators
-} from "../../../../src/parser/types/expressions/Operators";
 import Identifier from "../../../../src/parser/types/Identifier";
 import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral";
 import Literal from "../../../../src/parser/types/literal/Literal";
 import NumericLiteral from "../../../../src/parser/types/literal/NumericLiteral";
 import StringLiteral from "../../../../src/parser/types/literal/StringLiteral";
+import {
+    Operator,
+    Operators
+} from "../../../../src/parser/types/Operators";
 import SyntaxComponent, {
     Position
 } from "../../../../src/parser/types/SyntaxComponent";

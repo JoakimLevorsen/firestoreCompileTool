@@ -1,4 +1,4 @@
-import { Operators } from "./expressions/Operators";
+import { Operators } from "./Operators";
 
 const tokenTypes = [
     "(",

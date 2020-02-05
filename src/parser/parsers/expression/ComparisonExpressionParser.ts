@@ -4,12 +4,9 @@ import EqualityExpression from "../../types/expressions/EqualityExpression";
 import IsExpression from "../../types/expressions/IsExpression";
 import LogicalExpression from "../../types/expressions/LogicalExpression";
 import MemberExpression from "../../types/expressions/MemberExpression";
-import {
-    Operator,
-    Operators
-} from "../../types/expressions/Operators";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal/Literal";
+import { Operator, Operators } from "../../types/Operators";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";
 import MemberExpressionParser from "./MemberExpressionParser";

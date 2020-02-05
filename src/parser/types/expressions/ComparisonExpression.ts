@@ -1,7 +1,7 @@
 import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
+import { Operator } from "../Operators";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 import MemberExpression from "./MemberExpression";
-import { Operator } from "./Operators";
 
 export type ComparisonType =
     | LiteralOrIdentifier
