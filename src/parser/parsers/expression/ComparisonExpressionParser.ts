@@ -67,7 +67,7 @@ export default class ComparisonExpressionParser extends Parser {
                 } else throw error("Unexpected token");
             case "operator":
                 if (tokenHasType(token.type, [...spaceTokens]))
-                    return null;
+                    return this.firstValue || null;
                 if (tokenHasType(token.type, Operators)) {
                     this.comparison = token.type as Operator;
                     this.state = "second";

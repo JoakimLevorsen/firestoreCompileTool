@@ -1,5 +1,7 @@
+import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
+import Identifier from "../../types/Identifier";
+import BooleanLiteral from "../../types/literal/BooleanLiteral";
 import ReturnStatement from "../../types/statements/ReturnStatement";
-import SyntaxComponent from "../../types/SyntaxComponent";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
 import Parser from "../Parser";
@@ -10,7 +12,6 @@ export default class ReturnStatementParser extends Parser {
     );
     private hasGottonKeyword = false;
     private hasGottenSpaceAfterKeyword = false;
-    private internalValue?: SyntaxComponent;
     private start = NaN;
 
     public addToken(
@@ -39,23 +40,15 @@ export default class ReturnStatementParser extends Parser {
         }
         if (this.subParser.canAccept(token)) {
             const result = this.subParser.addToken(token);
-            if (result) {
-                this.internalValue = result;
-                return new ReturnStatement(
-                    { start: this.start, end: result.getEnd() },
-                    result
-                );
+            if (
+                result &&
+                (result instanceof BooleanLiteral ||
+                    result instanceof Identifier ||
+                    isBinaryExpression(result))
+            ) {
+                return new ReturnStatement(this.start, result);
             }
             return null;
-        }
-        if (token.type === ";" && this.internalValue) {
-            return new ReturnStatement(
-                {
-                    start: this.start,
-                    end: this.internalValue.getEnd()
-                },
-                this.internalValue
-            );
         }
         throw error("Unexpected token");
     }
@@ -71,6 +64,6 @@ export default class ReturnStatementParser extends Parser {
         }
         if (this.subParser.canAccept(token)) return true;
         if (tokenHasType(token.type, [...spaceTokens])) return true;
-        return token.type === ";";
+        return false;
     }
 }

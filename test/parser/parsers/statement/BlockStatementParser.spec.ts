@@ -14,8 +14,8 @@ export const BlockTestSet = [
     }`,
         expected: new BlockStatement({ start: 0, end: 27 }, [
             new ReturnStatement(
-                { start: 1, end: 21 },
-                new BooleanLiteral({ start: 18, end: 22 }, true)
+                1,
+                new BooleanLiteral({ start: 17, end: 21 }, true)
             )
         ])
     }
@@ -38,7 +38,8 @@ describe("BlockStatementParser", () =>
                 !(actual instanceof Array) &&
                 actual !== null
             ) {
-                expect(actual.equals(expected)).to.be.true;
+                const result = actual.equals(expected);
+                expect(result).to.be.true;
             }
         })
     ));

@@ -1,14 +1,14 @@
-import Parser from "../Parser";
-import { tokenHasType, spaceTokens } from "../../types/Token";
-import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
-import BlockStatementParser from "./BlockStatementParser";
-import IfStatement from "../../types/statements/IfStatement";
 import {
     BinaryExpression,
     isBinaryExpression
 } from "../../types/expressions/BinaryExpression";
 import BlockStatement from "../../types/statements/BlockStatement";
+import IfStatement from "../../types/statements/IfStatement";
+import { spaceTokens, tokenHasType } from "../../types/Token";
+import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
+import Parser from "../Parser";
 import ParserGroup from "../ParserGroup";
+import BlockStatementParser from "./BlockStatementParser";
 
 export default class IfStatementParser extends Parser {
     private state:
@@ -25,10 +25,7 @@ export default class IfStatementParser extends Parser {
         this.errorCreator
     );
     private block?: BlockStatement;
-    private alternateParser = new ParserGroup(
-        new IfStatementParser(this.errorCreator),
-        new BlockStatementParser(this.errorCreator)
-    );
+    private alternateParser?: ParserGroup;
     private alternate?: IfStatement | BlockStatement;
     private start = NaN;
 
@@ -42,7 +39,7 @@ export default class IfStatementParser extends Parser {
                 if (tokenHasType(token.type, [...spaceTokens]))
                     return null;
                 if (token.type === "if") {
-                    this.state = "building block";
+                    this.state = "building condition";
                     return null;
                 }
                 throw error("Unexpected token");
@@ -53,8 +50,8 @@ export default class IfStatementParser extends Parser {
                     );
                     if (result && isBinaryExpression(result)) {
                         this.condition = result;
-                        return null;
                     }
+                    return null;
                 } else {
                     // Then we assume we've moved on to the block
                     this.state = "building block";
@@ -63,13 +60,16 @@ export default class IfStatementParser extends Parser {
                 if (this.blockBuilder.canAccept(token)) {
                     const result = this.blockBuilder.addToken(token);
                     if (result && result instanceof BlockStatement) {
+                        // If a block has been returned, this parser is done
                         this.block = result;
+                        this.state = "awaiting else";
                         return new IfStatement(
                             this.start,
                             this.condition!,
                             this.block!
                         );
                     }
+                    return null;
                 }
                 throw error("Unexpected token");
             case "awaiting else":
@@ -81,7 +81,12 @@ export default class IfStatementParser extends Parser {
                 }
                 throw error("Unexpected token");
             case "building alternate":
-                if (this.alternateParser.addToken(token)) {
+                if (!this.alternateParser)
+                    this.alternateParser = new ParserGroup(
+                        new IfStatementParser(this.errorCreator),
+                        new BlockStatementParser(this.errorCreator)
+                    );
+                if (this.alternateParser.canAccept(token)) {
                     const result = this.alternateParser.addToken(
                         token
                     );
@@ -99,8 +104,8 @@ export default class IfStatementParser extends Parser {
                                 this.alternate
                             );
                         }
-                        return null;
                     }
+                    return null;
                 }
                 throw error("Unexpected token");
         }
@@ -113,10 +118,13 @@ export default class IfStatementParser extends Parser {
             case "awaiting keyword":
                 return tokenHasType(token.type, [
                     ...spaceTokens,
-                    "return"
+                    "if"
                 ]);
             case "building condition":
-                return this.conditionBuilder.canAccept(token);
+                if (this.conditionBuilder.canAccept(token))
+                    return true;
+                // Otherwise we assume we've moved on to the block
+                this.state = "building block";
             case "building block":
                 return this.blockBuilder.canAccept(token);
             case "awaiting else":
@@ -125,6 +133,11 @@ export default class IfStatementParser extends Parser {
                     "else"
                 ]);
             case "building alternate":
+                if (!this.alternateParser)
+                    this.alternateParser = new ParserGroup(
+                        new IfStatementParser(this.errorCreator),
+                        new BlockStatementParser(this.errorCreator)
+                    );
                 return this.alternateParser.canAccept(token);
         }
     }
