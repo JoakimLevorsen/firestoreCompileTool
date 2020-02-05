@@ -1,12 +1,14 @@
 import { BinaryExpression } from "../expressions/BinaryExpression";
-import Indentifier from "../Identifier";
+import Identifier from "../Identifier";
 import BooleanLiteral from "../literal/BooleanLiteral";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-export default class ReturnStatement extends SyntaxComponent {
-    private body: SyntaxComponent;
+type ExportType = BinaryExpression | Identifier | BooleanLiteral;
 
-    constructor(position: Position, newBody: SyntaxComponent) {
+export default class ReturnStatement extends SyntaxComponent {
+    private body: ExportType;
+
+    constructor(position: Position, newBody: ExportType) {
         super(position);
         this.body = newBody;
     }

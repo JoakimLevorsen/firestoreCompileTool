@@ -1,17 +1,21 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
+import { InterfaceLiteralValues } from "./InterfaceLiteral";
+
+type LiteralTypes =
+    | string
+    | number
+    | boolean
+    | InterfaceLiteralValues;
 
 export default abstract class Literal extends SyntaxComponent {
-    protected _value: string | number | boolean;
+    protected _value: LiteralTypes;
 
-    constructor(
-        position: Position,
-        value: string | number | boolean
-    ) {
+    constructor(position: Position, value: LiteralTypes) {
         super(position);
         this._value = value;
     }
 
-    public abstract get value(): string | number | boolean;
+    public abstract get value(): LiteralTypes;
 
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof Literal)) return false;
