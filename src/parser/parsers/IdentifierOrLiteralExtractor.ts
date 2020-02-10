@@ -7,6 +7,9 @@ import IdentifierExtractor from "./IdentifierExtractor";
 import BooleanLiteralParser from "./literal/BooleanLiteralParser";
 import NumericLiteralParser from "./literal/NumericLiteralParser";
 import StringLiteralParser from "./literal/StringLiteralParser";
+import TypeLiteral from "../types/literal/TypeLiteral";
+import InterfaceLiteralParser from "./literal/InterfaceLiteralParser";
+import TypeLiteralParser from "./literal/TypeLiteralParser";
 
 const IdentifierOrLiteralExtractor = (
     token: Token,
@@ -15,7 +18,9 @@ const IdentifierOrLiteralExtractor = (
     | Identifier
     | BooleanLiteral
     | NumericLiteralParser
+    | TypeLiteral
     | { parser: NumericLiteralParser; value: NumericLiteral }
+    | InterfaceLiteralParser
     | StringLiteralParser => {
     const bParser = new BooleanLiteralParser(error);
     if (bParser.canAccept(token))
@@ -27,10 +32,22 @@ const IdentifierOrLiteralExtractor = (
             return { parser: nParser, value: response };
         return nParser;
     }
+    const tParser = new TypeLiteralParser(error);
+    if (tParser.canAccept(token)) {
+        const response = tParser.addToken(token);
+        if (response) {
+            return response;
+        }
+    }
     const sParser = new StringLiteralParser(error);
     if (sParser.canAccept(token)) {
         sParser.addToken(token);
         return sParser;
+    }
+    const iParser = new InterfaceLiteralParser(error);
+    if (iParser.canAccept(token)) {
+        iParser.addToken(token);
+        return iParser;
     }
     return IdentifierExtractor(token, error);
 };

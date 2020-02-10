@@ -1,19 +1,32 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
-import { ValueType } from "../Token";
 import Literal from "./Literal";
+import Identifier from "../Identifier";
 
-type ValueArray = Array<ValueType | InterfaceLiteral>;
-export type InterfaceLiteralValues = Map<string, ValueArray>;
+export type InterfaceLiteralValues = Map<
+    string,
+    (Literal | Identifier)[]
+>;
 
 export default class InterfaceLiteral extends Literal {
-    get value(): Map<string, ValueArray> {
-        return this._value;
-    }
     protected _value: InterfaceLiteralValues;
+    protected _optionalValues: InterfaceLiteralValues;
 
-    constructor(position: Position, values: InterfaceLiteralValues) {
+    constructor(
+        position: Position,
+        values: InterfaceLiteralValues,
+        optionals?: InterfaceLiteralValues
+    ) {
         super(position, values);
         this._value = values;
+        this._optionalValues = optionals || new Map();
+    }
+
+    get value(): InterfaceLiteralValues {
+        return this._value;
+    }
+
+    get optionals(): InterfaceLiteralValues {
+        return this._optionalValues;
     }
 
     public allValuesPresentIn(other: InterfaceLiteral): boolean {
