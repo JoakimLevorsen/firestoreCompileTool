@@ -1,12 +1,10 @@
 import MemberExpression from "../../types/expressions/MemberExpression";
 import Indentifier from "../../types/Identifier";
-import BooleanLiteral from "../../types/literal/BooleanLiteral";
+import Literal from "../../types/literal/Literal";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import LiteralOrIndentifierExtractor from "../IdentifierOrLiteralExtractor";
 import LiteralParser from "../literal";
-import NumericLiteralParser from "../literal/NumericLiteralParser";
-import StringLiteralParser from "../literal/StringLiteralParser";
 import Parser from "../Parser";
 
 export default class MemberExpressionParser extends Parser {
@@ -35,15 +33,12 @@ export default class MemberExpressionParser extends Parser {
                     );
                     if (
                         result instanceof Indentifier ||
-                        result instanceof BooleanLiteral
+                        result instanceof Literal
                     ) {
                         this.state = "awaiting seperator";
                         this.firstItem = result;
                         return this.firstItem;
-                    } else if (
-                        result instanceof NumericLiteralParser ||
-                        result instanceof StringLiteralParser
-                    ) {
+                    } else if (result instanceof Parser) {
                         this.subParser = result;
                     } else {
                         this.firstItem = result.value;

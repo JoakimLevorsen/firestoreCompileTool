@@ -5,6 +5,8 @@ import LiteralParserGroup from "../../../src/parser/parsers/literal/LiteralParse
 import BooleanLiteral from "../../../src/parser/types/literal/BooleanLiteral";
 import NumericLiteral from "../../../src/parser/types/literal/NumericLiteral";
 import StringLiteral from "../../../src/parser/types/literal/StringLiteral";
+import TypeLiteral from "../../../src/parser/types/literal/TypeLiteral";
+import { ValueType } from "../../../src/parser/types/Token";
 import ParserRunner, { tokenize } from "./ParserRunner";
 
 const BooleanCreator = (input: boolean) => ({
@@ -26,6 +28,11 @@ const StringCreator = (input: string) => {
     };
 };
 
+const TypeCreator = (input: ValueType) => ({
+    input,
+    expected: new TypeLiteral(0, input)
+});
+
 export const LiteralTestSet = [
     BooleanCreator(true),
     BooleanCreator(false),
@@ -36,7 +43,9 @@ export const LiteralTestSet = [
     NumericCreator(0.0001),
     StringCreator("'input'"),
     StringCreator('"test"'),
-    StringCreator('"Hey\'there"')
+    StringCreator('"Hey\'there"'),
+    TypeCreator("boolean"),
+    TypeCreator("number")
 ];
 
 describe("LiteralParser", () => {
@@ -53,6 +62,8 @@ describe("LiteralParser", () => {
                 expect(actual.length).to.be.equal(1);
                 const result = actual[0];
                 expect(result.equals(expected)).to.be.true;
+            } else {
+                actual;
             }
         })
     );

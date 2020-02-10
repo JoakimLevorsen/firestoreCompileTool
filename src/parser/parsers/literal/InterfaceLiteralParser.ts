@@ -1,16 +1,21 @@
 import LiteralParser from ".";
+import Identifier from "../../types/Identifier";
 import InterfaceLiteral, {
     InterfaceLiteralValues
 } from "../../types/literal/InterfaceLiteral";
-import { tokenHasType, spaceTokens } from "../../types/Token";
-import LiteralParserGroup from "./LiteralParserGroup";
 import Literal from "../../types/literal/Literal";
+import { spaceTokens, tokenHasType } from "../../types/Token";
+import IdentifierOrLiteralExtractor from "../IdentifierOrLiteralExtractor";
+import Parser from "../Parser";
+import LiteralParserGroup from "./LiteralParserGroup";
 export default class InterfaceLiteralParser extends LiteralParser {
     private currentValue: InterfaceLiteralValues = new Map();
     private currentValueOptional: InterfaceLiteralValues = new Map();
     private nextKey?: string;
     private nextKeyOptional = false;
-    private subParser?: ReturnType<typeof LiteralParserGroup>;
+    private subParser?:
+        | ReturnType<typeof LiteralParserGroup>
+        | Parser;
     private state:
         | "nonOpen"
         | "awaitingName"
@@ -64,40 +69,39 @@ export default class InterfaceLiteralParser extends LiteralParser {
                 throw error("Unexpected token");
             case "awaitingType": {
                 if (!this.subParser) {
-                    
-                }
-                if (this.subParser) {
+                    // Since our LiteralExtractor will return immediately, we must account for this
+                    const result = IdentifierOrLiteralExtractor(
+                        token,
+                        this.errorCreator
+                    );
+                    if (
+                        result instanceof Literal ||
+                        result instanceof Identifier
+                    ) {
+                        this.addType(result);
+                        this.state = "awaitingSeperatorOrClose";
+                    } else if (result instanceof Parser) {
+                        this.subParser = result;
+                    } else {
+                        this.addType(result.value);
+                        this.subParser = result.parser;
+                    }
+                } else {
                     if (this.subParser.canAccept(token)) {
                         const result = this.subParser.addToken(token);
                         if (result && result instanceof Literal) {
-                            const currentlySet =
-                                (this.nextKeyOptional
-                                    ? this.currentValueOptional.get(
-                                          this.nextKey!
-                                      )
-                                    : this.currentValue.get(
-                                          this.nextKey!
-                                      )) || [];
-                            currentlySet.push(result);
-                            if (this.nextKeyOptional) {
-                                this.currentValueOptional.set(
-                                    this.nextKey!,
-                                    currentlySet
-                                );
-                            } else
-                                this.currentValue.set(
-                                    this.nextKey!,
-                                    currentlySet
-                                );
+                            this.addType(result);
                         }
                         return null;
+                    } else {
+                        // Then we assume that value was done
+                        this.subParser = LiteralParserGroup(
+                            this.errorCreator
+                        );
+                        this.state = "awaitingSeperatorOrClose";
                     }
-                    // Then we assume that value was done
-                    this.subParser = LiteralParserGroup(
-                        this.errorCreator
-                    );
-                    this.state = "awaitingSeperatorOrClose";
                 }
+                return null;
             }
             case "awaitingSeperatorOrClose":
                 if (token.type === "|") {
@@ -156,5 +160,19 @@ export default class InterfaceLiteralParser extends LiteralParser {
             case "closed":
                 return false;
         }
+    }
+
+    private addType(result: Literal | Identifier) {
+        const currentlySet =
+            (this.nextKeyOptional
+                ? this.currentValueOptional.get(this.nextKey!)
+                : this.currentValue.get(this.nextKey!)) || [];
+        currentlySet.push(result);
+        if (this.nextKeyOptional) {
+            this.currentValueOptional.set(
+                this.nextKey!,
+                currentlySet
+            );
+        } else this.currentValue.set(this.nextKey!, currentlySet);
     }
 }

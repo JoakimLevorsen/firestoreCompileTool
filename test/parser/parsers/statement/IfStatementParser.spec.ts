@@ -28,7 +28,7 @@ export const IfStatementTestSet = [
         expected: new IfStatement(
             0,
             new EqualityExpression(
-                { start: 2, end: 12 },
+                { start: 3, end: 11 },
                 "==",
                 new Identifier(3, "a"),
                 new BooleanLiteral(8, true)

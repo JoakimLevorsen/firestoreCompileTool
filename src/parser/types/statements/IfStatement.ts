@@ -14,10 +14,7 @@ export default class IfStatement extends SyntaxComponent {
         alternate?: BlockStatement | IfStatement
     ) {
         const end =
-            start +
-            test.getEnd() +
-            consequent.getEnd() +
-            (alternate?.getEnd() || 0);
+            start + (alternate?.getEnd() ?? consequent.getEnd());
         const position = { start, end };
         super(position);
         this.test = test;

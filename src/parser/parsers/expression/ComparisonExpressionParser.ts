@@ -32,7 +32,8 @@ export default class ComparisonExpressionParser extends Parser {
         token: import("../../types/Token").Token
     ): ClassReturn {
         const error = this.errorCreator(token);
-        if (isNaN(this.start)) this.start = token.location;
+        if (isNaN(this.start) && token.type !== " ")
+            this.start = token.location;
         switch (this.state) {
             case "first":
                 if (!this.subParser) {
@@ -150,9 +151,7 @@ export default class ComparisonExpressionParser extends Parser {
         token: Token,
         error: (msg: string) => ParserError
     ) {
-        const end =
-            token.location +
-            (token.type === "Keyword" ? token.value.length : 0);
+        const end = this.secondValue!.getEnd();
         const { start } = this;
         const position = { start, end };
         switch (this.comparison) {

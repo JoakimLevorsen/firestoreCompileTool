@@ -10,14 +10,13 @@ export default class TypeLiteralParser extends LiteralParser {
         const error = this.errorCreator(token);
         if (this.hasReturned)
             throw error("Did not expect more tokens");
-        if (token.type !== "Keyword") throw error("Unexpected token");
         if (
-            token.value === "string" ||
-            token.value === "number" ||
-            token.value === "boolean"
+            token.type === "string" ||
+            token.type === "number" ||
+            token.type === "boolean"
         ) {
             this.hasReturned = true;
-            return new TypeLiteral(token.location, token.value);
+            return new TypeLiteral(token.location, token.type);
         }
         throw error("Unexpected token");
     }
@@ -26,8 +25,7 @@ export default class TypeLiteralParser extends LiteralParser {
         token: import("../../types/Token").Token
     ): boolean {
         if (this.hasReturned) return false;
-        if (token.type !== "Keyword") return false;
-        switch (token.value) {
+        switch (token.type) {
             case "string":
             case "boolean":
             case "number":

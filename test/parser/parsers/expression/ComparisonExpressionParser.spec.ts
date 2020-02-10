@@ -11,6 +11,7 @@ import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral"
 import Literal from "../../../../src/parser/types/literal/Literal";
 import NumericLiteral from "../../../../src/parser/types/literal/NumericLiteral";
 import StringLiteral from "../../../../src/parser/types/literal/StringLiteral";
+import TypeLiteral from "../../../../src/parser/types/literal/TypeLiteral";
 import {
     Operator,
     Operators
@@ -22,13 +23,9 @@ import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 import { MemberExpressionParserTestSet } from "./MemberExpressionParser.spec";
 
-const itemTestSet = [
-    ...LiteralTestSet
-    // ...MemberExpressionParserTestSet
-];
-
 const secondSet = (start: number) =>
-    itemTestSet.map(({ input, expected }) => {
+    LiteralTestSet.map(item => {
+        const { input, expected } = item;
         if (expected instanceof BooleanLiteral)
             return {
                 input,
@@ -44,6 +41,12 @@ const secondSet = (start: number) =>
                 input,
                 expected: new StringLiteral(start, expected.value)
             };
+        if (expected instanceof TypeLiteral) {
+            return {
+                input,
+                expected: new TypeLiteral(start, expected.value)
+            };
+        }
         throw new Error("Unexpected behavior");
     });
 
@@ -70,26 +73,25 @@ const constructorForCompType = (
     }
 };
 
-const ComparisonTestSet = itemTestSet
-    .map(first =>
-        Operators.map(comp =>
-            secondSet(first.input.length + 1 + comp.length + 1).map(
-                second => ({
-                    input: `${first.input} ${comp} ${second.input}`,
-                    expected: constructorForCompType(
-                        { start: 0, end: second.expected.getEnd() },
-                        comp,
-                        first.expected,
-                        second.expected
-                    )
-                })
-            )
+const ComparisonTestSet = LiteralTestSet.map(first =>
+    Operators.map(comp =>
+        // We add one more than the space, since the token start really happens after the space
+        secondSet(first.expected.getEnd() + 1 + comp.length + 2).map(
+            second => ({
+                input: `${first.input} ${comp} ${second.input}`,
+                expected: constructorForCompType(
+                    { start: 0, end: second.expected.getEnd() },
+                    comp,
+                    first.expected,
+                    second.expected
+                )
+            })
         )
     )
-    .reduce((pV, v) => {
-        pV.forEach((_, i) => (pV[i] = pV[i].concat(v[i])));
-        return pV;
-    });
+).reduce((pV, v) => {
+    pV.forEach((_, i) => (pV[i] = pV[i].concat(v[i])));
+    return pV;
+});
 
 describe("ComparisonExpressionParser", () => {
     describe(`Running Literal tests`, () =>
