@@ -1,6 +1,6 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-export default class BlockStatement extends SyntaxComponent {
+export class BlockStatement extends SyntaxComponent {
     private body: SyntaxComponent[];
 
     constructor(

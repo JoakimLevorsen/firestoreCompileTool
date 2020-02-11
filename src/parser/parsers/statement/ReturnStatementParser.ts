@@ -1,12 +1,12 @@
 import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
 import Identifier from "../../types/Identifier";
 import { BooleanLiteral } from "../../types/literal";
-import ReturnStatement from "../../types/statements/ReturnStatement";
+import { ReturnStatement } from "../../types/statements";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
 import Parser from "../Parser";
 
-export default class ReturnStatementParser extends Parser {
+export class ReturnStatementParser extends Parser {
     private subParser = new ComparisonExpressionParser(
         this.errorCreator
     );

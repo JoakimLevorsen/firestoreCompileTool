@@ -1,13 +1,15 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
-import IfStatementParser from "../../../../src/parser/parsers/statement/IfStatementParser";
+import { IfStatementParser } from "../../../../src/parser/parsers/statement/";
 import { EqualityExpression } from "../../../../src/parser/types/expressions";
 import Identifier from "../../../../src/parser/types/Identifier";
 import { BooleanLiteral } from "../../../../src/parser/types/literal";
-import BlockStatement from "../../../../src/parser/types/statements/BlockStatement";
-import IfStatement from "../../../../src/parser/types/statements/IfStatement";
-import ReturnStatement from "../../../../src/parser/types/statements/ReturnStatement";
+import {
+    BlockStatement,
+    IfStatement,
+    ReturnStatement
+} from "../../../../src/parser/types/statements";
 import ParserRunner, { tokenize } from "../ParserRunner";
 
 export const IfStatementTestSet = [

@@ -2,14 +2,15 @@ import { MemberExpression } from "../../types/expressions";
 import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal";
-import ConstStatement, {
+import {
+    ConstStatement,
     ConstStatementValue
 } from "../../types/statements/ConstStatement";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
 import ExpressionGroupParser from "../expression/ExpressionGroupParser";
 import Parser from "../Parser";
 
-export default class ConstStatementParser extends Parser {
+export class ConstStatementParser extends Parser {
     private start = NaN;
     private state:
         | "awaiting keyword"

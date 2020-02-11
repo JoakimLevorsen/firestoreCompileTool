@@ -5,7 +5,7 @@ import SyntaxComponent from "../SyntaxComponent";
 
 type ExportType = BinaryExpression | Identifier | BooleanLiteral;
 
-export default class ReturnStatement extends SyntaxComponent {
+export class ReturnStatement extends SyntaxComponent {
     private body: ExportType;
 
     constructor(start: number, newBody: ExportType) {

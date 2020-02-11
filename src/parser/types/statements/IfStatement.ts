@@ -1,8 +1,8 @@
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import SyntaxComponent from "../SyntaxComponent";
-import BlockStatement from "./BlockStatement";
+import { BlockStatement } from "./";
 
-export default class IfStatement extends SyntaxComponent {
+export class IfStatement extends SyntaxComponent {
     protected test: BinaryExpression;
     protected consequent: BlockStatement;
     protected alternate?: BlockStatement | IfStatement;

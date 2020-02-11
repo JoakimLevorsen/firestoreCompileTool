@@ -1,10 +1,10 @@
-import BlockStatement from "../../types/statements/BlockStatement";
+import { BlockStatement } from "../../types/statements";
 import SyntaxComponent from "../../types/SyntaxComponent";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";
-import NonBlockStatementGroup from "./NonBlockStatementGroup";
+import { NonBlockStatementGroup } from "./";
 
-export default class BlockStatementParser extends Parser {
+export class BlockStatementParser extends Parser {
     private state: "Unopened" | "Opened" | "Closed" = "Unopened";
     private lines: SyntaxComponent[] = [];
     private nextLine?: SyntaxComponent;

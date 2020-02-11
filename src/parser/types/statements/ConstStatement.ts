@@ -10,7 +10,7 @@ export type ConstStatementValue =
     | Literal
     | MemberExpression;
 
-export default class ConstStatement extends SyntaxComponent {
+export class ConstStatement extends SyntaxComponent {
     constructor(
         position: Position,
         private _name: string,

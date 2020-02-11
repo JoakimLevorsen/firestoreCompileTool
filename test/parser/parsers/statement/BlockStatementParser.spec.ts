@@ -1,10 +1,12 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
-import BlockStatementParser from "../../../../src/parser/parsers/statement/BlockStatementParser";
+import { BlockStatementParser } from "../../../../src/parser/parsers/statement";
 import { BooleanLiteral } from "../../../../src/parser/types/literal";
-import BlockStatement from "../../../../src/parser/types/statements/BlockStatement";
-import ReturnStatement from "../../../../src/parser/types/statements/ReturnStatement";
+import {
+    BlockStatement,
+    ReturnStatement
+} from "../../../../src/parser/types/statements";
 import ParserRunner, { tokenize } from "../ParserRunner";
 
 export const BlockTestSet = [

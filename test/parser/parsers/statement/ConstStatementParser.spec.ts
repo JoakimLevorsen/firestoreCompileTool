@@ -1,11 +1,11 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
-import ConstStatementParser from "../../../../src/parser/parsers/statement/ConstStatementParser";
+import { ConstStatementParser } from "../../../../src/parser/parsers/statement";
 import { MemberExpression } from "../../../../src/parser/types/expressions";
 import Identifier from "../../../../src/parser/types/Identifier";
 import { NumericLiteral } from "../../../../src/parser/types/literal";
-import ConstStatement from "../../../../src/parser/types/statements/ConstStatement";
+import { ConstStatement } from "../../../../src/parser/types/statements";
 import ParserRunner, { tokenize } from "../ParserRunner";
 
 const testSet = [

@@ -1,11 +1,13 @@
 import { ErrorCreator } from "../../ParserError";
 import ParserGroup from "../ParserGroup";
-import ConstStatementParser from "./ConstStatementParser";
-import IfStatementParser from "./IfStatementParser";
+import {
+    ConstStatementParser,
+    IfStatementParser,
+    ReturnStatementParser
+} from "./";
 import { InterfaceStatementParser } from "./InterfaceStatementParser";
-import ReturnStatementParser from "./ReturnStatementParser";
 
-const NonBlockStatementGroup = (error: ErrorCreator) =>
+export const NonBlockStatementGroup = (error: ErrorCreator) =>
     new ParserGroup(
         ...[
             new ReturnStatementParser(error),
@@ -14,5 +16,3 @@ const NonBlockStatementGroup = (error: ErrorCreator) =>
             new InterfaceStatementParser(error)
         ]
     );
-
-export default NonBlockStatementGroup;

@@ -2,15 +2,14 @@ import {
     BinaryExpression,
     isBinaryExpression
 } from "../../types/expressions/BinaryExpression";
-import BlockStatement from "../../types/statements/BlockStatement";
-import IfStatement from "../../types/statements/IfStatement";
+import { BlockStatement, IfStatement } from "../../types/statements";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
 import Parser from "../Parser";
 import ParserGroup from "../ParserGroup";
-import BlockStatementParser from "./BlockStatementParser";
+import { BlockStatementParser } from "./";
 
-export default class IfStatementParser extends Parser {
+export class IfStatementParser extends Parser {
     private state:
         | "awaiting keyword"
         | "building condition"
