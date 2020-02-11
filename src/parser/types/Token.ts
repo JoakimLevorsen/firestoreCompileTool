@@ -38,7 +38,7 @@ export const nonKeywordTokens = [
     ...wordTokens,
     ...typeTokens
 ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
-type nonKeywordTokens = typeof nonKeywordTokens[number];
+export type nonKeywordTokens = typeof nonKeywordTokens[number];
 
 export type Token =
     | { type: nonKeywordTokens; location: number }

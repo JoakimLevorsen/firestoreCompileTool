@@ -2,8 +2,7 @@
 
 ## Syntax improvements
 
-Add support for:
-`return item is A || item is B`
+Interface names should be literals so all values would be accepted.
 
 ## Recursion
 

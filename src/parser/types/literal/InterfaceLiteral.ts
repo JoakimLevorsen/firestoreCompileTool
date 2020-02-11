@@ -1,10 +1,10 @@
+import Identifier from "../Identifier";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 import Literal from "./Literal";
-import Identifier from "../Identifier";
 
 export type InterfaceLiteralValues = Map<
     string,
-    (Literal | Identifier)[]
+    Array<Literal | Identifier>
 >;
 
 export default class InterfaceLiteral extends Literal {
@@ -43,12 +43,37 @@ export default class InterfaceLiteral extends Literal {
                                 dV.allValuesPresentIn(oV)
                         );
                     } else {
-                        return otherValue.some(oV => oV === dV);
+                        return otherValue.some(oV => oV.equals(dV));
                     }
                 })
             ) {
                 return false;
             }
+        }
+        return true;
+    }
+
+    public equalsWithOptionals(other: any): boolean {
+        if (!(other instanceof InterfaceLiteral)) return false;
+        if (!other.equals(this)) return false;
+        const otherValues = other._optionalValues;
+        for (const [key, value] of this._optionalValues) {
+            if (!otherValues.has(key)) return false;
+            const otherValue = other._optionalValues.get(key)!;
+            if (
+                !value.every(dV => {
+                    if (dV instanceof InterfaceLiteral) {
+                        return otherValue.some(
+                            oV =>
+                                oV instanceof InterfaceLiteral &&
+                                dV.allValuesPresentIn(oV)
+                        );
+                    } else {
+                        return otherValue.some(oV => oV.equals(dV));
+                    }
+                })
+            )
+                return false;
         }
         return true;
     }
