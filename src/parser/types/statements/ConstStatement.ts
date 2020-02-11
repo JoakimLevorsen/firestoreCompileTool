@@ -3,13 +3,16 @@ import Identifier from "../Identifier";
 import Literal from "../literal/Literal";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
-type ValueType = BinaryExpression | Identifier | Literal;
+export type ConstStatementValue =
+    | BinaryExpression
+    | Identifier
+    | Literal;
 
 export default class ConstStatement extends SyntaxComponent {
     constructor(
         position: Position,
         private _name: string,
-        private _value: ValueType
+        private _value: ConstStatementValue
     ) {
         super(position);
     }
@@ -18,7 +21,7 @@ export default class ConstStatement extends SyntaxComponent {
         return this._name;
     }
 
-    public get value(): ValueType {
+    public get value(): ConstStatementValue {
         return this._value;
     }
 
