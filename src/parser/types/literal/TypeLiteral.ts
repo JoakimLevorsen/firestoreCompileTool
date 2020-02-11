@@ -1,7 +1,7 @@
 import { ValueType } from "../Token";
-import Literal from "./Literal";
+import Literal from "./";
 
-export default class TypeLiteral extends Literal {
+export class TypeLiteral extends Literal {
     protected _value: ValueType;
 
     constructor(start: number, value: ValueType) {

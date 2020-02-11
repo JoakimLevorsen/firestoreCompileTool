@@ -2,7 +2,7 @@ import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
 import ConstStatementParser from "../../../../src/parser/parsers/statement/ConstStatementParser";
-import NumericLiteral from "../../../../src/parser/types/literal/NumericLiteral";
+import { NumericLiteral } from "../../../../src/parser/types/literal";
 import ConstStatement from "../../../../src/parser/types/statements/ConstStatement";
 import ParserRunner, { tokenize } from "../ParserRunner";
 

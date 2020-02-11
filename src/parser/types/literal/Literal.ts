@@ -7,7 +7,7 @@ type LiteralTypes =
     | boolean
     | InterfaceLiteralValues;
 
-export default abstract class Literal extends SyntaxComponent {
+export abstract class Literal extends SyntaxComponent {
     protected _value: LiteralTypes;
 
     constructor(position: Position, value: LiteralTypes) {

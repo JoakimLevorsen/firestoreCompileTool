@@ -3,9 +3,9 @@ import "mocha";
 import { ParserErrorCreator } from "../../../../src/parser/ParserError";
 import ReturnStatementParser from "../../../../src/parser/parsers/statement/ReturnStatementParser";
 import { BinaryExpression } from "../../../../src/parser/types/expressions/BinaryExpression";
-import EqualityExpression from "../../../../src/parser/types/expressions/EqualityExpression";
+import { EqualityExpression } from "../../../../src/parser/types/expressions/equality";
 import Identifier from "../../../../src/parser/types/Identifier";
-import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral";
+import { BooleanLiteral } from "../../../../src/parser/types/literal";
 import ReturnStatement from "../../../../src/parser/types/statements/ReturnStatement";
 import ParserRunner, { tokenize } from "../ParserRunner";
 

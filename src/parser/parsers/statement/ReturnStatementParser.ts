@@ -1,6 +1,6 @@
 import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
 import Identifier from "../../types/Identifier";
-import BooleanLiteral from "../../types/literal/BooleanLiteral";
+import { BooleanLiteral } from "../../types/literal";
 import ReturnStatement from "../../types/statements/ReturnStatement";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";

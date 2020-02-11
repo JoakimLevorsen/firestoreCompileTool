@@ -1,9 +1,10 @@
 import LiteralParser from ".";
 import Identifier from "../../types/Identifier";
-import InterfaceLiteral, {
+import Literal from "../../types/literal";
+import {
+    InterfaceLiteral,
     InterfaceLiteralValues
 } from "../../types/literal/InterfaceLiteral";
-import Literal from "../../types/literal/Literal";
 import {
     nonKeywordTokens,
     spaceTokens,
@@ -13,11 +14,11 @@ import {
 } from "../../types/Token";
 import IdentifierOrLiteralExtractor from "../IdentifierOrLiteralExtractor";
 import Parser from "../Parser";
-import LiteralParserGroup from "./LiteralParserGroup";
+import { LiteralParserGroup } from "./";
 
 const seperatorTokens: nonKeywordTokens[] = [",", ";", "\n"];
 
-export default class InterfaceLiteralParser extends LiteralParser {
+export class InterfaceLiteralParser extends LiteralParser {
     private currentValue: InterfaceLiteralValues = new Map();
     private currentValueOptional: InterfaceLiteralValues = new Map();
     private nextKey?: string;

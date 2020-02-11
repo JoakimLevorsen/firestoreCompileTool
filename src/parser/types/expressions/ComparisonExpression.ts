@@ -1,14 +1,14 @@
 import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
 import { Operator } from "../Operators";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
-import MemberExpression from "./MemberExpression";
+import { MemberExpression } from "./";
 
 export type ComparisonType =
     | LiteralOrIdentifier
     | ComparisonExpression
     | MemberExpression;
 
-export default abstract class ComparisonExpression extends SyntaxComponent {
+export abstract class ComparisonExpression extends SyntaxComponent {
     protected operator: Operator;
     protected left: ComparisonType;
     protected right: ComparisonType;

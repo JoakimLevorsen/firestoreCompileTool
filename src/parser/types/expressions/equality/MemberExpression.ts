@@ -1,12 +1,12 @@
-import Indentifier from "../Identifier";
-import Literal from "../literal/Literal";
-import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
-import SyntaxComponent, { Position } from "../SyntaxComponent";
+import Indentifier from "../../Identifier";
+import Literal from "../../literal";
+import { LiteralOrIdentifier } from "../../LiteralOrIdentifier";
+import SyntaxComponent, { Position } from "../../SyntaxComponent";
 
 type MemberType = LiteralOrIdentifier | MemberExpression;
 type PropertyType = Literal | Indentifier | MemberExpression;
 
-export default class MemberExpression extends SyntaxComponent {
+export class MemberExpression extends SyntaxComponent {
     protected object: MemberType;
     protected property: PropertyType;
 

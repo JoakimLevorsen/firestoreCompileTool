@@ -1,6 +1,5 @@
-import BooleanLiteral from "../literal/BooleanLiteral";
-import EqualityExpression from "./EqualityExpression";
-import LogicalExpression from "./LogicalExpression";
+import { BooleanLiteral } from "../literal";
+import { EqualityExpression, LogicalExpression } from "./";
 
 export type BinaryExpression =
     | LogicalExpression

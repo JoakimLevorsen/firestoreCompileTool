@@ -1,8 +1,8 @@
 import LiteralParser from ".";
-import StringLiteral from "../../types/literal/StringLiteral";
+import { StringLiteral } from "../../types/literal";
 import { tokenHasType } from "../../types/Token";
 
-export default class StringLiteralParser extends LiteralParser {
+export class StringLiteralParser extends LiteralParser {
     private state: "Not Opened" | "Open" | "Closed" = "Not Opened";
     private openToken?: '"' | "'";
     private value: string = "";

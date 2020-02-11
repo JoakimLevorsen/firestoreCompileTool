@@ -1,9 +1,11 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../src/parser/ParserError";
-import InterfaceLiteralParser from "../../../src/parser/parsers/literal/InterfaceLiteralParser";
-import InterfaceLiteral from "../../../src/parser/types/literal/InterfaceLiteral";
-import TypeLiteral from "../../../src/parser/types/literal/TypeLiteral";
+import { InterfaceLiteralParser } from "../../../src/parser/parsers/literal";
+import {
+    InterfaceLiteral,
+    TypeLiteral
+} from "../../../src/parser/types/literal";
 import { LiteralOrIdentifier } from "../../../src/parser/types/LiteralOrIdentifier";
 import ParserRunner, { tokenize } from "./ParserRunner";
 
@@ -16,13 +18,13 @@ const mapFrom = (input: {
 };
 
 const testSet = [
-    // {
-    //     input: `{a: number}`,
-    //     expected: new InterfaceLiteral(
-    //         { start: 0, end: 10 },
-    //         mapFrom({ a: [new TypeLiteral(4, "number")] })
-    //     )
-    // },
+    {
+        input: `{a: number}`,
+        expected: new InterfaceLiteral(
+            { start: 0, end: 10 },
+            mapFrom({ a: [new TypeLiteral(4, "number")] })
+        )
+    },
     {
         input: `{a: number,}`,
         expected: new InterfaceLiteral(

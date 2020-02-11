@@ -1,6 +1,6 @@
-import { EqualityOperators } from "./expressions/EqualityExpression";
-import { IsOperators } from "./expressions/IsExpression";
-import { LogicOperators } from "./expressions/LogicalExpression";
+import { EqualityOperators } from "./expressions/equality";
+import { IsOperators } from "./expressions/equality/IsExpression";
+import { LogicOperators } from "./expressions/equality/LogicalExpression";
 
 export const Operators = [
     ...EqualityOperators,

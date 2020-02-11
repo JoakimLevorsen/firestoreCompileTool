@@ -1,13 +1,13 @@
 import Identifier from "../Identifier";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
-import Literal from "./Literal";
+import Literal from "./";
 
 export type InterfaceLiteralValues = Map<
     string,
     Array<Literal | Identifier>
 >;
 
-export default class InterfaceLiteral extends Literal {
+export class InterfaceLiteral extends Literal {
     protected _value: InterfaceLiteralValues;
     protected _optionalValues: InterfaceLiteralValues;
 

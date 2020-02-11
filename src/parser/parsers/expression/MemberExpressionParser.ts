@@ -1,6 +1,6 @@
-import MemberExpression from "../../types/expressions/MemberExpression";
+import { MemberExpression } from "../../types/expressions";
 import Indentifier from "../../types/Identifier";
-import Literal from "../../types/literal/Literal";
+import Literal from "../../types/literal";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import LiteralOrIndentifierExtractor from "../IdentifierOrLiteralExtractor";

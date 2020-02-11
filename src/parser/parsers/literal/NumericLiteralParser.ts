@@ -1,8 +1,8 @@
 import LiteralParser from ".";
-import NumericLiteral from "../../types/literal/NumericLiteral";
+import { NumericLiteral } from "../../types/literal";
 import { Token, tokenHasType } from "../../types/Token";
 
-export default class NumericLiteralParser extends LiteralParser {
+export class NumericLiteralParser extends LiteralParser {
     private value: {
         bigNum?: number;
         seperator?: boolean;

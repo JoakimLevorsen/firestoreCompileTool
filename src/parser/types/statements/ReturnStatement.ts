@@ -1,6 +1,6 @@
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import Identifier from "../Identifier";
-import BooleanLiteral from "../literal/BooleanLiteral";
+import { BooleanLiteral } from "../literal";
 import SyntaxComponent from "../SyntaxComponent";
 
 type ExportType = BinaryExpression | Identifier | BooleanLiteral;

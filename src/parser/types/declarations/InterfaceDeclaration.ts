@@ -1,4 +1,4 @@
-import InterfaceLiteral from "../literal/InterfaceLiteral";
+import { InterfaceLiteral } from "../literal";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 export default class InterfaceDeclaration extends SyntaxComponent {

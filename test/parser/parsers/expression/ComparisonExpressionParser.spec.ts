@@ -2,16 +2,19 @@ import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
 import ComparisonExpressionParser from "../../../../src/parser/parsers/expression/ComparisonExpressionParser";
-import EqualityExpression from "../../../../src/parser/types/expressions/EqualityExpression";
-import IsExpression from "../../../../src/parser/types/expressions/IsExpression";
-import LogicalExpression from "../../../../src/parser/types/expressions/LogicalExpression";
-import MemberExpression from "../../../../src/parser/types/expressions/MemberExpression";
+import {
+    EqualityExpression,
+    IsExpression,
+    LogicalExpression,
+    MemberExpression
+} from "../../../../src/parser/types/expressions";
 import Identifier from "../../../../src/parser/types/Identifier";
-import BooleanLiteral from "../../../../src/parser/types/literal/BooleanLiteral";
-import Literal from "../../../../src/parser/types/literal/Literal";
-import NumericLiteral from "../../../../src/parser/types/literal/NumericLiteral";
-import StringLiteral from "../../../../src/parser/types/literal/StringLiteral";
-import TypeLiteral from "../../../../src/parser/types/literal/TypeLiteral";
+import Literal, {
+    BooleanLiteral,
+    NumericLiteral,
+    StringLiteral,
+    TypeLiteral
+} from "../../../../src/parser/types/literal";
 import {
     Operator,
     Operators

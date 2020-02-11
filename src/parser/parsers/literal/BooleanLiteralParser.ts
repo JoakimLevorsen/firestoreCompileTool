@@ -1,7 +1,7 @@
 import LiteralParser from ".";
-import BooleanLiteral from "../../types/literal/BooleanLiteral";
+import { BooleanLiteral } from "../../types/literal";
 
-export default class BooleanLiteralParser extends LiteralParser {
+export class BooleanLiteralParser extends LiteralParser {
     private hasReturned = false;
 
     public addToken(

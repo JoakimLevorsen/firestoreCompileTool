@@ -1,6 +1,6 @@
-import Literal from "./Literal";
+import Literal from "./";
 
-export default class NumericLiteral extends Literal {
+export class NumericLiteral extends Literal {
     protected _value: number;
 
     constructor(start: number, value: number) {

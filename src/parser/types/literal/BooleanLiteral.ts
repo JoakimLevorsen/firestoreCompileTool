@@ -1,6 +1,6 @@
-import Literal from "./Literal";
+import Literal from "./";
 
-export default class BooleanLiteral extends Literal {
+export class BooleanLiteral extends Literal {
     protected _value: boolean;
 
     constructor(start: number, value: boolean) {

@@ -1,7 +1,7 @@
 import LiteralParser from ".";
-import TypeLiteral from "../../types/literal/TypeLiteral";
+import { TypeLiteral } from "../../types/literal";
 
-export default class TypeLiteralParser extends LiteralParser {
+export class TypeLiteralParser extends LiteralParser {
     private hasReturned = false;
 
     public addToken(

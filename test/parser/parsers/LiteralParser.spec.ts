@@ -1,11 +1,13 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../src/parser/ParserError";
-import LiteralParserGroup from "../../../src/parser/parsers/literal/LiteralParserGroup";
-import BooleanLiteral from "../../../src/parser/types/literal/BooleanLiteral";
-import NumericLiteral from "../../../src/parser/types/literal/NumericLiteral";
-import StringLiteral from "../../../src/parser/types/literal/StringLiteral";
-import TypeLiteral from "../../../src/parser/types/literal/TypeLiteral";
+import { LiteralParserGroup } from "../../../src/parser/parsers/literal";
+import {
+    BooleanLiteral,
+    NumericLiteral,
+    StringLiteral,
+    TypeLiteral
+} from "../../../src/parser/types/literal";
 import { ValueType } from "../../../src/parser/types/Token";
 import ParserRunner, { tokenize } from "./ParserRunner";
 

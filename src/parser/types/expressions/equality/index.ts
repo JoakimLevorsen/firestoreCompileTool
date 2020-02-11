@@ -1,12 +1,13 @@
-import { Position } from "../SyntaxComponent";
-import ComparisonExpression, {
+import { Position } from "../../SyntaxComponent";
+import {
+    ComparisonExpression,
     ComparisonType
-} from "./ComparisonExpression";
+} from "../ComparisonExpression";
 
 export const EqualityOperators = ["==", "!="] as const;
 export type EqualityOperator = typeof EqualityOperators[number];
 
-export default class EqualityExpression extends ComparisonExpression {
+export class EqualityExpression extends ComparisonExpression {
     protected operator: EqualityOperator;
 
     constructor(
@@ -19,3 +20,7 @@ export default class EqualityExpression extends ComparisonExpression {
         this.operator = operator;
     }
 }
+
+export { IsExpression } from "./IsExpression";
+export { LogicalExpression } from "./LogicalExpression";
+export { MemberExpression } from "./MemberExpression";

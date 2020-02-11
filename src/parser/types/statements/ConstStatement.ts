@@ -1,6 +1,6 @@
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import Identifier from "../Identifier";
-import Literal from "../literal/Literal";
+import Literal from "../literal";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 export type ConstStatementValue =

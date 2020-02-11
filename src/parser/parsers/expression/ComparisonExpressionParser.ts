@@ -1,11 +1,13 @@
 import { ParserError } from "../../ParserError";
-import ComparisonExpression from "../../types/expressions/ComparisonExpression";
-import EqualityExpression from "../../types/expressions/EqualityExpression";
-import IsExpression from "../../types/expressions/IsExpression";
-import LogicalExpression from "../../types/expressions/LogicalExpression";
-import MemberExpression from "../../types/expressions/MemberExpression";
+import {
+    ComparisonExpression,
+    EqualityExpression,
+    IsExpression,
+    LogicalExpression,
+    MemberExpression
+} from "../../types/expressions";
 import Identifier from "../../types/Identifier";
-import Literal from "../../types/literal/Literal";
+import Literal from "../../types/literal";
 import { Operator, Operators } from "../../types/Operators";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";

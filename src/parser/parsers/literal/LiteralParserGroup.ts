@@ -1,12 +1,16 @@
 import { ErrorCreator } from "../../ParserError";
 import ParserGroup from "../ParserGroup";
-import BooleanLiteralParser from "./BooleanLiteralParser";
-import InterfaceLiteralParser from "./InterfaceLiteralParser";
-import NumericLiteralParser from "./NumericLiteralParser";
-import StringLiteralParser from "./StringLiteralParser";
-import TypeLiteralParser from "./TypeLiteralParser";
+import {
+    BooleanLiteralParser,
+    InterfaceLiteralParser,
+    NumericLiteralParser,
+    StringLiteralParser,
+    TypeLiteralParser
+} from "./";
 
-const LiteralParserGroup = (error: ErrorCreator): ParserGroup =>
+export const LiteralParserGroup = (
+    error: ErrorCreator
+): ParserGroup =>
     new ParserGroup(
         new BooleanLiteralParser(error),
         new NumericLiteralParser(error),
@@ -14,5 +18,3 @@ const LiteralParserGroup = (error: ErrorCreator): ParserGroup =>
         new TypeLiteralParser(error),
         new InterfaceLiteralParser(error)
     );
-
-export default LiteralParserGroup;

@@ -1,15 +1,19 @@
 import { ErrorCreator } from "../ParserError";
 import Identifier from "../types/Identifier";
-import BooleanLiteral from "../types/literal/BooleanLiteral";
-import NumericLiteral from "../types/literal/NumericLiteral";
+import {
+    BooleanLiteral,
+    NumericLiteral,
+    TypeLiteral
+} from "../types/literal";
 import { Token } from "../types/Token";
 import IdentifierExtractor from "./IdentifierExtractor";
-import BooleanLiteralParser from "./literal/BooleanLiteralParser";
-import NumericLiteralParser from "./literal/NumericLiteralParser";
-import StringLiteralParser from "./literal/StringLiteralParser";
-import TypeLiteral from "../types/literal/TypeLiteral";
-import InterfaceLiteralParser from "./literal/InterfaceLiteralParser";
-import TypeLiteralParser from "./literal/TypeLiteralParser";
+import {
+    InterfaceLiteralParser,
+    NumericLiteralParser,
+    StringLiteralParser,
+    TypeLiteralParser
+} from "./literal";
+import { BooleanLiteralParser } from "./literal/BooleanLiteralParser";
 
 const IdentifierOrLiteralExtractor = (
     token: Token,

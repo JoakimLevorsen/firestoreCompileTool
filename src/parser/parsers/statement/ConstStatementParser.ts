@@ -1,6 +1,6 @@
 import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
 import Identifier from "../../types/Identifier";
-import Literal from "../../types/literal/Literal";
+import Literal from "../../types/literal";
 import ConstStatement, {
     ConstStatementValue
 } from "../../types/statements/ConstStatement";
