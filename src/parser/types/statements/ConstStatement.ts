@@ -1,3 +1,4 @@
+import { MemberExpression } from "../expressions";
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import Identifier from "../Identifier";
 import Literal from "../literal";
@@ -6,7 +7,8 @@ import SyntaxComponent, { Position } from "../SyntaxComponent";
 export type ConstStatementValue =
     | BinaryExpression
     | Identifier
-    | Literal;
+    | Literal
+    | MemberExpression;
 
 export default class ConstStatement extends SyntaxComponent {
     constructor(

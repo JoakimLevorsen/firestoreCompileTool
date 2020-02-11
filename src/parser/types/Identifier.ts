@@ -4,7 +4,7 @@ export default class Identifier extends SyntaxComponent {
     private name: string;
 
     constructor(start: number, name: string) {
-        super({ start, end: start + name.length });
+        super({ start, end: start + name.length - 1 });
         this.name = name;
     }
 

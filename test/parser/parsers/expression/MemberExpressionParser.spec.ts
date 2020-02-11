@@ -17,7 +17,7 @@ export const MemberExpressionParserTestSet = [
     {
         input: "item.item",
         expected: new MemberExpression(
-            { start: 0, end: 9 },
+            { start: 0, end: 8 },
             new Identifier(0, "item"),
             new Identifier(5, "item")
         )
@@ -69,7 +69,8 @@ describe("MemberExpressionParser", () => {
             expect(parsed).to.not.be.null;
             expect(parsed).to.be.instanceOf(SyntaxComponent);
             if (parsed instanceof SyntaxComponent) {
-                expect(parsed.equals(expected)).to.be.true;
+                const result = parsed.equals(expected);
+                expect(result).to.be.true;
             }
         })
     );

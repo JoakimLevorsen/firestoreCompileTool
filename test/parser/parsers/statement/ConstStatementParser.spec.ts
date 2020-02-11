@@ -2,6 +2,8 @@ import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
 import ConstStatementParser from "../../../../src/parser/parsers/statement/ConstStatementParser";
+import { MemberExpression } from "../../../../src/parser/types/expressions";
+import Identifier from "../../../../src/parser/types/Identifier";
 import { NumericLiteral } from "../../../../src/parser/types/literal";
 import ConstStatement from "../../../../src/parser/types/statements/ConstStatement";
 import ParserRunner, { tokenize } from "../ParserRunner";
@@ -13,6 +15,18 @@ const testSet = [
             { start: 0, end: 10 },
             "a",
             new NumericLiteral(10, 2)
+        )
+    },
+    {
+        input: "const a = foo.bar",
+        expected: new ConstStatement(
+            { start: 0, end: 16 },
+            "a",
+            new MemberExpression(
+                { start: 10, end: 16 },
+                new Identifier(10, "foo"),
+                new Identifier(14, "bar")
+            )
         )
     }
 ];

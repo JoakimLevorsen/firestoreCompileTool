@@ -1,3 +1,4 @@
+import { MemberExpression } from "../../types/expressions";
 import { isBinaryExpression } from "../../types/expressions/BinaryExpression";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal";
@@ -60,6 +61,7 @@ export default class ConstStatementParser extends Parser {
                         if (
                             first instanceof Literal ||
                             first instanceof Identifier ||
+                            first instanceof MemberExpression ||
                             isBinaryExpression(first)
                         ) {
                             this.value = first;
