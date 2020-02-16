@@ -4,12 +4,15 @@ import ParserErrorCreator from "../../../../src/parser/ParserError";
 import { MatchStatementParser } from "../../../../src/parser/parsers/statement";
 import {
     EqualityExpression,
+    IsExpression,
     MemberExpression
 } from "../../../../src/parser/types/expressions";
 import Identifier from "../../../../src/parser/types/Identifier";
 import {
     BooleanLiteral,
-    NumericLiteral
+    InterfaceLiteral,
+    NumericLiteral,
+    TypeLiteral
 } from "../../../../src/parser/types/literal";
 import {
     MatchStatement,
@@ -96,6 +99,48 @@ const testSet = [
                         ),
                         new NumericLiteral(53, 10)
                     )
+                )
+            ]
+        )
+    },
+    {
+        input: `match /foo/bar { match /boo/far { read: doc is { a: string } } }`,
+        expected: new MatchStatement(
+            { start: 0, end: 63 },
+            [
+                { name: "foo", wildcard: false },
+                { name: "bar", wildcard: false }
+            ],
+            [],
+            [
+                new MatchStatement(
+                    { start: 17, end: 61 },
+                    [
+                        { name: "boo", wildcard: false },
+                        { name: "far", wildcard: false }
+                    ],
+                    [
+                        new RuleStatement(
+                            { start: 34, end: 59 },
+                            ["read"],
+                            new IsExpression(
+                                { start: 40, end: 59 },
+                                "is",
+                                new Identifier(40, "doc"),
+                                new InterfaceLiteral(
+                                    { start: 47, end: 59 },
+                                    {
+                                        a: [
+                                            new TypeLiteral(
+                                                52,
+                                                "string"
+                                            )
+                                        ]
+                                    }
+                                )
+                            )
+                        )
+                    ]
                 )
             ]
         )

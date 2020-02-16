@@ -13,11 +13,22 @@ export class InterfaceLiteral extends Literal {
 
     constructor(
         position: Position,
-        values: InterfaceLiteralValues,
+        values:
+            | InterfaceLiteralValues
+            | { [index: string]: Array<Literal | Identifier> },
         optionals?: InterfaceLiteralValues
     ) {
-        super(position, values);
-        this._value = values;
+        let v: InterfaceLiteralValues;
+        if (values instanceof Map) {
+            v = values;
+        } else {
+            v = new Map();
+            Object.keys(values).forEach(key =>
+                v.set(key, values[key])
+            );
+        }
+        super(position, v);
+        this._value = v;
         this._optionalValues = optionals || new Map();
     }
 

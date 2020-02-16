@@ -64,6 +64,7 @@ export class MatchStatementParser extends Parser {
                 if (tokenHasType(token.type, [...spaceTokens]))
                     return null;
                 if (token.type === "}") {
+                    this.state = "closed";
                     return new MatchStatement(
                         { start: this.start, end: token.location },
                         this.pathComponents!,
