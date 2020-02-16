@@ -16,7 +16,8 @@ const tokenTypes = [
     "|",
     '"',
     "'",
-    "="
+    "=",
+    "/"
 ] as const;
 
 export const spaceTokens = ["\n", " ", "\t", "\r"] as const;

@@ -1,6 +1,7 @@
-export { BlockStatementParser } from "./BlockStatementParser";
-export { ConstStatementParser } from "./ConstStatementParser";
-export { IfStatementParser } from "./IfStatementParser";
-export { InterfaceStatementParser } from "./InterfaceStatementParser";
-export { NonBlockStatementGroup } from "./NonBlockStatementGroup";
-export { ReturnStatementParser } from "./ReturnStatementParser";
+export * from "./BlockStatementParser";
+export * from "./ConstStatementParser";
+export * from "./IfStatementParser";
+export * from "./InterfaceStatementParser";
+export * from "./NonBlockStatementGroup";
+export * from "./ReturnStatementParser";
+export * from "./MatchStatementParser";

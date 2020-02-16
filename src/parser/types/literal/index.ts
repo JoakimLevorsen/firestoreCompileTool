@@ -1,7 +1,7 @@
 import { Literal } from "./Literal";
 export default Literal;
-export { BooleanLiteral } from "./BooleanLiteral";
-export { InterfaceLiteral } from "./InterfaceLiteral";
-export { NumericLiteral } from "./NumericLiteral";
-export { StringLiteral } from "./StringLiteral";
-export { TypeLiteral } from "./TypeLiteral";
+export * from "./BooleanLiteral";
+export * from "./InterfaceLiteral";
+export * from "./NumericLiteral";
+export * from "./StringLiteral";
+export * from "./TypeLiteral";

@@ -21,6 +21,6 @@ export class EqualityExpression extends ComparisonExpression {
     }
 }
 
-export { IsExpression } from "./IsExpression";
-export { LogicalExpression } from "./LogicalExpression";
-export { MemberExpression } from "./MemberExpression";
+export * from "./IsExpression";
+export * from "./LogicalExpression";
+export * from "./MemberExpression";

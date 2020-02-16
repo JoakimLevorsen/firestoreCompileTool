@@ -11,9 +11,9 @@ export default abstract class LiteralParser extends Parser {
     public abstract addToken(token: Token): Literal | null;
 }
 
-export { BooleanLiteralParser } from "./BooleanLiteralParser";
-export { InterfaceLiteralParser } from "./InterfaceLiteralParser";
-export { LiteralParserGroup } from "./LiteralParserGroup";
-export { NumericLiteralParser } from "./NumericLiteralParser";
-export { StringLiteralParser } from "./StringLiteralParser";
-export { TypeLiteralParser } from "./TypeLiteralParser";
+export * from "./BooleanLiteralParser";
+export * from "./InterfaceLiteralParser";
+export * from "./LiteralParserGroup";
+export * from "./NumericLiteralParser";
+export * from "./StringLiteralParser";
+export * from "./TypeLiteralParser";

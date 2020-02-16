@@ -2,7 +2,7 @@ import { Token } from "./types/Token";
 
 export class ParserError extends Error {
     constructor(fromToken: Token, file: Token[], msg: string) {
-        super(`'${msg}' occured on ${fromToken}`);
+        super(`'${msg}' occured on ${JSON.stringify(fromToken)}`);
         // tslint:disable-next-line: no-unused-expression
         file;
     }
