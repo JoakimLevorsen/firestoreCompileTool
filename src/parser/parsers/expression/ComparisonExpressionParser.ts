@@ -42,6 +42,8 @@ export default class ComparisonExpressionParser extends Parser {
                     if (tokenHasType(token.type, [...spaceTokens]))
                         return null;
                     this.subParser = this.createSubParser(token);
+                    // If the token was a (, it has now been used so in that case we turnurn
+                    if (token.type === "(") return null;
                 }
                 if (this.subParser.canAccept(token)) {
                     const result = this.subParser.addToken(token);

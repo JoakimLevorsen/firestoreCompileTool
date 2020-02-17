@@ -30,13 +30,13 @@ export const IfStatementTestSet = [
         expected: new IfStatement(
             0,
             new EqualityExpression(
-                { start: 3, end: 11 },
+                { start: 4, end: 12 },
                 "==",
-                new Identifier(3, "a"),
-                new BooleanLiteral(8, true)
+                new Identifier(4, "a"),
+                new BooleanLiteral(9, true)
             ),
-            new BlockStatement({ start: 13, end: 48 }, [
-                new ReturnStatement(14, new BooleanLiteral(34, true))
+            new BlockStatement({ start: 15, end: 50 }, [
+                new ReturnStatement(16, new BooleanLiteral(36, true))
             ])
         )
     },
