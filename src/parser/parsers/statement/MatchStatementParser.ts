@@ -177,6 +177,7 @@ class PathParser {
                     this.state = "awaiting seperator";
                     return this.path;
                 } else this.state = "awaiting close";
+                return null;
             case "awaiting close":
                 if (token.type !== "}")
                     throw error("Unexpected token");

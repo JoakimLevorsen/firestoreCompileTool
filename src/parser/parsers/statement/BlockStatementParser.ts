@@ -41,6 +41,8 @@ export class BlockStatementParser extends Parser {
                 } else if (this.nextLine) {
                     this.lines.push(this.nextLine);
                     this.nextLine = undefined;
+                    this.subParser = undefined;
+                    return null;
                 }
                 if (token.type === "}") {
                     this.state = "Closed";

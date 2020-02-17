@@ -24,7 +24,7 @@ export const IfStatementTestSet = [
         )
     },
     {
-        input: `if a == true {
+        input: `if (a == true) {
             return true
         }`,
         expected: new IfStatement(

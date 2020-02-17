@@ -81,8 +81,6 @@ export class InterfaceStatementParser extends Parser {
                 if (tokenHasType(token.type, [...spaceTokens]))
                     return true;
             case "parsing value":
-                if (tokenHasType(token.type, [...spaceTokens]))
-                    return true;
                 if (this.subParser.canAccept(token)) return true;
                 if (!this.value) return false;
                 return token.type === ";";
