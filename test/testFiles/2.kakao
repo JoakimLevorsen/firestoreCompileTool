@@ -17,35 +17,35 @@ interface Review {
     user: String;
 }
 
-match /users/[user] {
+match /users/{user} {
     read: request.auth != null;
     write: {
-        if request.auth.uid == user.id {
-            return user isOnly User || false;
+        if request.auth.uid == doc.id {
+            return doc isOnly User || false;
         }
         return false;
-    },
+    }
 }
 
-match /resturants/[resturant] {
+match /resturants/{resturant} {
     read: request.auth != null;
     create: {
-        if (resturant isOnly Resturant) {
-            return resturant.owner == request.auth.uid;
+        if doc isOnly Resturant {
+            return doc.owner == request.auth.uid;
         }
         return false;
-    },
+    }
     write: {
         if resource.owner == request.auth.uid {
-            return resturant isOnly Resturant;
+            return doc isOnly Resturant;
         }
         return false;
-    },
-    match /reviews/[review] {
+    }
+    match /reviews/{review} {
         read: request.auth != null;
         create: {
-            if review isOnly Review {
-                return review.user == request.auth.uid;
+            if doc isOnly Review {
+                return doc.user == request.auth.uid;
             }
             return false;
         }
