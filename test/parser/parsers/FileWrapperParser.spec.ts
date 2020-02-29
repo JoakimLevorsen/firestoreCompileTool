@@ -1,25 +1,25 @@
 import { expect } from "chai";
 import "mocha";
-import FileWrapper from "../../../src/parser/types/FileWrapper";
+import ParserErrorCreator from "../../../src/parser/ParserError";
 import FileWrapperParser from "../../../src/parser/parsers/FileWrapperParser";
+import { IsExpression } from "../../../src/parser/types/expressions";
+import FileWrapper from "../../../src/parser/types/FileWrapper";
+import Identifier from "../../../src/parser/types/Identifier";
+import {
+    InterfaceLiteral,
+    TypeLiteral
+} from "../../../src/parser/types/literal";
 import {
     InterfaceStatement,
     MatchStatement,
     RuleStatement
 } from "../../../src/parser/types/statements";
-import {
-    InterfaceLiteral,
-    TypeLiteral
-} from "../../../src/parser/types/literal";
-import { IsExpression } from "../../../src/parser/types/expressions";
-import Identifier from "../../../src/parser/types/Identifier";
 import ParserRunner, { tokenize } from "./ParserRunner";
-import ParserErrorCreator from "../../../src/parser/ParserError";
 
 const testSet = [
     {
-        input: `interface A {a: string}\n match /foo/{bar} \n{ read: doc isOnly A \n}`,
-        expected: new FileWrapper(65, [
+        input: `interface A {a: string}\n match /foo/{bar} \n{ read: (_, doc) => doc isOnly A \n}`,
+        expected: new FileWrapper(77, [
             new InterfaceStatement(
                 { start: 0, end: 22 },
                 "A",
@@ -29,20 +29,21 @@ const testSet = [
                 )
             ),
             new MatchStatement(
-                { start: 25, end: 65 },
+                { start: 25, end: 77 },
                 [
                     { name: "foo", wildcard: false },
                     { name: "bar", wildcard: true }
                 ],
                 [
                     new RuleStatement(
-                        { start: 45, end: 64 },
+                        { start: 45, end: 74 },
                         ["read"],
+                        { newDoc: "doc" },
                         new IsExpression(
-                            { start: 51, end: 64 },
+                            { start: 63, end: 74 },
                             "isOnly",
-                            new Identifier(51, "doc"),
-                            new Identifier(62, "A")
+                            new Identifier(63, "doc"),
+                            new Identifier(74, "A")
                         )
                     )
                 ]

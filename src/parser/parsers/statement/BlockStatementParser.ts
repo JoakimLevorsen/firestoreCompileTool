@@ -53,6 +53,8 @@ export class BlockStatementParser extends Parser {
                         this.lines
                     );
                 }
+                // If the token wasn't } we'll run this function again since the subParser likely was reset
+                return this.addToken(token);
             case "Closed":
                 throw error("Unexpected Token");
         }

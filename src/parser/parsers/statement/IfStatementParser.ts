@@ -80,11 +80,14 @@ export class IfStatementParser extends Parser {
                 }
                 throw error("Unexpected token");
             case "building alternate":
-                if (!this.alternateParser)
+                if (!this.alternateParser) {
+                    if (tokenHasType(token.type, [...spaceTokens]))
+                        return null;
                     this.alternateParser = new ParserGroup(
                         new IfStatementParser(this.errorCreator),
                         new BlockStatementParser(this.errorCreator)
                     );
+                }
                 if (this.alternateParser.canAccept(token)) {
                     const result = this.alternateParser.addToken(
                         token
@@ -132,11 +135,14 @@ export class IfStatementParser extends Parser {
                     "else"
                 ]);
             case "building alternate":
-                if (!this.alternateParser)
+                if (!this.alternateParser) {
+                    if (tokenHasType(token.type, [...spaceTokens]))
+                        return true;
                     this.alternateParser = new ParserGroup(
                         new IfStatementParser(this.errorCreator),
                         new BlockStatementParser(this.errorCreator)
                     );
+                }
                 return this.alternateParser.canAccept(token);
         }
     }

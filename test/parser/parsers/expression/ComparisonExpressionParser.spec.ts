@@ -136,7 +136,7 @@ describe("ComparisonExpressionParser", () => {
         ));
     describe("Testing all Comparison items", () =>
         ComparisonTestSet.forEach(comp =>
-            it(`testing ${comp[0].expected.getOperator()}`, () => {
+            it(`testing ${comp[0].expected.operator}`, () => {
                 comp.forEach(({ input, expected }) => {
                     let parsed;
                     try {

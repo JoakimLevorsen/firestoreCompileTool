@@ -8,15 +8,16 @@ export const IsOperators = ["is", "isOnly", "only"] as const;
 export type IsOperator = typeof IsOperators[number];
 
 export class IsExpression extends ComparisonExpression {
-    protected operator: IsOperator;
-
     constructor(
         position: Position,
-        operator: IsOperator,
+        protected _operator: IsOperator,
         left: ComparisonType,
         right: ComparisonType
     ) {
-        super(position, operator, left, right);
-        this.operator = operator;
+        super(position, _operator, left, right);
+    }
+
+    public get operator() {
+        return this._operator;
     }
 }

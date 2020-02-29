@@ -7,6 +7,23 @@ export type InterfaceLiteralValues = Map<
     Array<Literal | Identifier>
 >;
 
+export const isInterfaceLiteralValues = (
+    input: any
+): input is InterfaceLiteralValues => {
+    if (!(input instanceof Map)) return false;
+    for (const [key, value] of input) {
+        if (typeof key !== "string") return false;
+        if (!(value instanceof Array)) return false;
+        if (
+            !value.every(
+                v => v instanceof Literal || v instanceof Identifier
+            )
+        )
+            return false;
+    }
+    return true;
+};
+
 export class InterfaceLiteral extends Literal {
     protected _value: InterfaceLiteralValues;
     protected _optionalValues: InterfaceLiteralValues;

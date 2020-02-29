@@ -1,19 +1,17 @@
-import SyntaxComponent from "./SyntaxComponent";
 import {
-    MatchStatement,
     ConstStatement,
-    InterfaceStatement
+    InterfaceStatement,
+    MatchStatement
 } from "./statements";
+import SyntaxComponent from "./SyntaxComponent";
 
 // The wrapper on the outside all of the contents of a file lie within
 export default class FileWrapper extends SyntaxComponent {
     constructor(
         end: number,
-        private _content: (
-            | MatchStatement
-            | ConstStatement
-            | InterfaceStatement
-        )[]
+        private _content: Array<
+            MatchStatement | ConstStatement | InterfaceStatement
+        >
     ) {
         super({ start: 0, end });
     }

@@ -1,11 +1,12 @@
 import SyntaxComponent from "./SyntaxComponent";
 
 export default class Identifier extends SyntaxComponent {
-    private name: string;
+    constructor(start: number, private _name: string) {
+        super({ start, end: start + _name.length - 1 });
+    }
 
-    constructor(start: number, name: string) {
-        super({ start, end: start + name.length - 1 });
-        this.name = name;
+    public get name() {
+        return this._name;
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {

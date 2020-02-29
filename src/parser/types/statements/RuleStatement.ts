@@ -16,6 +16,7 @@ export class RuleStatement extends SyntaxComponent {
     constructor(
         position: Position,
         private _headers: RuleHeader[],
+        private _params: { newDoc?: string; oldDoc?: string },
         private _rule:
             | BlockStatement
             | BinaryExpression
@@ -30,6 +31,10 @@ export class RuleStatement extends SyntaxComponent {
 
     public get rule() {
         return this._rule;
+    }
+
+    public get params() {
+        return this._params;
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {

@@ -1,16 +1,16 @@
-import Parser from "./Parser";
-import {
-    MatchStatementParser,
-    ConstStatementParser,
-    InterfaceStatementParser
-} from "./statement";
-import { tokenHasType, spaceTokens, Token } from "../types/Token";
 import FileWrapper from "../types/FileWrapper";
 import {
-    MatchStatement,
+    ConstStatement,
     InterfaceStatement,
-    ConstStatement
+    MatchStatement
 } from "../types/statements";
+import { spaceTokens, Token, tokenHasType } from "../types/Token";
+import Parser from "./Parser";
+import {
+    ConstStatementParser,
+    InterfaceStatementParser,
+    MatchStatementParser
+} from "./statement";
 
 export default class FileWrapperParser extends Parser {
     private subParser?:
@@ -21,11 +21,9 @@ export default class FileWrapperParser extends Parser {
         | MatchStatement
         | InterfaceStatement
         | ConstStatement;
-    private content: (
-        | MatchStatement
-        | InterfaceStatement
-        | ConstStatement
-    )[] = [];
+    private content: Array<
+        MatchStatement | InterfaceStatement | ConstStatement
+    > = [];
 
     public addToken(token: Token): FileWrapper | null {
         if (this.subParser) {

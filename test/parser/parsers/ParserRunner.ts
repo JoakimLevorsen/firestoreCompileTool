@@ -26,11 +26,9 @@ const ParserRunner = <P extends Parser | ParserGroup>(
             return lastReturn;
         }
         const pReturn = parser.addToken(token);
-        // if (pReturn !== null) {
-        lastReturn = pReturn || null;
-        // }
+        lastReturn = pReturn ?? null;
     }
-    return lastReturn || didntFinish;
+    return lastReturn ?? didntFinish;
 };
 
 export default ParserRunner;

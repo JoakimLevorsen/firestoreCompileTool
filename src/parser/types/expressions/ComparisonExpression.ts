@@ -9,29 +9,28 @@ export type ComparisonType =
     | MemberExpression;
 
 export abstract class ComparisonExpression extends SyntaxComponent {
-    protected operator: Operator;
-    protected left: ComparisonType;
-    protected right: ComparisonType;
-
     constructor(
         position: Position,
-        operator: Operator,
-        left: ComparisonType,
-        right: ComparisonType
+        protected _operator: Operator,
+        protected _left: ComparisonType,
+        protected _right: ComparisonType
     ) {
         super(position);
-        this.operator = operator;
-        this.left = left;
-        this.right = right;
     }
 
-    public getOperator = () => this.operator;
+    public get left() {
+        return this._left;
+    }
+
+    public get right() {
+        return this._right;
+    }
 
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof ComparisonExpression)) return false;
         return (
             this.left.equals(other.left) &&
-            this.operator === other.operator &&
+            this._operator === other._operator &&
             this.right.equals(other.right)
         );
     }

@@ -52,7 +52,7 @@ export const IfStatementTestSet = [
             new BlockStatement({ start: 8, end: 43 }, [
                 new ReturnStatement(9, new BooleanLiteral(29, true))
             ]),
-            new BlockStatement({ start: 48, end: 85 }, [
+            new BlockStatement({ start: 49, end: 85 }, [
                 new ReturnStatement(50, new BooleanLiteral(70, false))
             ])
         )

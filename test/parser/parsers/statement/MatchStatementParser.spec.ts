@@ -22,9 +22,9 @@ import ParserRunner, { tokenize } from "../ParserRunner";
 
 const testSet = [
     {
-        input: `match /foo/bar { read: doc.public; }`,
+        input: `match /foo/bar { read: (_,old)=> old.public; }`,
         expected: new MatchStatement(
-            { start: 0, end: 35 },
+            { start: 0, end: 45 },
             [
                 {
                     name: "foo",
@@ -34,21 +34,22 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 17, end: 34 },
+                    { start: 17, end: 44 },
                     ["read"],
+                    { newDoc: "old" },
                     new MemberExpression(
-                        { start: 23, end: 32 },
-                        new Identifier(23, "doc"),
-                        new Identifier(27, "public")
+                        { start: 33, end: 42 },
+                        new Identifier(33, "old"),
+                        new Identifier(37, "public")
                     )
                 )
             ]
         )
     },
     {
-        input: `match /foo/bar { read, write: doc.public; }`,
+        input: `match /foo/bar { update, delete:(doc) => doc.public; }`,
         expected: new MatchStatement(
-            { start: 0, end: 42 },
+            { start: 0, end: 53 },
             [
                 {
                     name: "foo",
@@ -58,21 +59,22 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 17, end: 41 },
-                    ["read", "write"],
+                    { start: 17, end: 52 },
+                    ["update", "delete"],
+                    {},
                     new MemberExpression(
-                        { start: 30, end: 39 },
-                        new Identifier(30, "doc"),
-                        new Identifier(34, "public")
+                        { start: 41, end: 50 },
+                        new Identifier(41, "doc"),
+                        new Identifier(45, "public")
                     )
                 )
             ]
         )
     },
     {
-        input: `match /foo/bar { \n read: true;\n write: doc.public == 10; \n }`,
+        input: `match /foo/bar { \n read:() => true;\n write: (doc) => doc.public == 10; \n }`,
         expected: new MatchStatement(
-            { start: 0, end: 59 },
+            { start: 0, end: 73 },
             [
                 {
                     name: "foo",
@@ -82,31 +84,33 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 19, end: 31 },
+                    { start: 19, end: 36 },
                     ["read"],
-                    new BooleanLiteral(25, true)
+                    {},
+                    new BooleanLiteral(30, true)
                 ),
                 new RuleStatement(
-                    { start: 32, end: 58 },
+                    { start: 37, end: 72 },
                     ["write"],
+                    { newDoc: "doc" },
                     new EqualityExpression(
-                        { start: 39, end: 54 },
+                        { start: 53, end: 68 },
                         "==",
                         new MemberExpression(
-                            { start: 39, end: 48 },
-                            new Identifier(39, "doc"),
-                            new Identifier(43, "public")
+                            { start: 53, end: 62 },
+                            new Identifier(53, "doc"),
+                            new Identifier(57, "public")
                         ),
-                        new NumericLiteral(53, 10)
+                        new NumericLiteral(67, 10)
                     )
                 )
             ]
         )
     },
     {
-        input: `match /foo/bar { match /boo/far { read: doc is { a: string } } }`,
+        input: `match /foo/bar { match /boo/far { read: (_, doc) => doc is { a: string } } }`,
         expected: new MatchStatement(
-            { start: 0, end: 63 },
+            { start: 0, end: 75 },
             [
                 { name: "foo", wildcard: false },
                 { name: "bar", wildcard: false }
@@ -114,25 +118,26 @@ const testSet = [
             [],
             [
                 new MatchStatement(
-                    { start: 17, end: 61 },
+                    { start: 17, end: 73 },
                     [
                         { name: "boo", wildcard: false },
                         { name: "far", wildcard: false }
                     ],
                     [
                         new RuleStatement(
-                            { start: 34, end: 59 },
+                            { start: 34, end: 72 },
                             ["read"],
+                            { oldDoc: "doc" },
                             new IsExpression(
-                                { start: 40, end: 59 },
+                                { start: 52, end: 71 },
                                 "is",
-                                new Identifier(40, "doc"),
+                                new Identifier(52, "doc"),
                                 new InterfaceLiteral(
-                                    { start: 47, end: 59 },
+                                    { start: 59, end: 71 },
                                     {
                                         a: [
                                             new TypeLiteral(
-                                                52,
+                                                69,
                                                 "string"
                                             )
                                         ]

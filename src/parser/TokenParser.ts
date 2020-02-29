@@ -29,8 +29,8 @@ const keywordRegex = new RegExp(
         .reduce(
             (pV, v) =>
                 pV !== ""
-                    ? `${pV}${v.escaped || v.raw}`
-                    : v.escaped || v.raw,
+                    ? `${pV}${v.escaped ?? v.raw}`
+                    : v.escaped ?? v.raw,
             ""
         )}]+)`
 );
@@ -38,7 +38,7 @@ const keywordRegex = new RegExp(
 const nonKeywordRegex = escapedNonKeywordTokens.map(
     ({ escaped, raw }) => ({
         type: raw,
-        regex: new RegExp(`^${escaped || raw}`)
+        regex: new RegExp(`^${escaped ?? raw}`)
     })
 );
 
