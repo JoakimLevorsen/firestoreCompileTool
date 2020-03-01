@@ -1,137 +1,149 @@
 import { MemberExpression } from "../../types/expressions";
-import Indentifier from "../../types/Identifier";
-import Literal from "../../types/literal";
+import Identifier from "../../types/Identifier";
+import Literal, {
+    NumericLiteral,
+    StringLiteral
+} from "../../types/literal";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
-import { spaceTokens, tokenHasType } from "../../types/Token";
+import IdentifierExtractor from "../IdentifierExtractor";
 import LiteralOrIndentifierExtractor from "../IdentifierOrLiteralExtractor";
 import LiteralParser from "../literal";
 import Parser from "../Parser";
 
 export default class MemberExpressionParser extends Parser {
-    private state:
+    private stage:
         | "awaiting first"
+        | "building first"
         | "awaiting seperator"
-        | "awaiting second" = "awaiting first";
-    private seperatorType?: "Dot" | "[]";
-    private subParser?: LiteralParser;
-    private memParser?: MemberExpressionParser;
-    private firstItem?: LiteralOrIdentifier;
-    private secondItem?: LiteralOrIdentifier | MemberExpression;
-    private start?: number;
+        | "awaiting second"
+        | "building brackets"
+        | "awaiting bracket close"
+        | "newStart" = "awaiting first";
+    private litParser?: LiteralParser;
+    private bracketParser?: MemberExpressionParser;
+    private firstElement?: Literal | Identifier | MemberExpression;
+    private secondElement?:
+        | NumericLiteral
+        | StringLiteral
+        | Identifier
+        | MemberExpression;
+    private start = NaN;
+    private lastExComputed = false;
 
     public addToken(
         token: import("../../types/Token").Token
     ): LiteralOrIdentifier | MemberExpression | null {
         const error = this.errorCreator(token);
-        if (this.start === undefined) this.start = token.location;
-        switch (this.state) {
+        if (isNaN(this.start)) this.start = token.location;
+        switch (this.stage) {
             case "awaiting first":
-                if (!this.subParser) {
-                    const result = LiteralOrIndentifierExtractor(
-                        token,
-                        this.errorCreator
-                    );
-                    if (
-                        result instanceof Indentifier ||
-                        result instanceof Literal
-                    ) {
-                        this.state = "awaiting seperator";
-                        this.firstItem = result;
-                        return this.firstItem;
-                    } else if (result instanceof Parser) {
-                        this.subParser = result;
-                    } else {
-                        this.firstItem = result.value;
-                        this.subParser = result.parser;
-                        return this.firstItem;
-                    }
-                    return null;
-                }
-                if (this.subParser.canAccept(token)) {
-                    const result = this.subParser.addToken(token);
-                    if (result) {
-                        this.firstItem = result;
-                        return result;
-                    }
-                    return null;
-                }
-                // If this token was not acceptable, we fall trough to the next case
-                this.state = "awaiting seperator";
-            case "awaiting seperator":
-                if (token.type === "." || token.type === "[") {
-                    this.seperatorType =
-                        token.type === "." ? "Dot" : "[]";
-                    this.state = "awaiting second";
-                    this.memParser = new MemberExpressionParser(
-                        this.errorCreator
-                    );
-                    return null;
-                }
-                if (tokenHasType(token.type, [...spaceTokens]))
-                    return this.firstItem!;
-                throw error("Unexpected token");
-            case "awaiting second": {
+                const extracted = LiteralOrIndentifierExtractor(
+                    token,
+                    this.errorCreator
+                );
                 if (
-                    !this.memParser &&
-                    tokenHasType(token.type, [...spaceTokens])
-                )
-                    return null;
-                if (!this.memParser) {
-                    this.memParser = new MemberExpressionParser(
-                        this.errorCreator
-                    );
+                    extracted instanceof Literal ||
+                    extracted instanceof Identifier
+                ) {
+                    this.firstElement = extracted;
+                    this.stage = "awaiting seperator";
+                    return extracted;
                 }
-                if (this.memParser.canAccept(token)) {
-                    const result = this.memParser.addToken(token);
-                    if (result) {
-                        this.secondItem = result;
-                        return new MemberExpression(
-                            {
-                                start: this.start,
-                                end: this.secondItem.getEnd()
-                            },
-                            this.firstItem!,
-                            this.secondItem
-                        );
-                    }
+                if (extracted instanceof Parser) {
+                    this.litParser = extracted;
+                    this.stage = "building first";
                     return null;
                 }
-                if (this.secondItem && this.seperatorType === "Dot") {
-                    return new MemberExpression(
-                        {
-                            start: this.start,
-                            end: this.secondItem.getEnd()
-                        },
-                        this.firstItem!,
-                        this.secondItem!
-                    );
+                this.litParser = extracted.parser;
+
+                this.firstElement = extracted.value;
+                this.stage = "building first";
+                return extracted.value;
+            case "building first": {
+                const returned = this.litParser!.addToken(token);
+                if (returned) {
+                    this.firstElement = returned;
+                    return returned;
                 }
-                if (
-                    this.secondItem &&
-                    this.seperatorType === "[]" &&
-                    token.type === "]"
-                )
-                    return new MemberExpression(
-                        {
-                            start: this.start,
-                            end: this.secondItem.getEnd() + 1
-                        },
-                        this.firstItem!,
-                        this.secondItem!
-                    );
-                throw error("Internal error");
+                return null;
             }
+            case "awaiting seperator":
+                if (token.type === ".") {
+                    this.stage = "awaiting second";
+                    return null;
+                } else if (token.type === "[") {
+                    this.bracketParser = new MemberExpressionParser(
+                        this.errorCreator
+                    );
+                    this.stage = "building brackets";
+                    return null;
+                }
+                throw error("Unexpected token");
+            case "awaiting second":
+                // Since this is only for after the dot, we know only Identifiers are allowed
+                this.secondElement = IdentifierExtractor(
+                    token,
+                    this.errorCreator
+                );
+                this.lastExComputed = false;
+                this.stage = "newStart";
+                return this.buildExpression();
+            case "building brackets":
+                // If this parser can't accept this token, we assume it's because it's done.
+                if (this.bracketParser!.canAccept(token)) {
+                    const returned = this.bracketParser!.addToken(
+                        token
+                    );
+                    if (returned) {
+                        if (
+                            !(
+                                returned instanceof StringLiteral ||
+                                returned instanceof NumericLiteral ||
+                                returned instanceof Identifier ||
+                                returned instanceof MemberExpression
+                            )
+                        )
+                            throw error("Unexpected token");
+                        this.secondElement = returned;
+                    }
+                    return null;
+                }
+            case "awaiting bracket close":
+                if (token.type === "]") {
+                    this.stage = "newStart";
+                    this.lastExComputed = true;
+                    return this.buildExpression(true, token.location);
+                }
+                throw error("Expected ]");
+            case "newStart":
+                // If this token starts a new member, we wrap the current MemberExpression into the first
+                if (token.type === ".") {
+                    this.firstElement = this.buildExpression(
+                        this.lastExComputed
+                    );
+                    this.stage = "awaiting second";
+                    return null;
+                } else if (token.type === "[") {
+                    this.firstElement = this.buildExpression(
+                        this.lastExComputed,
+                        this.secondElement!.getEnd()
+                    );
+                    this.bracketParser = new MemberExpressionParser(
+                        this.errorCreator
+                    );
+                    this.stage = "building brackets";
+                    return null;
+                }
+                throw error("Unexpected token");
         }
     }
 
     public canAccept(
         token: import("../../types/Token").Token
     ): boolean {
-        switch (this.state) {
+        switch (this.stage) {
+            // The first and second stages almost work the same
             case "awaiting first":
-                if (this.subParser) {
-                    return this.subParser.canAccept(token);
-                }
                 try {
                     LiteralOrIndentifierExtractor(
                         token,
@@ -141,27 +153,37 @@ export default class MemberExpressionParser extends Parser {
                 } catch (e) {
                     return false;
                 }
-            case "awaiting seperator":
-                return tokenHasType(token.type, ["[", "."]);
+
             case "awaiting second":
-                if (this.memParser) {
-                    const canAccept = this.memParser.canAccept(token);
-                    if (canAccept) return true;
-                    if (this.seperatorType === "Dot")
-                        return canAccept;
-                    // If the seperator is [] we'll accept it if that is the case
-                    return token.type === "]";
+                try {
+                    IdentifierExtractor(token, this.errorCreator);
+                    return true;
+                } catch (e) {
+                    return false;
                 }
-                // If the type is [] we'll allow spaces
-                if (tokenHasType(token.type, [...spaceTokens]))
-                    return true;
-                if (
-                    this.seperatorType === "[]" &&
-                    this.secondItem &&
-                    token.type === "]"
-                )
-                    return true;
-                return false;
+            case "building first":
+                // If the parser doesn't accept, it might be because we need to fall through
+                if (this.litParser?.canAccept(token)) return true;
+            // The NewStart accepts the same characters, so we repeat it
+            case "awaiting seperator":
+            case "newStart":
+                return token.type === "." || token.type === "[";
+            case "building brackets":
+                if (this.bracketParser?.canAccept(token)) return true;
+            case "awaiting bracket close":
+                return token.type === "]";
         }
     }
+
+    private buildExpression = (computed = false, end?: number) =>
+        new MemberExpression(
+            {
+                start: this.start,
+                end: end ?? this.secondElement!.getEnd()
+            },
+            this.firstElement!,
+            this.secondElement!,
+            computed
+            // tslint:disable-next-line: semicolon
+        );
 }

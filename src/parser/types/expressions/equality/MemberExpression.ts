@@ -1,15 +1,20 @@
-import Indentifier from "../../Identifier";
-import Literal from "../../literal";
-import { LiteralOrIdentifier } from "../../LiteralOrIdentifier";
+import Identifier from "../../Identifier";
+import Literal, {
+    NumericLiteral,
+    StringLiteral
+} from "../../literal";
 import SyntaxComponent, { Position } from "../../SyntaxComponent";
-
-type PropertyType = Literal | Indentifier | MemberExpression;
 
 export class MemberExpression extends SyntaxComponent {
     constructor(
         position: Position,
-        private _object: LiteralOrIdentifier,
-        private _property: PropertyType
+        private _object: Literal | Identifier | MemberExpression,
+        private _property:
+            | NumericLiteral
+            | StringLiteral
+            | Identifier
+            | MemberExpression,
+        private _computed = false
     ) {
         super(position);
     }
@@ -22,11 +27,16 @@ export class MemberExpression extends SyntaxComponent {
         return this._property;
     }
 
+    public get computed() {
+        return this._computed;
+    }
+
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof MemberExpression)) return false;
         return (
             this.object.equals(other.object) &&
-            this.property.equals(other.property)
+            this.property.equals(other.property) &&
+            this.computed === other.computed
         );
     }
 }

@@ -26,12 +26,30 @@ export const MemberExpressionParserTestSet = [
         input: "item.item['item3']",
         expected: new MemberExpression(
             { start: 0, end: 17 },
-            new Identifier(0, "item"),
             new MemberExpression(
-                { start: 5, end: 17 },
-                new Identifier(5, "item"),
-                new StringLiteral(10, "item3")
-            )
+                { start: 0, end: 8 },
+                new Identifier(0, "item"),
+                new Identifier(5, "item")
+            ),
+            new StringLiteral(10, "item3"),
+            true
+        )
+    },
+    {
+        input: "item.item['item'].item",
+        expected: new MemberExpression(
+            { start: 0, end: 21 },
+            new MemberExpression(
+                { start: 0, end: 15 },
+                new MemberExpression(
+                    { start: 0, end: 8 },
+                    new Identifier(0, "item"),
+                    new Identifier(5, "item")
+                ),
+                new StringLiteral(10, "item"),
+                true
+            ),
+            new Identifier(18, "item")
         )
     }
 ];
