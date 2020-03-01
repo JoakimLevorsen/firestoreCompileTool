@@ -14,7 +14,8 @@ export class MemberExpression extends SyntaxComponent {
             | StringLiteral
             | Identifier
             | MemberExpression,
-        private _computed = false
+        private _computed = false,
+        private _optional = false
     ) {
         super(position);
     }
@@ -31,12 +32,17 @@ export class MemberExpression extends SyntaxComponent {
         return this._computed;
     }
 
+    public get optional() {
+        return this._optional;
+    }
+
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof MemberExpression)) return false;
         return (
             this.object.equals(other.object) &&
             this.property.equals(other.property) &&
-            this.computed === other.computed
+            this.computed === other.computed &&
+            this.optional === other.optional
         );
     }
 }

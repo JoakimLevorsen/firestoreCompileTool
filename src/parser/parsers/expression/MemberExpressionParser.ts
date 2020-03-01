@@ -29,6 +29,7 @@ export default class MemberExpressionParser extends Parser {
         | MemberExpression;
     private start = NaN;
     private lastExComputed = false;
+    private optionalAccess = false;
 
     public addToken(
         token: import("../../types/Token").Token
@@ -68,8 +69,9 @@ export default class MemberExpressionParser extends Parser {
                 return null;
             }
             case "awaiting seperator":
-                if (token.type === ".") {
+                if (token.type === "." || token.type === "?.") {
                     this.stage = "awaiting second";
+                    this.optionalAccess = token.type === "?.";
                     return null;
                 } else if (token.type === "[") {
                     this.bracketParser = new MemberExpressionParser(
@@ -117,10 +119,11 @@ export default class MemberExpressionParser extends Parser {
                 throw error("Expected ]");
             case "newStart":
                 // If this token starts a new member, we wrap the current MemberExpression into the first
-                if (token.type === ".") {
+                if (token.type === "." || token.type === "?.") {
                     this.firstElement = this.buildExpression(
                         this.lastExComputed
                     );
+                    this.optionalAccess = token.type === "?.";
                     this.stage = "awaiting second";
                     return null;
                 } else if (token.type === "[") {
@@ -167,7 +170,11 @@ export default class MemberExpressionParser extends Parser {
             // The NewStart accepts the same characters, so we repeat it
             case "awaiting seperator":
             case "newStart":
-                return token.type === "." || token.type === "[";
+                return (
+                    token.type === "." ||
+                    token.type === "[" ||
+                    token.type === "?."
+                );
             case "building brackets":
                 if (this.bracketParser?.canAccept(token)) return true;
             case "awaiting bracket close":
@@ -183,7 +190,8 @@ export default class MemberExpressionParser extends Parser {
             },
             this.firstElement!,
             this.secondElement!,
-            computed
+            computed,
+            this.optionalAccess
             // tslint:disable-next-line: semicolon
         );
 }

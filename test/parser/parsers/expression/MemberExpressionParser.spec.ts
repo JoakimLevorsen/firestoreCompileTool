@@ -23,6 +23,16 @@ export const MemberExpressionParserTestSet = [
         )
     },
     {
+        input: "item?.item",
+        expected: new MemberExpression(
+            { start: 0, end: 9 },
+            new Identifier(0, "item"),
+            new Identifier(6, "item"),
+            false,
+            true
+        )
+    },
+    {
         input: "item.item['item3']",
         expected: new MemberExpression(
             { start: 0, end: 17 },
@@ -36,9 +46,9 @@ export const MemberExpressionParserTestSet = [
         )
     },
     {
-        input: "item.item['item'].item",
+        input: "item.item['item']?.item",
         expected: new MemberExpression(
-            { start: 0, end: 21 },
+            { start: 0, end: 22 },
             new MemberExpression(
                 { start: 0, end: 15 },
                 new MemberExpression(
@@ -49,7 +59,9 @@ export const MemberExpressionParserTestSet = [
                 new StringLiteral(10, "item"),
                 true
             ),
-            new Identifier(18, "item")
+            new Identifier(19, "item"),
+            false,
+            true
         )
     }
 ];
