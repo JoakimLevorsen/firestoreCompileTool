@@ -1,15 +1,3 @@
-// import { Block, Expression, IfBlock, MatchGroup } from "../types";
-
-// const header = `rules_version = '2';
-// service cloud.firestore {
-// match /databases/{database}/documents {
-// `;
-
-// const footer = `\t\n}\n}`;
-
-// const stringifyBlock = (input: Block): string =>
-//     formatFile(blockToRules(input));
-
 export const formatFile = (input: string): string => {
     // First we replace all spacing with one space
     const oneLiner = input.replace(/\s+/g, " ");
@@ -65,57 +53,3 @@ const tabsForCount = (count: number): string => {
     }
     return output;
 };
-
-// const blockToRules = (input: Block): string => {
-//     const ruleContent = input.matchGroups.map(mG =>
-//         matchGroupToRules(mG)
-//     );
-//     if (!ruleContent || ruleContent.length === 0) {
-//         return `${header}${footer}`;
-//     }
-//     return `${header}${ruleContent.reduce(
-//         (pV, p) => `${pV}\n${p}`
-//     )}${footer}`;
-// };
-
-// const matchGroupToRules = (input: MatchGroup): string => {
-//     let output = "";
-//     const { rules, path, pathVariables, subGroups } = input;
-//     if (rules.create) {
-//         output += ruleToString(rules.create, "create");
-//     }
-//     if (rules.delete) {
-//         output += ruleToString(rules.delete, "delete");
-//     }
-//     if (rules.read) {
-//         output += ruleToString(rules.read, "read");
-//     }
-//     if (rules.update) {
-//         output += ruleToString(rules.update, "update");
-//     }
-//     if (rules.write) {
-//         output += ruleToString(rules.write, "write");
-//     }
-//     const matchPath = path.reduce((pV, v) => {
-//         // If the path component is mentioned wrap it
-//         if (pathVariables.includes(v)) {
-//             return `${pV}/{${v}}`;
-//         }
-//         return `${pV}/${v}`;
-//     }, "");
-//     if (subGroups) {
-//         output += subGroups
-//             .map(mG => matchGroupToRules(mG))
-//             .reduce((pV, v) => pV + " " + v);
-//     }
-//     return `match ${matchPath} {\n${output}}`;
-// };
-
-// const ruleToString = (
-//     item: Expression | IfBlock,
-//     ruleType: string
-// ): string => {
-//     return `allow ${ruleType}: if ${item.toString()};\n`;
-// };
-
-// export default stringifyBlock;

@@ -4,28 +4,31 @@ import chalk from "chalk";
 import clear from "clear";
 import figlet from "figlet";
 import * as fs from "fs";
-// import blockToRules from "./outputTools";
+import { FileWrapperCompiler } from "./compiler/FileWrapperCompiler";
+import { formatFile } from "./outputTools";
 import parse from "./parser";
 
-// const [inputFile, outputFile] = process.argv;
+const [inputFile, outputFile] = process.argv;
 
-// if (inputFile === "" || outputFile === "") {
-//     console.log(
-//         chalk.red("A path for input and output must be provided.")
-//     );
-// } else {
-clear();
-// tslint:disable-next-line: no-console
-console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
-const file = fs.readFileSync("./test/testFiles/2.kakao").toString();
+if (inputFile === "" || outputFile === "") {
+    // tslint:disable-next-line: no-console
+    console.log(
+        chalk.red("A path for input and output must be provided.")
+    );
+} else {
+    clear();
+    // tslint:disable-next-line: no-console
+    console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
+    const file = fs
+        .readFileSync("./test/testFiles/4.kakao")
+        .toString();
 
-// const Oldb = extractBlock(file);
-parse(file);
-
-// console.log("Old parser got", JSON.stringify(Oldb));
-// const rules = b?.toRule();
-// const formatted = formatFile(rules || "");
-
-// fs.writeFileSync("./output.x", formatted);
-// }
+    // const Oldb = extractBlock(file);
+    const asp = parse(file);
+    if (asp) {
+        const compiled = FileWrapperCompiler(asp);
+        // tslint:disable-next-line: no-console
+        fs.writeFileSync("./output.x", formatFile(compiled));
+    }
+}
 export const e = "";
