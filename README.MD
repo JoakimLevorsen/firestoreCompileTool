@@ -13,6 +13,19 @@ Do note this project is still in it's very early fases, and there is no support 
 
 Furthermore a lot of properties you might be used to from firebase security rules have not been carried over yet. But all of this is on the way.
 
+## Getting started
+
+To get started simply clone the repo and run `npm run npmLike` or `yarn npmLike` to install the compiler.
+
+It is then used as:
+`kakao [inputfile] [outputfile]`
+Though the files can be omitted if the current directory contains a file named `kakao.json` with the following properties:
+
+| name   | optional | explanation     |
+| ------ | -------- | --------------- |
+| input  | no       | The input file  |
+| output | no       | The output file |
+
 ## Interfaces
 
 Well then, now let's get on to the exciting existing features, where the most important is `interfaces`.

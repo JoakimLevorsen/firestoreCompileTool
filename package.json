@@ -8,7 +8,8 @@
         "build": "tsc",
         "lint": "tslint --project ./",
         "start": "node ./lib/index.js",
-        "test": "mocha -r ts-node/register ./test/**/*.spec.ts"
+        "test": "mocha -r ts-node/register ./test/**/*.spec.ts",
+        "npmLike": "npm i && tsc && npm link"
     },
     "author": "",
     "license": "ISC",
