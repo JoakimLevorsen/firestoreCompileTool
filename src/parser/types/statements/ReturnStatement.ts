@@ -6,11 +6,12 @@ import SyntaxComponent from "../SyntaxComponent";
 type ExportType = BinaryExpression | Identifier | BooleanLiteral;
 
 export class ReturnStatement extends SyntaxComponent {
-    private body: ExportType;
+    constructor(start: number, private _body: ExportType) {
+        super({ start, end: _body.getEnd() });
+    }
 
-    constructor(start: number, newBody: ExportType) {
-        super({ start, end: newBody.getEnd() });
-        this.body = newBody;
+    public get body() {
+        return this._body;
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {

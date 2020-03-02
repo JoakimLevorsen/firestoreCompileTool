@@ -3,23 +3,37 @@ import SyntaxComponent from "../SyntaxComponent";
 import { BlockStatement } from "./";
 
 export class IfStatement extends SyntaxComponent {
-    protected test: BinaryExpression;
-    protected consequent: BlockStatement;
-    protected alternate?: BlockStatement | IfStatement;
-
     constructor(
         start: number,
-        test: BinaryExpression,
-        consequent: BlockStatement,
-        alternate?: BlockStatement | IfStatement
+        private _test: BinaryExpression,
+        private _consequent: BlockStatement,
+        private _alternate?: BlockStatement | IfStatement
     ) {
-        const end =
-            start + (alternate?.getEnd() ?? consequent.getEnd());
-        const position = { start, end };
-        super(position);
-        this.test = test;
-        this.consequent = consequent;
-        this.alternate = alternate;
+        // super has to be the first statement, so this turned kinda ugly
+        super({
+            start,
+            end:
+                start + (_alternate?.getEnd() ?? _consequent.getEnd())
+        });
+    }
+
+    public get alternate() {
+        return this._alternate;
+    }
+
+    public get consequent() {
+        return this._consequent;
+    }
+
+    public get test() {
+        return this._test;
+    }
+
+    public get allPathsReturn(): boolean {
+        if (!this.alternate) return false;
+        if (this.alternate instanceof IfStatement)
+            return this.alternate.allPathsReturn;
+        return true;
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {

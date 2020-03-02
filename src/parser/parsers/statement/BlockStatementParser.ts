@@ -1,13 +1,12 @@
-import { BlockStatement } from "../../types/statements";
-import SyntaxComponent from "../../types/SyntaxComponent";
+import { BlockLine, BlockStatement } from "../../types/statements";
 import { spaceTokens, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";
 import { NonBlockStatementGroup } from "./";
 
 export class BlockStatementParser extends Parser {
     private state: "Unopened" | "Opened" | "Closed" = "Unopened";
-    private lines: SyntaxComponent[] = [];
-    private nextLine?: SyntaxComponent;
+    private lines: BlockLine[] = [];
+    private nextLine?: BlockLine;
     private subParser?: ReturnType<typeof NonBlockStatementGroup>;
     private start = NaN;
 
@@ -35,7 +34,7 @@ export class BlockStatementParser extends Parser {
                     if (result && result.length > 0) {
                         if (result.length > 1)
                             throw error("Too many results");
-                        this.nextLine = result[0];
+                        this.nextLine = result[0] as BlockLine;
                     }
                     return null;
                 } else if (this.nextLine) {
