@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "es6",
         "module": "commonjs",
-        "lib": ["es6", "es2015"],
+        "lib": ["es6", "es2015", "ES2019", "ES2020"],
         "declaration": true,
         "outDir": "./lib",
         "rootDir": "src",
@@ -10,7 +10,8 @@
         "types": ["node"],
         "esModuleInterop": true,
         "resolveJsonModule": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "noUnusedLocals": true
     },
     "exclude": ["./test", "./lib"]
 }

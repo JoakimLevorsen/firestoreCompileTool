@@ -2,8 +2,9 @@
 
 ## Syntax improvements
 
-Add support for:
-`return item is A || item is B`
+Interface names should be literals so all values would be accepted.
+
+Allow constants to be assigned a type `const a: string = "foo"`
 
 ## Recursion
 
