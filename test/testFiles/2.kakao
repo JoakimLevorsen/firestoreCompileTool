@@ -18,37 +18,37 @@ interface Review {
 }
 
 match /users/{user} {
-    read: request.auth != null;
-    write: {
-        if request.auth.uid == doc.id {
-            return doc isOnly User || false;
+    read: () => request.auth != null;
+    write: (newDoc) => {
+        if request.auth.uid == newDoc.id {
+            return newDoc isOnly User || false;
         }
         return false;
     }
 }
 
 match /resturants/{resturant} {
-    read: request.auth != null;
-    create: {
-        if doc isOnly Resturant {
-            return doc.owner == request.auth.uid;
+    read: () => request.auth != null;
+    create: (newDoc) => {
+        if newDoc isOnly Resturant {
+            return newDoc.owner == request.auth.uid;
         }
         return false;
     }
-    write: {
+    write: (newDoc) => {
         if resource.owner == request.auth.uid {
-            return doc isOnly Resturant;
+            return newDoc isOnly Resturant;
         }
         return false;
     }
     match /reviews/{review} {
-        read: request.auth != null;
-        create: {
-            if doc isOnly Review {
-                return doc.user == request.auth.uid;
+        read: () => request.auth != null;
+        create: (newDoc) => {
+            if newDoc isOnly Review {
+                return newDoc.user == request.auth.uid;
             }
             return false;
         }
-        delete: resource.user == request.auth.uid;
+        delete: () => resource.user == request.auth.uid;
     }
 }

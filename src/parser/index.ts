@@ -12,7 +12,6 @@ const parse = (from: string) => {
         const result = parser.addToken(token);
         if (result) parsed = result;
     }
-    console.log("Parsed", parsed);
     return parsed;
 };
 

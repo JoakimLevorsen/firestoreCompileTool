@@ -4,9 +4,8 @@
     "description": "",
     "main": "./lib/index.js",
     "scripts": {
-        "buildRun": "yarn build && yarn start ./test/testFiles/testFile2.kakao ./output.rules",
+        "buildLink": "npm run build && npm link",
         "build": "tsc",
-        "buildNoLint": "tsc",
         "lint": "tslint --project ./",
         "start": "node ./lib/index.js",
         "test": "mocha -r ts-node/register ./test/**/*.spec.ts"
