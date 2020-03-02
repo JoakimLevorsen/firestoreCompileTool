@@ -76,7 +76,7 @@ const extractRules = (
                 // Since only an InterfaceLiteral returns a nonString, we just typecast the return
                 return LiteralCompiler(literal) as string;
             });
-        rule += `(${values
+        rule += `&& (${values
             .map(v => `${dataRef}.${k} is ${v}`)
             .reduce((pV, v) => `${pV} && ${v}`)})`;
     });
@@ -104,10 +104,10 @@ const extractRules = (
                 // Since only an InterfaceLiteral returns a nonString, we just typecast the return
                 return LiteralCompiler(literal) as string;
             });
-        rule += `(${values
+        rule += `&& (${values
             .map(
                 v =>
-                    `(!(${k} in ${dataRef}) || ${dataRef}.${k} is ${v})`
+                    `(!('${k}' in ${dataRef}) || ${dataRef}.${k} is ${v})`
             )
             .reduce((pV, v) => `${pV} && ${v}`)})`;
     });

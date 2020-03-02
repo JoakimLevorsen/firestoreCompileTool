@@ -29,7 +29,7 @@ export const IfStatementCompiler = (
             alternate = IfStatementCompiler(item.alternate, scope);
         } else
             alternate = BlockStatementCompiler(item.alternate, scope);
-        return `((${test} && ${consequent}) || ${alternate})`;
+        return `((${test} && (${consequent})) || ${alternate})`;
     }
-    return `(${test} && ${consequent})`;
+    return `(${test} && (${consequent}))`;
 };
