@@ -6,6 +6,7 @@
     "scripts": {
         "buildLink": "npm run build && npm link",
         "build": "tsc",
+        "buildStart": "npm run build && npm run start",
         "lint": "tslint --project ./",
         "start": "node ./lib/index.js",
         "test": "mocha -r ts-node/register ./test/**/*.spec.ts",

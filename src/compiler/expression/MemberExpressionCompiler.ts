@@ -135,7 +135,7 @@ const extractValueForProperty = (
                     object.needsDotData = false;
                     if (key !== "id") object.key += ".data";
                 }
-                object.key += key;
+                object.key += `.${key}`;
                 // TODO: preserve the cast of the location
                 object.castAs = undefined;
                 return object;
@@ -146,7 +146,7 @@ const extractValueForProperty = (
                 object.needsDotData = false;
                 if (key !== "id") object.key += ".data";
             }
-            object.key += key;
+            object.key += `.${key}`;
             // TODO: preserve the cast of the location
             object.castAs = undefined;
             return object;
