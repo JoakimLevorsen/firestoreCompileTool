@@ -50,15 +50,17 @@ match /foo/[bar] {
 
 Inside a match block the rules are stated, rules can have the following headers: read, write, create, update, delete. 'read, write' would mean the following rule is valid for both read and write operations.
 
+All Rule headers end with an arrow function that details the name of the new document, and then the current document. An underscore indicates the item is to be ignored.
+
 ```
 match /foo/[bar] {
-    read: {
+    read: (doc) => {
         ...
     },
-    create, delete: {
+    create, delete: () => {
         ...
     },
-    update: ...
+    update: (_, doc) => ...
 }
 ```
 

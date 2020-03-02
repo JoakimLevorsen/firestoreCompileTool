@@ -1,86 +1,96 @@
-import { Token, isTokenType } from "../types";
-import { extractRawValueString } from "../types/RawValue";
+import { nonKeywordTokens, Token } from "./types/Token";
 
-export const extractNextToken = (
-    input: string
-): { token: Token; remaining: string } | null => {
-    // First we remove start spacing and replace == with = since no assignment exists, and != with ≠.
-    const toConsider = input
-        .replace(/^\s*/, "")
-        .replace(/^==/, "=")
-        .replace(/^!=/, "≠")
-        .replace(/^&&/, "&")
-        .replace(/^\|\|/, "|");
+const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
+    switch (raw) {
+        case ".":
+        case "(":
+        case ")":
+        case "{":
+        case "}":
+        case "[":
+        case "]":
+        case "||":
+        case "|":
+            let escaped = "";
+            for (const c of raw) {
+                escaped += `\\${c}`;
+            }
+            return { escaped, raw };
+        case "?:":
+            return { escaped: "\\?:", raw };
+        case "?.":
+            return { escaped: "\\?\\.", raw };
+        default:
+            return { raw };
+    }
+});
 
-    // First we check if this is simply whitespace
-    if (/^\s*$/.test(toConsider)) {
-        return null;
+const keywordRegex = new RegExp(
+    `^([^\t\f\v ${escapedNonKeywordTokens
+        .filter(({ raw }) => !/^\w*$/.test(raw))
+        .reduce(
+            (pV, v) =>
+                pV !== ""
+                    ? `${pV}${v.escaped ?? v.raw}`
+                    : v.escaped ?? v.raw,
+            ""
+        )}]+)`
+);
+
+const nonKeywordRegex = escapedNonKeywordTokens.map(
+    ({ escaped, raw }) => ({
+        type: raw,
+        regex: new RegExp(`^${escaped ?? raw}`)
+    })
+);
+
+export class TokenParser {
+    public static extractAll(from: string) {
+        const parser = new TokenParser(from);
+        const tokens: Token[] = [];
+        let token: Token;
+        do {
+            token = parser.nextToken();
+            tokens.push(token);
+        } while (token.type !== "EOF");
+        return tokens;
+    }
+    private location: number = 0;
+    private remaining: string;
+
+    constructor(input: string) {
+        this.remaining = input;
     }
 
-    const rawValue = extractNextRawValue(toConsider);
-    if (rawValue) {
-        return rawValue;
-    }
-    const nonKeyword = extractNextNonKeyword(toConsider);
-    if (nonKeyword) {
-        return nonKeyword;
-    }
-    const keyword = extractNextKeyword(toConsider);
-    if (keyword) {
-        return keyword;
-    }
-    throw new Error(
-        `${JSON.stringify(
-            input
-        )} was not recognized as a token as ${JSON.stringify(
-            toConsider
-        )}`
-    );
-};
-
-const extractNextRawValue = (
-    input: string
-): { token: Token; remaining: string } | null => {
-    const match = extractRawValueString(input);
-    if (match) {
-        const remaining = input.replace(match, "");
-        return {
-            remaining,
-            token: { type: "Keyword", value: match }
-        };
-    }
-    return null;
-};
-
-const extractNextNonKeyword = (
-    input: string
-): { token: Token; remaining: string } | null => {
-    const firstChar = input.match(/^([^\w])/);
-    if (firstChar && firstChar[1]) {
-        const match = firstChar[1];
-        if (isTokenType(match)) {
-            const remaining = input.replace(firstChar[1], "");
+    public nextToken(): Token {
+        // const spaceMatch = this.remaining.match(/^\s*/);
+        // let firstSpacing = 0;
+        // if (spaceMatch && spaceMatch[0]) {
+        //     firstSpacing = spaceMatch[0].length;
+        // }
+        // this.location += firstSpacing;
+        const { location, remaining } = this;
+        // const toConsider = this.remaining.substr(firstSpacing);
+        if (remaining === "") return { type: "EOF", location };
+        for (const { type, regex } of nonKeywordRegex) {
+            const escaped = remaining.match(regex);
+            if (escaped == null) continue;
+            this.remaining = escaped.input!.substr(escaped[0].length);
+            this.location += escaped[0].length;
+            return { type, location };
+        }
+        const kMatch = remaining.match(keywordRegex);
+        if (kMatch && kMatch[1]) {
+            this.remaining = remaining.substr(kMatch[1].length);
+            this.location += kMatch[1].length;
             return {
-                remaining,
-                token: { type: match }
+                type: "Keyword",
+                value: kMatch[1],
+                location
             };
         }
+        throw new Error(
+            "Token could not be extracted from " + remaining
+        );
     }
-    return null;
-};
-
-const extractNextKeyword = (
-    input: string
-): { token: Token; remaining: string } | null => {
-    const matchRegex = /^[\w\.]+/;
-    const match = input.match(matchRegex);
-    if (match && match[0]) {
-        const keyword = match[0];
-        const remaining = input.replace(keyword, "");
-        return {
-            remaining,
-            token: { type: "Keyword", value: keyword }
-        };
-    }
-    return null;
-};
+}
