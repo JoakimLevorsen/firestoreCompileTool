@@ -20,6 +20,10 @@ const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
             return { escaped: "\\?:", raw };
         case "?.":
             return { escaped: "\\?\\.", raw };
+        case "/*":
+            return { escaped: "/\\*", raw };
+        case "*/":
+            return { escaped: "\\*/", raw };
         default:
             return { raw };
     }
@@ -57,32 +61,38 @@ export class TokenParser {
     }
     private location: number = 0;
     private remaining: string;
+    private commentMode?: "//" | "/**/";
 
     constructor(input: string) {
         this.remaining = input;
     }
 
     public nextToken(): Token {
-        // const spaceMatch = this.remaining.match(/^\s*/);
-        // let firstSpacing = 0;
-        // if (spaceMatch && spaceMatch[0]) {
-        //     firstSpacing = spaceMatch[0].length;
-        // }
-        // this.location += firstSpacing;
         const { location, remaining } = this;
-        // const toConsider = this.remaining.substr(firstSpacing);
         if (remaining === "") return { type: "EOF", location };
         for (const { type, regex } of nonKeywordRegex) {
             const escaped = remaining.match(regex);
             if (escaped == null) continue;
             this.remaining = escaped.input!.substr(escaped[0].length);
             this.location += escaped[0].length;
+            if (!this.commentMode) {
+                if (type === "/*") this.commentMode = "/**/";
+                else if (type === "//") this.commentMode = "//";
+            }
+            if (this.commentMode) {
+                if (this.commentMode === "//" && type === "\n")
+                    this.commentMode = undefined;
+                else if (this.commentMode === "/**/" && type === "*/")
+                    this.commentMode = undefined;
+                return this.nextToken();
+            }
             return { type, location };
         }
         const kMatch = remaining.match(keywordRegex);
         if (kMatch && kMatch[1]) {
             this.remaining = remaining.substr(kMatch[1].length);
             this.location += kMatch[1].length;
+            if (this.commentMode) return this.nextToken();
             return {
                 type: "Keyword",
                 value: kMatch[1],

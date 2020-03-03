@@ -1,10 +1,17 @@
+//test
+// Test gni asdaio dsfj oa
+
 interface User {
     name: string;
     displayName?: string;
-}
+}/* das fjosad
+asd 
+ag 
+df 
+dh sghkaps df*/
 
 interface Resturant {
-    name: string;
+    name: string; // More testins
     url?: string;
     owner: string;
 }
@@ -19,7 +26,7 @@ interface Review {
 const magicNumber = 42394.324
 
 match /users/{user} {
-    read: (_, doc) => user == auth.uid;
+    read: (_, doc) => auth.token.admin;
     write: (newDoc) => {
         if newDoc.ud == magicNumber {
             return newDoc isOnly User;

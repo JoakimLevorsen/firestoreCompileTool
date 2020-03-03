@@ -4,7 +4,6 @@ import { TokenParser } from "./TokenParser";
 
 const parse = (from: string) => {
     const tokens = TokenParser.extractAll(from);
-    // tslint:disable-next-line: no-console
     // We now start a FileParser and parse
     const parser = new FileWrapperParser(ParserErrorCreator(tokens));
     let parsed;

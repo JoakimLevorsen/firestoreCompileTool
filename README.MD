@@ -118,7 +118,7 @@ Some values are globally available, and carried over from Firestore
 
 The next stages in development:
 
-0. Comments support
+0. ~~Comments support~~ ✔️
 1. < and > comparisons
 1. Uniary expressions like `!foo` or `-bar`
 1. Math expressions like `+ - / * %`
