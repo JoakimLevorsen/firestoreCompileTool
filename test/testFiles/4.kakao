@@ -28,7 +28,7 @@ const minStars = 4
 match /users/{user} {
     read: (_, doc) => auth.token.admin;
     write: (newDoc) => {
-        if newDoc.ud == magicNumber {
+        if newDoc.ud == newDoc.id {
             return newDoc isOnly User;
         }
         return false;

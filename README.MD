@@ -119,8 +119,9 @@ Some values are globally available, and carried over from Firestore
 The next stages in development:
 
 0. ~~Comments support~~ ✔️
-1. < and > comparisons
+1. ~~< and > comparisons~~ ✔️ (needs testing)
 1. Uniary expressions like `!foo` or `-bar`
+1. More unit tests
 1. Math expressions like `+ - / * %`
 1. More types like `array` and `map`
 1. Support for loops of iterations known at compile time.
