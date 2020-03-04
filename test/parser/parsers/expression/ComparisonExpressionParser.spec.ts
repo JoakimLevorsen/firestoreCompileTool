@@ -6,7 +6,8 @@ import {
     EqualityExpression,
     IsExpression,
     LogicalExpression,
-    MemberExpression
+    MemberExpression,
+    OrderExpression
 } from "../../../../src/parser/types/expressions";
 import Identifier from "../../../../src/parser/types/Identifier";
 import Literal, {
@@ -71,8 +72,12 @@ const constructorForCompType = (
         case "&&":
         case "||":
             return new LogicalExpression(position, op, first, second);
-        default:
+        case "is":
+        case "only":
+        case "isOnly":
             return new IsExpression(position, op, first, second);
+        default:
+            return new OrderExpression(position, op, first, second);
     }
 };
 

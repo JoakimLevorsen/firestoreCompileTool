@@ -7,5 +7,6 @@ export {
     EqualityExpression,
     IsExpression,
     LogicalExpression,
-    MemberExpression
+    MemberExpression,
+    OrderExpression
 } from "./equality";

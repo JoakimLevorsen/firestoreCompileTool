@@ -4,7 +4,8 @@ import {
     EqualityExpression,
     IsExpression,
     LogicalExpression,
-    MemberExpression
+    MemberExpression,
+    OrderExpression
 } from "../../types/expressions";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal";
@@ -177,8 +178,17 @@ export default class ComparisonExpressionParser extends Parser {
                 );
             case undefined:
                 throw error("Internal Error");
-            default:
+            case "is":
+            case "isOnly":
+            case "only":
                 return new IsExpression(
+                    position,
+                    this.comparison,
+                    this.firstValue!,
+                    this.secondValue!
+                );
+            default:
+                return new OrderExpression(
                     position,
                     this.comparison,
                     this.firstValue!,

@@ -1,10 +1,14 @@
-import { EqualityOperators } from "./expressions/equality";
-import { IsOperators } from "./expressions/equality/IsExpression";
-import { LogicOperators } from "./expressions/equality/LogicalExpression";
+import {
+    EqualityOperators,
+    IsOperators,
+    LogicOperators,
+    OrderOperators
+} from "./expressions/equality";
 
 export const Operators = [
     ...EqualityOperators,
     ...LogicOperators,
-    ...IsOperators
+    ...IsOperators,
+    ...OrderOperators
 ];
 export type Operator = typeof Operators[number];

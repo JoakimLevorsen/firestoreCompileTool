@@ -4,13 +4,13 @@ import {
     ComparisonType
 } from "../ComparisonExpression";
 
-export const EqualityOperators = ["==", "!="] as const;
-export type EqualityOperator = typeof EqualityOperators[number];
+export const OrderOperators = ["<", "<=", ">=", ">"] as const;
+export type OrderOperator = typeof OrderOperators[number];
 
-export class EqualityExpression extends ComparisonExpression {
+export class OrderExpression extends ComparisonExpression {
     constructor(
         position: Position,
-        protected _operator: EqualityOperator,
+        protected _operator: OrderOperator,
         left: ComparisonType,
         right: ComparisonType
     ) {
@@ -21,8 +21,3 @@ export class EqualityExpression extends ComparisonExpression {
         return this._operator;
     }
 }
-
-export * from "./IsExpression";
-export * from "./LogicalExpression";
-export * from "./MemberExpression";
-export * from "./OrderExpression";

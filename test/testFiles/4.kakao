@@ -23,7 +23,7 @@ interface Review {
     user: string;
 }
 
-const magicNumber = 42394.324
+const minStars = 4
 
 match /users/{user} {
     read: (_, doc) => auth.token.admin;
@@ -51,7 +51,7 @@ match /resturants/{resturant} {
     match /reviews/{review} {
         create: (newDoc) => {
             if newDoc isOnly Review {
-                return newDoc.user == newDoc.uid;
+                return newDoc.user == newDoc.uid && newDoc.stars >= minStars;
             }
             return false;
         }
