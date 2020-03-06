@@ -1,9 +1,6 @@
-import Identifier from "../../Identifier";
-import Literal, {
-    NumericLiteral,
-    StringLiteral
-} from "../../literal";
-import SyntaxComponent, { Position } from "../../SyntaxComponent";
+import Identifier from "../Identifier";
+import Literal, { NumericLiteral, StringLiteral } from "../literal";
+import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 export class MemberExpression extends SyntaxComponent {
     constructor(

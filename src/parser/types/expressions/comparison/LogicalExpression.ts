@@ -1,8 +1,5 @@
+import { ComparisonExpression, ComparisonType } from ".";
 import { Position } from "../../SyntaxComponent";
-import {
-    ComparisonExpression,
-    ComparisonType
-} from "../ComparisonExpression";
 
 export const LogicOperators = ["&&", "||"] as const;
 export type LogicOperator = typeof LogicOperators[number];

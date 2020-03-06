@@ -1,8 +1,5 @@
+import { ComparisonExpression, ComparisonType } from ".";
 import { Position } from "../../SyntaxComponent";
-import {
-    ComparisonExpression,
-    ComparisonType
-} from "../ComparisonExpression";
 
 export const OrderOperators = ["<", "<=", ">=", ">"] as const;
 export type OrderOperator = typeof OrderOperators[number];

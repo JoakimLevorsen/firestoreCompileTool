@@ -1,6 +1,6 @@
 import { BooleanLiteral } from "../literal";
 import { EqualityExpression, LogicalExpression } from "./";
-import { IsExpression } from "./equality";
+import { IsExpression } from "./comparison";
 
 export type BinaryExpression =
     | LogicalExpression

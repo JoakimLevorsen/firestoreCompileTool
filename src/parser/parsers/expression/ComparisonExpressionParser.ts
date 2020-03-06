@@ -1,6 +1,8 @@
 import { ParserError } from "../../ParserError";
 import {
     ComparisonExpression,
+    ComparisonOperator,
+    ComparisonOperators,
     EqualityExpression,
     IsExpression,
     LogicalExpression,
@@ -9,7 +11,6 @@ import {
 } from "../../types/expressions";
 import Identifier from "../../types/Identifier";
 import Literal from "../../types/literal";
-import { Operator, Operators } from "../../types/Operators";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
 import Parser from "../Parser";
 import MemberExpressionParser from "./MemberExpressionParser";
@@ -24,7 +25,7 @@ type ClassReturn =
 export default class ComparisonExpressionParser extends Parser {
     private state: "first" | "operator" | "second" | "done" = "first";
     private firstValue?: ClassReturn;
-    private comparison?: Operator;
+    private comparison?: ComparisonOperator;
     private secondValue?: ClassReturn;
     private subParser?:
         | ComparisonExpressionParser
@@ -65,14 +66,14 @@ export default class ComparisonExpressionParser extends Parser {
                     this.state = "operator";
                     return this.firstValue ?? null;
                 }
-                if (tokenHasType(token.type, Operators)) {
+                if (tokenHasType(token.type, ComparisonOperators)) {
                     this.state = "operator";
                 } else throw error("Unexpected token");
             case "operator":
                 if (tokenHasType(token.type, [...spaceTokens]))
                     return this.firstValue ?? null;
-                if (tokenHasType(token.type, Operators)) {
-                    this.comparison = token.type as Operator;
+                if (tokenHasType(token.type, ComparisonOperators)) {
+                    this.comparison = token.type as ComparisonOperator;
                     this.state = "second";
                     this.subParser = undefined;
                     return null;
@@ -126,7 +127,7 @@ export default class ComparisonExpressionParser extends Parser {
             // If not we fall through to the operator stage
             case "operator":
                 return tokenHasType(token.type, [
-                    ...Operators,
+                    ...ComparisonOperators,
                     ...spaceTokens
                 ]);
             case "second":

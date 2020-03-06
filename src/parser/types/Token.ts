@@ -1,4 +1,4 @@
-import { Operators } from "./Operators";
+import { ComparisonOperators, UniaryOperators } from "./expressions";
 
 const tokenTypes = [
     "(",
@@ -45,7 +45,8 @@ export type ValueType = typeof typeTokens[number];
 // We sort reverse alphabetically, so || comes before | in the list, and is not read as | and |
 export const nonKeywordTokens = [
     ...tokenTypes,
-    ...Operators,
+    ...ComparisonOperators,
+    ...UniaryOperators,
     ...spaceTokens,
     ...wordTokens,
     ...typeTokens

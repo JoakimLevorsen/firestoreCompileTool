@@ -3,12 +3,13 @@ import {
     IsOperators,
     LogicOperators,
     OrderOperators
-} from "./expressions/equality";
+} from ".";
 
-export const Operators = [
+export const ComparisonOperators = [
     ...EqualityOperators,
     ...LogicOperators,
     ...IsOperators,
     ...OrderOperators
 ];
-export type Operator = typeof Operators[number];
+
+export type ComparisonOperator = typeof ComparisonOperators[number];

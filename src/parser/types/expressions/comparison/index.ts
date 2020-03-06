@@ -1,7 +1,7 @@
-import { LiteralOrIdentifier } from "../LiteralOrIdentifier";
-import { Operator } from "../Operators";
-import SyntaxComponent, { Position } from "../SyntaxComponent";
-import { MemberExpression } from "./";
+import { MemberExpression } from "..";
+import { LiteralOrIdentifier } from "../../LiteralOrIdentifier";
+import SyntaxComponent, { Position } from "../../SyntaxComponent";
+import { ComparisonOperator } from "./ComparisonOperators";
 
 export type ComparisonType =
     | LiteralOrIdentifier
@@ -11,7 +11,7 @@ export type ComparisonType =
 export abstract class ComparisonExpression extends SyntaxComponent {
     constructor(
         position: Position,
-        protected _operator: Operator,
+        protected _operator: ComparisonOperator,
         protected _left: ComparisonType,
         protected _right: ComparisonType
     ) {
@@ -35,3 +35,10 @@ export abstract class ComparisonExpression extends SyntaxComponent {
         );
     }
 }
+
+export * from "./ComparisonOperators";
+export * from "./EqualityExpression";
+export * from "./IsExpression";
+export * from "./LogicalExpression";
+export * from "../MemberExpression";
+export * from "./OrderExpression";
