@@ -4,7 +4,7 @@ import chalk from "chalk";
 import figlet from "figlet";
 import * as fs from "fs";
 import { FileWrapperCompiler } from "./compiler/FileWrapperCompiler";
-import { formatFile } from "./outputTools";
+import { formatFile } from "./formatter";
 import parse from "./parser";
 
 const [, , inputFile, outputFile] = process.argv;
