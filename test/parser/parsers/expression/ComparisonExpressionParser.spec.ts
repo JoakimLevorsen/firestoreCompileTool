@@ -3,6 +3,8 @@ import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
 import ComparisonExpressionParser from "../../../../src/parser/parsers/expression/ComparisonExpressionParser";
 import {
+    ComparisonOperator,
+    ComparisonOperators,
     EqualityExpression,
     IsExpression,
     LogicalExpression,
@@ -16,10 +18,6 @@ import Literal, {
     StringLiteral,
     TypeLiteral
 } from "../../../../src/parser/types/literal";
-import {
-    Operator,
-    Operators
-} from "../../../../src/parser/types/Operators";
 import SyntaxComponent, {
     Position
 } from "../../../../src/parser/types/SyntaxComponent";
@@ -56,7 +54,7 @@ const secondSet = (start: number) =>
 
 const constructorForCompType = (
     position: Position,
-    op: Operator,
+    op: ComparisonOperator,
     first: Literal | MemberExpression | Identifier,
     second: Literal | MemberExpression | Identifier
 ) => {
@@ -82,7 +80,7 @@ const constructorForCompType = (
 };
 
 const ComparisonTestSet = LiteralTestSet.map(first =>
-    Operators.map(comp =>
+    ComparisonOperators.map(comp =>
         // We add one more than the space, since the token start really happens after the space
         secondSet(first.expected.getEnd() + 1 + comp.length + 2).map(
             second => ({

@@ -5,6 +5,7 @@ import Literal, {
     StringLiteral
 } from "../../types/literal";
 import { LiteralOrIdentifier } from "../../types/LiteralOrIdentifier";
+import { Token } from "../../types/Token";
 import IdentifierExtractor from "../IdentifierExtractor";
 import LiteralOrIndentifierExtractor from "../IdentifierOrLiteralExtractor";
 import LiteralParser from "../literal";
@@ -32,7 +33,7 @@ export default class MemberExpressionParser extends Parser {
     private optionalAccess = false;
 
     public addToken(
-        token: import("../../types/Token").Token
+        token: Token
     ): LiteralOrIdentifier | MemberExpression | null {
         const error = this.errorCreator(token);
         if (isNaN(this.start)) this.start = token.location;
@@ -141,9 +142,7 @@ export default class MemberExpressionParser extends Parser {
         }
     }
 
-    public canAccept(
-        token: import("../../types/Token").Token
-    ): boolean {
+    public canAccept(token: Token): boolean {
         switch (this.stage) {
             // The first and second stages almost work the same
             case "awaiting first":
