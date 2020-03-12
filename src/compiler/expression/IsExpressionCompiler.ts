@@ -22,12 +22,13 @@ export const IsExpressionCompiler = (
     // We now expect the Left value to be a DatabaseLocation or a literal.
     const leftValue = extractLeft(item, scope);
     // We can now use this to compile a comparison
-    return extractRules(
-        rightValue,
-        item.operator,
-        leftValue.key,
-        scope
-    );
+
+    // The database key might need a .data, so we add it if needed
+    const dataKey = leftValue.needsDotData
+        ? `${leftValue.key}.data`
+        : leftValue.key;
+
+    return extractRules(rightValue, item.operator, dataKey, scope);
 };
 
 const extractRules = (
