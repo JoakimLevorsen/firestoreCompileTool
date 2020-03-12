@@ -1,4 +1,3 @@
-import { ParserError } from "../../ParserError";
 import {
     ComparisonExpression,
     ComparisonOperator,
@@ -23,177 +22,246 @@ type ClassReturn =
     | null;
 
 export default class ComparisonExpressionParser extends Parser {
-    private state: "first" | "operator" | "second" | "done" = "first";
-    private firstValue?: ClassReturn;
-    private comparison?: ComparisonOperator;
-    private secondValue?: ClassReturn;
-    private subParser?:
-        | ComparisonExpressionParser
-        | MemberExpressionParser;
+    private stage:
+        | "awaiting first"
+        | "building first"
+        | "awaiting operator"
+        | "awaiting second"
+        | "buidling second"
+        | "nextPart" = "awaiting first";
+    private memParser: MemberExpressionParser = new MemberExpressionParser(
+        this.errorCreator
+    );
+    private subParser?: ComparisonExpressionParser;
+    private firstElement?:
+        | Identifier
+        | Literal
+        | ComparisonExpression
+        | MemberExpression;
+    private operator?: ComparisonOperator;
+    private secondElement?:
+        | Identifier
+        | Literal
+        | ComparisonExpression
+        | MemberExpression;
     private start = NaN;
+    private remainingCloseParenthesees = 0;
+    private lastExport?: ReturnType<
+        ComparisonExpressionParser["exportExpression"]
+    >;
 
-    public addToken(
-        token: import("../../types/Token").Token
-    ): ClassReturn {
+    public addToken(token: Token): ClassReturn | null {
         const error = this.errorCreator(token);
         if (isNaN(this.start) && token.type !== " ")
             this.start = token.location;
-        switch (this.state) {
-            case "first":
-                if (!this.subParser) {
-                    if (tokenHasType(token.type, [...spaceTokens]))
-                        return null;
-                    this.subParser = this.createSubParser(token);
-                    // If the token was a (, it has now been used so in that case we turnurn
-                    if (token.type === "(") return null;
-                }
-                if (this.subParser.canAccept(token)) {
-                    const result = this.subParser.addToken(token);
-                    if (result) {
-                        this.firstValue = result;
-                        return result;
-                    }
+        switch (this.stage) {
+            case "awaiting first":
+                if (token.type === "(") {
+                    this.remainingCloseParenthesees++;
                     return null;
                 }
-                if (token.type === ")") {
-                    this.state = "done";
-                    if (this.firstValue) {
-                        return this.firstValue;
-                    }
-                    throw error("Unexpected tokens");
-                }
-                if (tokenHasType(token.type, [...spaceTokens])) {
-                    this.state = "operator";
-                    return this.firstValue ?? null;
-                }
-                if (tokenHasType(token.type, ComparisonOperators)) {
-                    this.state = "operator";
-                } else throw error("Unexpected token");
-            case "operator":
                 if (tokenHasType(token.type, [...spaceTokens]))
-                    return this.firstValue ?? null;
+                    return null;
+            case "building first":
+                if (this.memParser.canAccept(token)) {
+                    const result = this.memParser.addToken(token);
+                    if (result) {
+                        this.firstElement = result;
+                    }
+                    this.stage = "building first";
+                    return result;
+                }
+                // Then we assume we're done
+                this.stage = "awaiting operator";
+            case "awaiting operator":
+                if (token.type === ")") {
+                    this.remainingCloseParenthesees--;
+                    if (this.remainingCloseParenthesees === 0)
+                        return this.firstElement!;
+                    else if (this.remainingCloseParenthesees < 0)
+                        throw error("Unexpected close parenthesis");
+                    return null;
+                }
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return null;
                 if (tokenHasType(token.type, ComparisonOperators)) {
-                    this.comparison = token.type as ComparisonOperator;
-                    this.state = "second";
-                    this.subParser = undefined;
+                    this.operator = token.type as ComparisonOperator;
+                    this.stage = "awaiting second";
                     return null;
                 }
                 throw error("Unexpected token");
-            case "second":
-                if (!this.subParser) {
+            case "awaiting second": {
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return null;
+                this.stage = "buidling second";
+                if (token.type === "(") {
+                    // This means we're dealing with a subexpression, we parse seperately
                     this.subParser = new ComparisonExpressionParser(
                         this.errorCreator
                     );
-                }
-                if (this.subParser.canAccept(token)) {
-                    const result = this.subParser.addToken(token);
-                    if (result) {
-                        this.secondValue = result;
-                        return this.getReturnValue(token, error);
-                    }
+                    this.subParser.addToken(token);
                     return null;
                 }
+                // This means we're dealing with a normal expression
+                this.memParser = new MemberExpressionParser(
+                    this.errorCreator
+                );
+                const result = this.memParser.addToken(token);
+                if (result) {
+                    this.secondElement = result;
+                    return this.exportExpression(token);
+                }
+                return null;
+            }
+            case "buidling second":
+                if (this.subParser) {
+                    if (this.subParser.canAccept(token)) {
+                        const result = this.subParser.addToken(token);
+                        if (result) {
+                            this.secondElement = result;
+                            return this.exportExpression(token);
+                        }
+                        return null;
+                    }
+                } else {
+                    if (this.memParser.canAccept(token)) {
+                        const result = this.memParser.addToken(token);
+                        if (result) {
+                            this.secondElement = result;
+                            return this.exportExpression(token);
+                        }
+                        return null;
+                    }
+                }
+            case "nextPart":
+                // If this is an operator we turn the entire thing into the first element
+                this.stage = "nextPart";
+                if (tokenHasType(token.type, [...spaceTokens]))
+                    return null;
                 if (token.type === ")") {
-                    if (!this.secondValue)
-                        throw error("Unexpected token");
-                    return this.getReturnValue(token, error);
+                    this.remainingCloseParenthesees--;
+                    if (this.remainingCloseParenthesees === 0) {
+                        this.lastExport = this.exportExpression(
+                            token
+                        );
+                        return this.lastExport;
+                    } else if (this.remainingCloseParenthesees < 0)
+                        throw error("Unexpected close parenthesis");
+                    return null;
+                }
+                if (tokenHasType(token.type, ComparisonOperators)) {
+                    this.firstElement =
+                        this.lastExport ??
+                        this.exportExpression(
+                            this.secondElement!.getEnd()
+                        );
+                    this.operator = token.type as ComparisonOperator;
+                    this.secondElement = undefined;
+                    this.lastExport = undefined;
+                    this.memParser = new MemberExpressionParser(
+                        this.errorCreator
+                    );
+                    this.stage = "awaiting second";
+                    return null;
                 }
                 throw error("Unexpected token");
-            case "done":
-                throw error("This should never happen");
         }
     }
 
-    public canAccept(
-        token: import("../../types/Token").Token
-    ): boolean {
-        switch (this.state) {
-            case "first":
-                if (this.subParser) {
-                    const allowed = this.subParser.canAccept(token);
-                    if (allowed === true) return true;
-                } else {
-                    if (tokenHasType(token.type, [...spaceTokens]))
-                        return true;
-                    if (token.type === "(") return true;
-                    return new MemberExpressionParser(
-                        this.errorCreator
-                    ).canAccept(token);
-                }
-                if (tokenHasType(token.type, [...spaceTokens])) {
-                    this.state = "operator";
+    public canAccept(token: Token): boolean {
+        switch (this.stage) {
+            case "awaiting first":
+                if (tokenHasType(token.type, ["(", ...spaceTokens]))
                     return true;
-                }
-            // If not we fall through to the operator stage
-            case "operator":
+            case "building first":
+                if (this.memParser.canAccept(token)) return true;
+                if (!this.firstElement)
+                    throw this.errorCreator(token)(
+                        "Unexpected token"
+                    );
+            case "awaiting operator":
+                return tokenHasType(token.type, [
+                    ")",
+                    ...spaceTokens,
+                    ...ComparisonOperators
+                ]);
+            case "awaiting second":
+                if (tokenHasType(token.type, [...spaceTokens, "("]))
+                    return true;
+                return new MemberExpressionParser(
+                    this.errorCreator
+                ).canAccept(token);
+            case "buidling second":
+                if (this.subParser) {
+                    if (this.subParser.canAccept(token)) return true;
+                } else if (this.memParser.canAccept(token))
+                    return true;
+            case "nextPart":
+                if (token.type === ")") return true;
+            case "awaiting operator":
                 return tokenHasType(token.type, [
                     ...ComparisonOperators,
                     ...spaceTokens
                 ]);
-            case "second":
-                if (this.subParser) {
-                    if (this.subParser.canAccept(token)) return true;
-                    if (token.type === ")") return true;
-                    return false;
-                }
-                if (token.type === "(") return true;
-                return new ComparisonExpressionParser(
-                    this.errorCreator
-                ).canAccept(token);
-            case "done":
-                return false;
         }
     }
 
-    private createSubParser(token: Token) {
-        if (token.type === "(") {
-            return new ComparisonExpressionParser(this.errorCreator);
-        } else {
-            return new MemberExpressionParser(this.errorCreator);
-        }
-    }
+    private getTokenEnd = (token: Token): number => {
+        if (token.type === "Keyword")
+            return token.location + token.value.length - 1;
+        return token.location + token.type.length - 1;
+    };
 
-    private getReturnValue(
-        token: Token,
-        error: (msg: string) => ParserError
-    ) {
-        const end = this.secondValue!.getEnd();
-        const { start } = this;
-        const position = { start, end };
-        switch (this.comparison) {
+    private exportExpression(token: Token | number) {
+        if (!this.operator) return this.firstElement!;
+        const end =
+            typeof token === "number"
+                ? token
+                : this.getTokenEnd(token);
+        switch (this.operator) {
             case "&&":
             case "||":
                 return new LogicalExpression(
-                    position,
-                    this.comparison,
-                    this.firstValue!,
-                    this.secondValue!
+                    {
+                        start: this.start,
+                        end
+                    },
+                    this.operator,
+                    this.firstElement!,
+                    this.secondElement!
+                );
+            case "is":
+            case "only":
+            case "isOnly":
+                return new IsExpression(
+                    {
+                        start: this.start,
+                        end
+                    },
+                    this.operator,
+                    this.firstElement!,
+                    this.secondElement!
                 );
             case "==":
             case "!=":
                 return new EqualityExpression(
-                    position,
-                    this.comparison,
-                    this.firstValue!,
-                    this.secondValue!
-                );
-            case undefined:
-                throw error("Internal Error");
-            case "is":
-            case "isOnly":
-            case "only":
-                return new IsExpression(
-                    position,
-                    this.comparison,
-                    this.firstValue!,
-                    this.secondValue!
+                    {
+                        start: this.start,
+                        end
+                    },
+                    this.operator,
+                    this.firstElement!,
+                    this.secondElement!
                 );
             default:
                 return new OrderExpression(
-                    position,
-                    this.comparison,
-                    this.firstValue!,
-                    this.secondValue!
+                    {
+                        start: this.start,
+                        end
+                    },
+                    this.operator,
+                    this.firstElement!,
+                    this.secondElement!
                 );
         }
     }

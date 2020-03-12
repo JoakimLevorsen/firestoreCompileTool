@@ -3,4 +3,4 @@ export {
     isBinaryExpression
 } from "./BinaryExpression";
 export * from "./comparison";
-export * from "./uniary";
+// export * from "./uniary";

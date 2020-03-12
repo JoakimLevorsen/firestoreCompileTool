@@ -3,6 +3,8 @@ import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
 import ComparisonExpressionParser from "../../../../src/parser/parsers/expression/ComparisonExpressionParser";
 import {
+    ComparisonOperator,
+    ComparisonOperators,
     EqualityExpression,
     IsExpression,
     LogicalExpression,
@@ -16,10 +18,6 @@ import Literal, {
     StringLiteral,
     TypeLiteral
 } from "../../../../src/parser/types/literal";
-import {
-    Operator,
-    Operators
-} from "../../../../src/parser/types/Operators";
 import SyntaxComponent, {
     Position
 } from "../../../../src/parser/types/SyntaxComponent";
@@ -56,7 +54,7 @@ const secondSet = (start: number) =>
 
 const constructorForCompType = (
     position: Position,
-    op: Operator,
+    op: ComparisonOperator,
     first: Literal | MemberExpression | Identifier,
     second: Literal | MemberExpression | Identifier
 ) => {
@@ -82,7 +80,7 @@ const constructorForCompType = (
 };
 
 const ComparisonTestSet = LiteralTestSet.map(first =>
-    Operators.map(comp =>
+    ComparisonOperators.map(comp =>
         // We add one more than the space, since the token start really happens after the space
         secondSet(first.expected.getEnd() + 1 + comp.length + 2).map(
             second => ({
@@ -100,6 +98,48 @@ const ComparisonTestSet = LiteralTestSet.map(first =>
     pV.forEach((_, i) => (pV[i] = pV[i].concat(v[i])));
     return pV;
 });
+
+const moreDifficultComparisons = [
+    {
+        input: "(a == true) && (z isOnly K)",
+        expected: new LogicalExpression(
+            { start: 0, end: 26 },
+            "&&",
+            new EqualityExpression(
+                { start: 0, end: 10 },
+                "==",
+                new Identifier(1, "a"),
+                new BooleanLiteral(6, true)
+            ),
+            new IsExpression(
+                { start: 15, end: 26 },
+                "isOnly",
+                new Identifier(16, "z"),
+                new Identifier(25, "K")
+            )
+        )
+    }
+    // TODO: Fix so this test is valid
+    // {
+    //     input: "a == true && z isOnly K",
+    //     expected: new LogicalExpression(
+    //         { start: 0, end: 22 },
+    //         "&&",
+    //         new EqualityExpression(
+    //             { start: 0, end: 8 },
+    //             "==",
+    //             new Identifier(0, "a"),
+    //             new BooleanLiteral(5, true)
+    //         ),
+    //         new IsExpression(
+    //             { start: 13, end: 22 },
+    //             "isOnly",
+    //             new Identifier(13, "z"),
+    //             new Identifier(22, "K")
+    //         )
+    //     )
+    // }
+];
 
 describe("ComparisonExpressionParser", () => {
     describe(`Running Literal tests`, () =>
@@ -163,6 +203,30 @@ describe("ComparisonExpressionParser", () => {
                         expect(equal).to.be.true;
                     }
                 });
+            })
+        ));
+    describe("Testing more difficult comparisons", () =>
+        moreDifficultComparisons.forEach(({ input, expected }) =>
+            it(`Testing ${input}`, () => {
+                let parsed;
+                try {
+                    const tokens = tokenize(input);
+                    const error = ParserErrorCreator(tokens);
+                    parsed = ParserRunner(
+                        tokens,
+                        new ComparisonExpressionParser(error)
+                    );
+                } catch (e) {
+                    // tslint:disable-next-line: no-console
+                    console.error("got error", e);
+                    throw e;
+                }
+                expect(parsed).to.not.be.null;
+                expect(parsed).to.be.instanceOf(SyntaxComponent);
+                if (parsed instanceof SyntaxComponent) {
+                    const equal = parsed.equals(expected);
+                    expect(equal).to.be.true;
+                }
             })
         ));
 });

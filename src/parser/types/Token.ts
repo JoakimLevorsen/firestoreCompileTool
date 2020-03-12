@@ -1,4 +1,4 @@
-import { ComparisonOperators, UniaryOperators } from "./expressions";
+import { ComparisonOperators } from "./expressions";
 
 const tokenTypes = [
     "(",
@@ -46,7 +46,6 @@ export type ValueType = typeof typeTokens[number];
 export const nonKeywordTokens = [
     ...tokenTypes,
     ...ComparisonOperators,
-    ...UniaryOperators,
     ...spaceTokens,
     ...wordTokens,
     ...typeTokens
