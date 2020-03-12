@@ -17,7 +17,8 @@ const auth: DatabaseLocation = {
             uid: [new TypeLiteral(-1, "string")],
             token: [new InterfaceLiteral({ start: -1, end: -1 }, {})]
         }
-    )
+    ),
+    optionalCast: true
 };
 
 export const intitialScope: Scope = {

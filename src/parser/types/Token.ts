@@ -39,7 +39,13 @@ export const wordTokens = [
     "match",
     "interface"
 ] as const;
-export const typeTokens = ["string", "boolean", "number"] as const;
+export const typeTokens = [
+    "string",
+    "boolean",
+    "number",
+    "null",
+    "TimeStamp"
+] as const;
 export type ValueType = typeof typeTokens[number];
 
 // We sort reverse alphabetically, so || comes before | in the list, and is not read as | and |

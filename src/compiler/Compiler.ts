@@ -9,6 +9,8 @@ import { Scope } from "./Scope";
 export interface DatabaseLocation {
     key: string;
     castAs?: InterfaceLiteral | TypeLiteral;
+    // The cast might be optional
+    optionalCast?: boolean;
     // We may have some shortcut children
     children?: { [index: string]: DatabaseLocation };
     // Do we need to do .data before accessing data?
@@ -47,12 +49,3 @@ export type Compiler<C extends SyntaxComponent> = (
     item: C,
     scope: Scope
 ) => { value?: string; scope: Scope };
-
-export const defaultScope: Scope = {
-    doc: {
-        key: "resource"
-    },
-    newDoc: {
-        key: "request.resource"
-    }
-};

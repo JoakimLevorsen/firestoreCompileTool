@@ -31,10 +31,16 @@ export const EqualityExpressionCompiler = (
         if (v instanceof Identifier) {
             const extracted = IdentifierCompiler(v, scope);
             if (
+                extracted instanceof TypeLiteral &&
+                extracted.value === "null"
+            )
+                return null;
+            if (
                 extracted instanceof InterfaceLiteral ||
                 extracted instanceof TypeLiteral ||
                 (isDatabaseLocation(extracted) &&
-                    extracted.castAs instanceof InterfaceLiteral)
+                    extracted.castAs instanceof InterfaceLiteral &&
+                    extracted.optionalCast !== true)
             )
                 throw new CompilerError(
                     v,
@@ -81,7 +87,10 @@ export const EqualityExpressionCompiler = (
             }
             return extracted;
         }
-        if (v instanceof InterfaceLiteral || v instanceof TypeLiteral)
+        if (
+            v instanceof InterfaceLiteral ||
+            (v instanceof TypeLiteral && v.value !== "null")
+        )
             throw new CompilerError(
                 v,
                 "Interfaces/Types cannot be compared with equality"
@@ -112,10 +121,11 @@ export const EqualityExpressionCompiler = (
 };
 
 const extractTypeAndValue = (
-    from: ComparisonExpression | Literal | DatabaseLocation,
+    from: ComparisonExpression | Literal | DatabaseLocation | null,
     input: EqualityExpression,
     scope: Scope
 ): { type: ValueType | "ANY"; value: string } => {
+    if (from === null) return { type: "null", value: "null" };
     if (from instanceof ComparisonExpression) {
         return {
             type: "boolean",
@@ -127,6 +137,8 @@ const extractTypeAndValue = (
         if (from instanceof BooleanLiteral) type = "boolean";
         else if (from instanceof StringLiteral) type = "string";
         else if (from instanceof NumericLiteral) type = "number";
+        else if (from instanceof TypeLiteral && from.value === "null")
+            return { type: "null", value: "null" };
         else
             throw new CompilerError(
                 from,
@@ -134,10 +146,13 @@ const extractTypeAndValue = (
             );
         return { type, value: NonTypeLiteralCompiler(from) };
     }
-    if (isInterfaceLiteralValues(from.castAs?.value))
+    if (isInterfaceLiteralValues(from.castAs?.value)) {
+        if (from.optionalCast)
+            return { type: "ANY", value: from.key };
         throw new CompilerError(
             input,
             "One of the values has multiple possible types, and can therefore not be compared"
         );
+    }
     return { type: from.castAs?.value ?? "ANY", value: from.key };
 };
