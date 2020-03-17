@@ -127,3 +127,4 @@ The next stages in development:
 1. ~~Math expressions like `+ - / * %`~~ ✔️
 1. More types like `array` and `map`
 1. Support for loops of iterations known at compile time.
+1. Support for functions
