@@ -58,8 +58,13 @@ export class ReturnStatementParser extends Parser {
         if (!this.hasGottonKeyword) {
             return tokenHasType(token, [...spaceTokens, "return"]);
         }
+        if (
+            !this.hasGottonKeyword ||
+            !this.hasGottenSpaceAfterKeyword
+        ) {
+            if (tokenHasType(token, [...spaceTokens])) return true;
+        }
         if (this.subParser.canAccept(token)) return true;
-        if (tokenHasType(token, [...spaceTokens])) return true;
         return false;
     }
 }

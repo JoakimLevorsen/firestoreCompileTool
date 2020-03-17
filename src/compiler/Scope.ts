@@ -1,4 +1,4 @@
-import { BinaryExpression } from "../parser/types/expressions";
+import { ComparisonExpression } from "../parser/types/expressions";
 import Literal, {
     InterfaceLiteral,
     TypeLiteral
@@ -6,7 +6,10 @@ import Literal, {
 import { DatabaseLocation } from "./Compiler";
 
 export interface Scope {
-    [index: string]: Literal | BinaryExpression | DatabaseLocation;
+    [index: string]:
+        | Literal
+        | ComparisonExpression
+        | DatabaseLocation;
 }
 
 const auth: DatabaseLocation = {

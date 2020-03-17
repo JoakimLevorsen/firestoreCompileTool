@@ -3,12 +3,14 @@ import {
     EqualityExpression,
     IsExpression,
     LogicalExpression,
+    MathExpression,
     OrderExpression
 } from "../../parser/types/expressions";
 import { Scope } from "../Scope";
 import { EqualityExpressionCompiler } from "./EqualityExpressionCompiler";
 import { IsExpressionCompiler } from "./IsExpressionCompiler";
 import { LogicalExpressionCompiler } from "./LogicalExpressionCompiler";
+import { MathExpressionCompiler } from "./MathExpressionCompiler";
 import { OrderExpressionCompiler } from "./OrderExpressionCompiler";
 
 export const ComparisonExpressionCompiler = (
@@ -23,6 +25,8 @@ export const ComparisonExpressionCompiler = (
         return EqualityExpressionCompiler(input, scope);
     if (input instanceof OrderExpression)
         return OrderExpressionCompiler(input, scope);
+    if (input instanceof MathExpression)
+        return MathExpressionCompiler(input, scope);
     throw new Error("Internal error");
 };
 

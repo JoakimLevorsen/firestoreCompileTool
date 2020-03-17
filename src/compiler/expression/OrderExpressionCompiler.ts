@@ -1,6 +1,7 @@
 import {
     ComparisonExpression,
     ComparisonType,
+    MathExpression,
     MemberExpression,
     OrderExpression
 } from "../../parser/types/expressions";
@@ -15,6 +16,7 @@ import CompilerError from "../CompilerError";
 import { IdentifierCompiler } from "../IdentifierCompiler";
 import { NonTypeLiteralCompiler } from "../literal";
 import { Scope } from "../Scope";
+import { MathExpressionCompiler } from "./MathExpressionCompiler";
 import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 
 export const OrderExpressionCompiler = (
@@ -28,13 +30,18 @@ export const OrderExpressionCompiler = (
     if (left instanceof StringLiteral) {
         return compileLeftString(left, right, input);
     }
-    if (left instanceof NumericLiteral) {
-        return compileLeftNumeric(left, right, input);
+    if (
+        left instanceof NumericLiteral ||
+        left instanceof MathExpression
+    ) {
+        return compileLeftNumeric(left, right, input, scope);
     }
     // This means left is a Database location, so depending on the castAs we'll compile
     const rightC =
         right instanceof Literal
             ? NonTypeLiteralCompiler(right)
+            : right instanceof MathExpression
+            ? MathExpressionCompiler(right, scope)
             : right;
     if (left.castAs === undefined) {
         // This means right is fine no matter what
@@ -67,7 +74,11 @@ export const OrderExpressionCompiler = (
 
 const compileLeftString = (
     left: StringLiteral,
-    right: NumericLiteral | StringLiteral | DatabaseLocation,
+    right:
+        | NumericLiteral
+        | StringLiteral
+        | DatabaseLocation
+        | MathExpression,
     input: OrderExpression
 ): string => {
     const [leftC, rightC] = [left, right].map(v =>
@@ -77,6 +88,7 @@ const compileLeftString = (
         return `${leftC} ${input.operator} ${rightC}`;
     if (
         right instanceof NumericLiteral ||
+        right instanceof MathExpression ||
         (right.castAs && right.castAs.value === "number")
     )
         throw new CompilerError(
@@ -87,14 +99,25 @@ const compileLeftString = (
 };
 
 const compileLeftNumeric = (
-    left: NumericLiteral,
-    right: NumericLiteral | StringLiteral | DatabaseLocation,
-    input: OrderExpression
+    left: NumericLiteral | MathExpression,
+    right:
+        | NumericLiteral
+        | StringLiteral
+        | DatabaseLocation
+        | MathExpression,
+    input: OrderExpression,
+    scope: Scope
 ): string => {
-    const [leftC, rightC] = [left, right].map(v =>
-        v instanceof Literal ? NonTypeLiteralCompiler(v) : v
-    );
-    if (right instanceof NumericLiteral)
+    const [leftC, rightC] = [left, right].map(v => {
+        if (v instanceof Literal) return NonTypeLiteralCompiler(v);
+        if (v instanceof MathExpression)
+            return MathExpressionCompiler(v, scope);
+        return v.key;
+    });
+    if (
+        right instanceof NumericLiteral ||
+        right instanceof MathExpression
+    )
         return `${leftC} ${input.operator} ${rightC}`;
     if (
         right instanceof StringLiteral ||
@@ -128,11 +151,13 @@ const extractType = (v: ComparisonType, scope: Scope) => {
     if (root instanceof Identifier) {
         root2 = IdentifierCompiler(root, scope);
     } else root2 = root;
-    if (root2 instanceof ComparisonExpression)
+    if (root2 instanceof ComparisonExpression) {
+        if (root2 instanceof MathExpression) return root2;
         throw new CompilerError(
             root2,
             "Cannot compare booleans with < or >"
         );
+    }
     if (root2 instanceof Literal) {
         if (
             root2 instanceof StringLiteral ||
