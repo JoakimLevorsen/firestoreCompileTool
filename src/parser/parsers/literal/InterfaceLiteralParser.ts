@@ -40,7 +40,7 @@ export class InterfaceLiteralParser extends LiteralParser {
         const error = this.errorCreator(token);
         switch (this.state) {
             case "nonOpen":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === "{") {
                     this.state = "awaitingName";
@@ -49,7 +49,7 @@ export class InterfaceLiteralParser extends LiteralParser {
                 throw error("Unexpected token");
             case "awaitingName":
                 if (
-                    tokenHasType(token.type, [
+                    tokenHasType(token, [
                         ...spaceTokens,
                         ...seperatorTokens
                     ])
@@ -73,7 +73,7 @@ export class InterfaceLiteralParser extends LiteralParser {
                 }
                 throw error("Unexpected token");
             case "awaitingColon":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === "?:" || token.type === ":") {
                     this.state = "awaitingType";
@@ -84,7 +84,7 @@ export class InterfaceLiteralParser extends LiteralParser {
             case "awaitingType": {
                 if (!this.subParser) {
                     // If this is a space we ignore it
-                    if (tokenHasType(token.type, [...spaceTokens]))
+                    if (tokenHasType(token, [...spaceTokens]))
                         return null;
                     // Since our LiteralExtractor will return immediately, we must account for this
                     const result = IdentifierOrLiteralExtractor(
@@ -128,12 +128,12 @@ export class InterfaceLiteralParser extends LiteralParser {
                         this.currentValueOptional
                     );
                 }
-                if (tokenHasType(token.type, [...seperatorTokens])) {
+                if (tokenHasType(token, [...seperatorTokens])) {
                     this.state = "awaitingName";
                     this.nextKey = undefined;
                     return null;
                 }
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 throw error("Unexpected token");
             case "closed":
@@ -144,20 +144,17 @@ export class InterfaceLiteralParser extends LiteralParser {
     public canAccept(token: Token): boolean {
         switch (this.state) {
             case "nonOpen":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "{"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "{"]);
             case "awaitingName":
                 return (
-                    tokenHasType(token.type, [
+                    tokenHasType(token, [
                         ...spaceTokens,
                         "}",
                         ...seperatorTokens
                     ]) || token.type === "Keyword"
                 );
             case "awaitingColon":
-                return tokenHasType(token.type, [
+                return tokenHasType(token, [
                     ...spaceTokens,
                     "?:",
                     ":"
@@ -168,7 +165,7 @@ export class InterfaceLiteralParser extends LiteralParser {
                     // If this subParser couldn't handle the result, we fall trough to the next case
                 } else {
                     return (
-                        tokenHasType(token.type, [
+                        tokenHasType(token, [
                             ...spaceTokens,
                             ...typeTokens,
                             "{"
@@ -176,7 +173,7 @@ export class InterfaceLiteralParser extends LiteralParser {
                     );
                 }
             case "awaitingSeperatorOrClose":
-                return tokenHasType(token.type, [
+                return tokenHasType(token, [
                     ...spaceTokens,
                     ...seperatorTokens,
                     "}",

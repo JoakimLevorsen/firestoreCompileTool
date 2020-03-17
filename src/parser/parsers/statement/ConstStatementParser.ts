@@ -7,7 +7,7 @@ import {
     ConstStatementValue
 } from "../../types/statements/ConstStatement";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
-import ExpressionGroupParser from "../expression/ExpressionGroupParser";
+import ExpressionParser from "../expression/ExpressionParser";
 import Parser from "../Parser";
 
 export class ConstStatementParser extends Parser {
@@ -20,12 +20,12 @@ export class ConstStatementParser extends Parser {
         | "parsing value" = "awaiting keyword";
     private name?: string;
     private value?: ConstStatementValue;
-    private subParser = ExpressionGroupParser(this.errorCreator);
+    private subParser = new ExpressionParser(this.errorCreator);
 
     public addToken(token: Token): ConstStatement | null {
         if (
             isNaN(this.start) &&
-            !tokenHasType(token.type, [...spaceTokens])
+            !tokenHasType(token, [...spaceTokens])
         )
             this.start = token.location;
         const error = this.errorCreator(token);
@@ -36,7 +36,7 @@ export class ConstStatementParser extends Parser {
                 this.state = "awaiting name";
                 return null;
             case "awaiting name":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "Keyword")
                     throw error("Unexpected token");
@@ -44,28 +44,27 @@ export class ConstStatementParser extends Parser {
                 this.state = "awaiting equals";
                 return null;
             case "awaiting equals":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "=")
                     throw error("Unexpected token");
                 this.state = "awaiting value";
                 return null;
             case "awaiting value":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
             case "parsing value":
                 this.state = "parsing value";
                 if (this.subParser.canAccept(token)) {
                     const value = this.subParser.addToken(token);
-                    if (value && value[0]) {
-                        const first = value[0];
+                    if (value) {
                         if (
-                            first instanceof Literal ||
-                            first instanceof Identifier ||
-                            first instanceof MemberExpression ||
-                            isBinaryExpression(first)
+                            value instanceof Literal ||
+                            value instanceof Identifier ||
+                            value instanceof MemberExpression ||
+                            isBinaryExpression(value)
                         ) {
-                            this.value = first;
+                            this.value = value;
                             const end =
                                 token.location +
                                 (token.type === "Keyword"
@@ -96,17 +95,14 @@ export class ConstStatementParser extends Parser {
             case "awaiting keyword":
                 return token.type === "const";
             case "awaiting name":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
                 return token.type === "Keyword";
             case "awaiting equals":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "="
-                ]);
+                return tokenHasType(token, [...spaceTokens, "="]);
             case "awaiting value":
                 // If this returns false, it might be because we should fall through to the next case, so we do that if we have a value
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
             case "parsing value":
                 if (this.subParser.canAccept(token)) return true;

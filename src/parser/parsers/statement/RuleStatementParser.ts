@@ -6,7 +6,7 @@ import {
     RuleStatement
 } from "../../types/statements";
 import { spaceTokens, Token, tokenHasType } from "../../types/Token";
-import ComparisonExpressionParser from "../expression/ComparisonExpressionParser";
+import ExpressionParser from "../expression/ExpressionParser";
 import Parser from "../Parser";
 import ParserGroup from "../ParserGroup";
 import { BlockStatementParser } from "./BlockStatementParser";
@@ -26,7 +26,7 @@ export class RuleStatementParser extends Parser {
     private body?: BlockStatement | BinaryExpression;
     private params: Array<string | undefined> = [];
     private subParser = new ParserGroup(
-        new ComparisonExpressionParser(this.errorCreator),
+        new ExpressionParser(this.errorCreator),
         new BlockStatementParser(this.errorCreator)
     );
 
@@ -36,7 +36,7 @@ export class RuleStatementParser extends Parser {
             this.start = token.location;
         switch (this.state) {
             case "awaiting header":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "Keyword")
                     throw error("Unexpected token");
@@ -46,7 +46,7 @@ export class RuleStatementParser extends Parser {
                 this.state = "awaiting nextOrOpen";
                 return null;
             case "awaiting nextOrOpen":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (
                     !(
@@ -61,13 +61,13 @@ export class RuleStatementParser extends Parser {
                 } else this.state = "awaiting params open";
                 return null;
             case "awaiting params open":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "(") throw error("Expected '('");
                 this.state = "awaiting param";
                 return null;
             case "awaiting param":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === ")") {
                     this.state = "awaiting arrow";
@@ -81,7 +81,7 @@ export class RuleStatementParser extends Parser {
                 } else this.params.push(undefined);
                 return null;
             case "awaiting param seperator":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === ",") {
                     this.state = "awaiting param";
@@ -93,7 +93,7 @@ export class RuleStatementParser extends Parser {
                 }
                 throw error("Expected ',' or ')'");
             case "awaiting arrow":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "=>") {
                     throw error("Expected => after parameters");
@@ -101,7 +101,7 @@ export class RuleStatementParser extends Parser {
                 this.state = "awaiting rule";
                 return null;
             case "awaiting rule":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
             case "building rule":
                 this.state = "building rule";
@@ -138,44 +138,32 @@ export class RuleStatementParser extends Parser {
     public canAccept(token: Token): boolean {
         switch (this.state) {
             case "awaiting header":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
                 if (token.type !== "Keyword") return false;
                 return RuleHeaders.some(h => h === token.value);
             case "awaiting nextOrOpen":
-                return tokenHasType(token.type, [
+                return tokenHasType(token, [
                     ...spaceTokens,
                     ",",
                     ":"
                 ]);
             case "awaiting params open":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "("
-                ]);
+                return tokenHasType(token, [...spaceTokens, "("]);
             case "awaiting param":
-                if (
-                    tokenHasType(token.type, [
-                        ...spaceTokens,
-                        "_",
-                        ")"
-                    ])
-                )
+                if (tokenHasType(token, [...spaceTokens, "_", ")"]))
                     return true;
                 return token.type === "Keyword";
             case "awaiting param seperator":
-                return tokenHasType(token.type, [
+                return tokenHasType(token, [
                     ...spaceTokens,
                     ",",
                     ")"
                 ]);
             case "awaiting arrow":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "=>"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "=>"]);
             case "awaiting rule":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
             case "building rule":
                 return (

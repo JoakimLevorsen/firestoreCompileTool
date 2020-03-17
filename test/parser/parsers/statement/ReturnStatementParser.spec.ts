@@ -41,7 +41,6 @@ const values = [
     {
         input: "a == true",
         expected: new EqualityExpression(
-            { start: offset, end: offset + 8 },
             "==",
             new Identifier(offset, "a"),
             new BooleanLiteral(offset + 5, true)

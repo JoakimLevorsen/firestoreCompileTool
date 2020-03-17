@@ -18,7 +18,7 @@ export class InterfaceStatementParser extends Parser {
     public addToken(token: Token): InterfaceStatement | null {
         if (
             isNaN(this.start) &&
-            !tokenHasType(token.type, [...spaceTokens])
+            !tokenHasType(token, [...spaceTokens])
         )
             this.start = token.location;
         const error = this.errorCreator(token);
@@ -29,7 +29,7 @@ export class InterfaceStatementParser extends Parser {
                 this.state = "awaiting name";
                 return null;
             case "awaiting name":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "Keyword")
                     throw error("Unexpected token");
@@ -37,7 +37,7 @@ export class InterfaceStatementParser extends Parser {
                 this.state = "awaiting value";
                 return null;
             case "awaiting value":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
             case "parsing value":
                 this.state = "parsing value";
@@ -74,11 +74,11 @@ export class InterfaceStatementParser extends Parser {
             case "awaiting keyword":
                 return token.type === "interface";
             case "awaiting name":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
                 return token.type === "Keyword";
             case "awaiting value":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
             case "parsing value":
                 if (this.subParser.canAccept(token)) return true;

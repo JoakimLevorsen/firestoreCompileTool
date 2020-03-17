@@ -12,8 +12,7 @@ export class IfStatement extends SyntaxComponent {
         // super has to be the first statement, so this turned kinda ugly
         super({
             start,
-            end:
-                start + (_alternate?.getEnd() ?? _consequent.getEnd())
+            end: start + (_alternate?.end ?? _consequent.end)
         });
     }
 

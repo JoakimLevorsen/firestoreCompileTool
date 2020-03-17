@@ -50,7 +50,7 @@ export default class FileWrapperParser extends Parser {
             }
             this.subParser = undefined;
         }
-        if (tokenHasType(token.type, [...spaceTokens])) return null;
+        if (tokenHasType(token, [...spaceTokens])) return null;
         if (token.type === "EOF") {
             return new FileWrapper(
                 token.location + 2,
@@ -86,7 +86,7 @@ export default class FileWrapperParser extends Parser {
         if (this.subParser) {
             if (this.subParser.canAccept(token)) return true;
         }
-        return tokenHasType(token.type, [
+        return tokenHasType(token, [
             ...spaceTokens,
             "match",
             "interface",

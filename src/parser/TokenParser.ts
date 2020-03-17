@@ -24,6 +24,11 @@ const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
             return { escaped: "/\\*", raw };
         case "*/":
             return { escaped: "\\*/", raw };
+        case "+":
+        case "-":
+        case "*":
+        case "/":
+            return { escaped: `\\${raw}`, raw };
         default:
             return { raw };
     }

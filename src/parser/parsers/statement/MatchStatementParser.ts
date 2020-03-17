@@ -31,7 +31,7 @@ export class MatchStatementParser extends Parser {
             this.start = token.location;
         switch (this.state) {
             case "awaiting keyword":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "match")
                     throw error("Unexpected token");
@@ -53,7 +53,7 @@ export class MatchStatementParser extends Parser {
                     throw error("Unexpected token");
                 this.state = "awaiting rule block open";
             case "awaiting rule block open":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "{")
                     throw error("Unexpected token");
@@ -61,7 +61,7 @@ export class MatchStatementParser extends Parser {
                 return null;
 
             case "awaiting rule":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === "}") {
                     this.state = "closed";
@@ -112,23 +112,17 @@ export class MatchStatementParser extends Parser {
     public canAccept(token: Token): boolean {
         switch (this.state) {
             case "awaiting keyword":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "match"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "match"]);
             case "parsing path":
                 // We fall through to the next case if this doesn't pass
                 if (this.pathParser.canAccept(token)) return true;
             case "awaiting rule block open":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "{"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "{"]);
             case "parsing rule":
                 // We fall back to awaiting rule if this doesn't work
                 if (this.subParser!.canAccept(token)) return true;
             case "awaiting rule":
-                if (tokenHasType(token.type, [...spaceTokens, "}"]))
+                if (tokenHasType(token, [...spaceTokens, "}"]))
                     return true;
                 if (token.type === "match") return true;
                 if (token.type !== "Keyword") return false;
@@ -156,7 +150,7 @@ class PathParser {
         const error = ec(token);
         switch (this.state) {
             case "awaiting start":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type !== "/")
                     throw error("Unexpected token");
@@ -195,10 +189,7 @@ class PathParser {
     public canAccept(token: Token): boolean {
         switch (this.state) {
             case "awaiting start":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "/"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "/"]);
             case "awaiting element":
                 return token.type === "Keyword" || token.type === "{";
             case "awaiting close":

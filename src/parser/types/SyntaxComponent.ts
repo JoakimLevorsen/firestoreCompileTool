@@ -19,7 +19,17 @@ export default abstract class SyntaxComponent {
         return this.internalEquals(other);
     }
 
-    public getEnd = () => this.position.end;
+    public get end() {
+        return this.position.end;
+    }
+
+    public set end(e: number) {
+        this.position.end = e;
+    }
+
+    public get start() {
+        return this.position.start;
+    }
 
     protected setEnd = (e: number) => (this.position.end = e);
 

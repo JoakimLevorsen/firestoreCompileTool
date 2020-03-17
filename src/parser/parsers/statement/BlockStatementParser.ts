@@ -17,7 +17,7 @@ export class BlockStatementParser extends Parser {
         const error = this.errorCreator(token);
         switch (this.state) {
             case "Unopened":
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return null;
                 if (token.type === "{") {
                     this.state = "Opened";
@@ -64,14 +64,11 @@ export class BlockStatementParser extends Parser {
     ): boolean {
         switch (this.state) {
             case "Unopened":
-                return tokenHasType(token.type, [
-                    ...spaceTokens,
-                    "{"
-                ]);
+                return tokenHasType(token, [...spaceTokens, "{"]);
             case "Opened":
                 if (this.subParser && this.subParser.canAccept(token))
                     return true;
-                if (tokenHasType(token.type, [...spaceTokens]))
+                if (tokenHasType(token, [...spaceTokens]))
                     return true;
                 if (
                     NonBlockStatementGroup(

@@ -34,7 +34,7 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 17, end: 42 },
+                    { start: 17, end: 43 },
                     ["read"],
                     { newDoc: "old" },
                     new MemberExpression(
@@ -59,7 +59,7 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 17, end: 50 },
+                    { start: 17, end: 51 },
                     ["update", "delete"],
                     {},
                     new MemberExpression(
@@ -84,17 +84,16 @@ const testSet = [
             ],
             [
                 new RuleStatement(
-                    { start: 19, end: 33 },
+                    { start: 19, end: 34 },
                     ["read"],
                     {},
                     new BooleanLiteral(30, true)
                 ),
                 new RuleStatement(
-                    { start: 37, end: 68 },
+                    { start: 37, end: 69 },
                     ["write"],
                     { newDoc: "doc" },
                     new EqualityExpression(
-                        { start: 53, end: 68 },
                         "==",
                         new MemberExpression(
                             { start: 53, end: 62 },
@@ -125,11 +124,10 @@ const testSet = [
                     ],
                     [
                         new RuleStatement(
-                            { start: 34, end: 72 },
+                            { start: 34, end: 73 },
                             ["read"],
                             { oldDoc: "doc" },
                             new IsExpression(
-                                { start: 52, end: 71 },
                                 "is",
                                 new Identifier(52, "doc"),
                                 new InterfaceLiteral(

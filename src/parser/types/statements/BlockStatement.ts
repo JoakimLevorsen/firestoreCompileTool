@@ -20,7 +20,7 @@ export class BlockStatement extends SyntaxComponent {
     }
 
     public addItem(item: BlockLine) {
-        this.setEnd(item.getEnd());
+        this.setEnd(item.end);
         this.body.push(item);
     }
 

@@ -45,7 +45,7 @@ export class StringLiteralParser extends LiteralParser {
         const { state } = this;
         if (state === "Open") return true;
         if (state === "Closed") return false;
-        if (tokenHasType(token.type, ['"', "'"])) return true;
+        if (tokenHasType(token, ['"', "'"])) return true;
         return false;
     }
 }

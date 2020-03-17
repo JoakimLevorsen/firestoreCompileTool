@@ -7,7 +7,7 @@ type ExportType = BinaryExpression | Identifier | BooleanLiteral;
 
 export class ReturnStatement extends SyntaxComponent {
     constructor(start: number, private _body: ExportType) {
-        super({ start, end: _body.getEnd() });
+        super({ start, end: _body.end });
     }
 
     public get body() {

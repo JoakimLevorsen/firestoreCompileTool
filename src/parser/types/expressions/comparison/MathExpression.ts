@@ -1,11 +1,11 @@
 import { ComparisonExpression, ComparisonType } from ".";
 
-export const OrderOperators = ["<", "<=", ">=", ">"] as const;
-export type OrderOperator = typeof OrderOperators[number];
+export const MathOperators = ["+", "-", "*", "/"] as const;
+export type MathOperator = typeof MathOperators[number];
 
-export class OrderExpression extends ComparisonExpression {
+export class MathExpression extends ComparisonExpression {
     constructor(
-        protected _operator: OrderOperator,
+        protected _operator: MathOperator,
         left: ComparisonType,
         right: ComparisonType
     ) {

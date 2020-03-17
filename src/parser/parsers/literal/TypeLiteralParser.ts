@@ -15,7 +15,7 @@ export class TypeLiteralParser extends LiteralParser {
         const error = this.errorCreator(token);
         if (this.hasReturned)
             throw error("Did not expect more tokens");
-        if (tokenHasType(token.type, [...typeTokens])) {
+        if (tokenHasType(token, [...typeTokens])) {
             this.hasReturned = true;
             return new TypeLiteral(
                 token.location,
@@ -29,6 +29,6 @@ export class TypeLiteralParser extends LiteralParser {
         token: import("../../types/Token").Token
     ): boolean {
         if (this.hasReturned) return false;
-        return tokenHasType(token.type, [...typeTokens]);
+        return tokenHasType(token, [...typeTokens]);
     }
 }

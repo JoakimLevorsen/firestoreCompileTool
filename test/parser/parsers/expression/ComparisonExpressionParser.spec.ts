@@ -1,13 +1,14 @@
 import { expect } from "chai";
 import "mocha";
 import ParserErrorCreator from "../../../../src/parser/ParserError";
-import ComparisonExpressionParser from "../../../../src/parser/parsers/expression/ComparisonExpressionParser";
+import ExpressionParser from "../../../../src/parser/parsers/expression/ExpressionParser";
 import {
     ComparisonOperator,
     ComparisonOperators,
     EqualityExpression,
     IsExpression,
     LogicalExpression,
+    MathExpression,
     MemberExpression,
     OrderExpression
 } from "../../../../src/parser/types/expressions";
@@ -18,9 +19,7 @@ import Literal, {
     StringLiteral,
     TypeLiteral
 } from "../../../../src/parser/types/literal";
-import SyntaxComponent, {
-    Position
-} from "../../../../src/parser/types/SyntaxComponent";
+import SyntaxComponent from "../../../../src/parser/types/SyntaxComponent";
 import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 import { MemberExpressionParserTestSet } from "./MemberExpressionParser.spec";
@@ -53,7 +52,6 @@ const secondSet = (start: number) =>
     });
 
 const constructorForCompType = (
-    position: Position,
     op: ComparisonOperator,
     first: Literal | MemberExpression | Identifier,
     second: Literal | MemberExpression | Identifier
@@ -61,32 +59,31 @@ const constructorForCompType = (
     switch (op) {
         case "!=":
         case "==":
-            return new EqualityExpression(
-                position,
-                op,
-                first,
-                second
-            );
+            return new EqualityExpression(op, first, second);
         case "&&":
         case "||":
-            return new LogicalExpression(position, op, first, second);
+            return new LogicalExpression(op, first, second);
         case "is":
         case "only":
         case "isOnly":
-            return new IsExpression(position, op, first, second);
+            return new IsExpression(op, first, second);
+        case "+":
+        case "-":
+        case "*":
+        case "/":
+            return new MathExpression(op, first, second);
         default:
-            return new OrderExpression(position, op, first, second);
+            return new OrderExpression(op, first, second);
     }
 };
 
 const ComparisonTestSet = LiteralTestSet.map(first =>
     ComparisonOperators.map(comp =>
         // We add one more than the space, since the token start really happens after the space
-        secondSet(first.expected.getEnd() + 1 + comp.length + 2).map(
+        secondSet(first.expected.end + 1 + comp.length + 2).map(
             second => ({
                 input: `${first.input} ${comp} ${second.input}`,
                 expected: constructorForCompType(
-                    { start: 0, end: second.expected.getEnd() },
                     comp,
                     first.expected,
                     second.expected
@@ -103,42 +100,36 @@ const moreDifficultComparisons = [
     {
         input: "(a == true) && (z isOnly K)",
         expected: new LogicalExpression(
-            { start: 0, end: 26 },
             "&&",
             new EqualityExpression(
-                { start: 0, end: 10 },
                 "==",
                 new Identifier(1, "a"),
                 new BooleanLiteral(6, true)
             ),
             new IsExpression(
-                { start: 15, end: 26 },
                 "isOnly",
                 new Identifier(16, "z"),
                 new Identifier(25, "K")
             )
         )
-    }
+    },
     // TODO: Fix so this test is valid
-    // {
-    //     input: "a == true && z isOnly K",
-    //     expected: new LogicalExpression(
-    //         { start: 0, end: 22 },
-    //         "&&",
-    //         new EqualityExpression(
-    //             { start: 0, end: 8 },
-    //             "==",
-    //             new Identifier(0, "a"),
-    //             new BooleanLiteral(5, true)
-    //         ),
-    //         new IsExpression(
-    //             { start: 13, end: 22 },
-    //             "isOnly",
-    //             new Identifier(13, "z"),
-    //             new Identifier(22, "K")
-    //         )
-    //     )
-    // }
+    {
+        input: "a == true && z isOnly K",
+        expected: new LogicalExpression(
+            "&&",
+            new EqualityExpression(
+                "==",
+                new Identifier(0, "a"),
+                new BooleanLiteral(5, true)
+            ),
+            new IsExpression(
+                "isOnly",
+                new Identifier(13, "z"),
+                new Identifier(22, "K")
+            )
+        )
+    }
 ];
 
 describe("ComparisonExpressionParser", () => {
@@ -149,7 +140,7 @@ describe("ComparisonExpressionParser", () => {
                 const error = ParserErrorCreator(tokens);
                 const actual = ParserRunner(
                     tokens,
-                    new ComparisonExpressionParser(error)
+                    new ExpressionParser(error)
                 );
                 expect(typeof actual).to.not.be.equal("string");
                 expect(actual).to.not.be.instanceOf(Array).and.not.be
@@ -170,7 +161,7 @@ describe("ComparisonExpressionParser", () => {
                 const error = ParserErrorCreator(tokens);
                 const parsed = ParserRunner(
                     tokens,
-                    new ComparisonExpressionParser(error)
+                    new ExpressionParser(error)
                 );
                 expect(parsed).to.not.be.null;
                 expect(parsed).to.be.instanceOf(SyntaxComponent);
@@ -189,7 +180,7 @@ describe("ComparisonExpressionParser", () => {
                         const error = ParserErrorCreator(tokens);
                         parsed = ParserRunner(
                             tokens,
-                            new ComparisonExpressionParser(error)
+                            new ExpressionParser(error)
                         );
                     } catch (e) {
                         // tslint:disable-next-line: no-console
@@ -214,7 +205,7 @@ describe("ComparisonExpressionParser", () => {
                     const error = ParserErrorCreator(tokens);
                     parsed = ParserRunner(
                         tokens,
-                        new ComparisonExpressionParser(error)
+                        new ExpressionParser(error)
                     );
                 } catch (e) {
                     // tslint:disable-next-line: no-console

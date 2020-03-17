@@ -40,7 +40,6 @@ const testSet = [
                         ["read"],
                         { newDoc: "doc" },
                         new IsExpression(
-                            { start: 63, end: 74 },
                             "isOnly",
                             new Identifier(63, "doc"),
                             new Identifier(74, "A")

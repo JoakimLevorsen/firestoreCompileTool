@@ -37,7 +37,7 @@ export class NumericLiteralParser extends LiteralParser {
 
     public canAccept(token: Token): boolean {
         const { bigNum, seperator, smallNum } = this.value;
-        if (!seperator && tokenHasType(token.type, [",", "."]))
+        if (!seperator && tokenHasType(token, [",", "."]))
             return true;
         if (!bigNum || !smallNum) {
             if (token.type === "Keyword" && !isNaN(+token.value)) {

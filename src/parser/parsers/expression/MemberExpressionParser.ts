@@ -129,7 +129,7 @@ export default class MemberExpressionParser extends Parser {
                 } else if (token.type === "[") {
                     this.firstElement = this.buildExpression(
                         this.lastExComputed,
-                        this.secondElement!.getEnd()
+                        this.secondElement!.end
                     );
                     this.bracketParser = new MemberExpressionParser(
                         this.errorCreator
@@ -186,7 +186,7 @@ export default class MemberExpressionParser extends Parser {
         new MemberExpression(
             {
                 start: this.start,
-                end: end ?? this.secondElement!.getEnd()
+                end: end ?? this.secondElement!.end
             },
             this.firstElement!,
             this.secondElement!,

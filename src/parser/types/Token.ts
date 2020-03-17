@@ -1,4 +1,8 @@
-import { ComparisonOperators } from "./expressions";
+import {
+    ComparisonOperator,
+    ComparisonOperators
+} from "./expressions";
+import { UnaryOperators } from "./unary";
 
 const tokenTypes = [
     "(",
@@ -52,17 +56,26 @@ export type ValueType = typeof typeTokens[number];
 export const nonKeywordTokens = [
     ...tokenTypes,
     ...ComparisonOperators,
+    ...UnaryOperators,
     ...spaceTokens,
     ...wordTokens,
     ...typeTokens
 ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
 export type nonKeywordTokens = typeof nonKeywordTokens[number];
 
+export type Operator = ComparisonOperator;
+export type OperatorToken = TypedToken<Operator>;
+
+export interface TypedToken<T extends nonKeywordTokens> {
+    type: T;
+    location: number;
+}
+
 export type Token =
-    | { type: nonKeywordTokens; location: number }
+    | TypedToken<nonKeywordTokens>
     | { type: "Keyword"; value: string; location: number };
 
 export const tokenHasType = (
-    type: nonKeywordTokens | "Keyword",
+    { type }: Token,
     types: nonKeywordTokens[]
 ) => types.some(t => type === t);
