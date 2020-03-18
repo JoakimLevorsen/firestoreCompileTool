@@ -1,6 +1,6 @@
-import { MemberExpression } from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
-import { ConstStatement } from "../../parser/types/statements";
+import { Identifier } from "../../types";
+import { MemberExpression } from "../../types/expressions";
+import { ConstStatement } from "../../types/statements";
 import { Compiler } from "../Compiler";
 import CompilerError from "../CompilerError";
 import { MemberExpressionCompiler } from "../expression/MemberExpressionCompiler";

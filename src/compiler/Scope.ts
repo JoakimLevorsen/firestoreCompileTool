@@ -1,9 +1,9 @@
-import { ComparisonExpression } from "../parser/types/expressions";
+import { DatabaseLocation } from ".";
+import { ComparisonExpression } from "../types/expressions/comparison";
 import Literal, {
     InterfaceLiteral,
     TypeLiteral
-} from "../parser/types/literal";
-import { DatabaseLocation } from "./Compiler";
+} from "../types/literals";
 
 export interface Scope {
     [index: string]:

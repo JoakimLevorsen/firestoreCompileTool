@@ -1,19 +1,15 @@
-import {
-    ComparisonExpression,
-    MemberExpression
-} from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
+import { DatabaseLocation, IdentifierCompiler, Scope } from "..";
+import { Identifier } from "../../types";
+import { MemberExpression } from "../../types/expressions";
+import { ComparisonExpression } from "../../types/expressions/comparison";
 import Literal, {
     BooleanLiteral,
     InterfaceLiteral,
     NumericLiteral,
     StringLiteral,
     TypeLiteral
-} from "../../parser/types/literal";
-import { DatabaseLocation } from "../Compiler";
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
-import { IdentifierCompiler } from "../IdentifierCompiler";
-import { Scope } from "../Scope";
 
 export const MemberExpressionCompiler = (
     item: MemberExpression,

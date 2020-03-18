@@ -1,5 +1,5 @@
-import { BooleanLiteral } from "../../parser/types/literal";
-import { IfStatement } from "../../parser/types/statements";
+import { BooleanLiteral } from "../../types/literals";
+import { IfStatement } from "../../types/statements";
 import { ComparisonExpressionCompiler } from "../expression";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
 import { Scope } from "../Scope";

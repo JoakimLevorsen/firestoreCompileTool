@@ -1,20 +1,25 @@
-import { ComparisonExpressionCompiler } from ".";
+import {
+    ComparisonExpressionCompiler,
+    MemberExpressionCompiler
+} from ".";
+import {
+    DatabaseLocation,
+    IdentifierCompiler,
+    isDatabaseLocation,
+    Scope
+} from "..";
+import { Identifier } from "../../types";
+import { MemberExpression } from "../../types/expressions";
 import {
     ComparisonExpression,
-    LogicalExpression,
-    MemberExpression
-} from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
+    LogicalExpression
+} from "../../types/expressions/comparison";
 import Literal, {
     BooleanLiteral,
     TypeLiteral
-} from "../../parser/types/literal";
-import { DatabaseLocation, isDatabaseLocation } from "../Compiler";
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
-import { IdentifierCompiler } from "../IdentifierCompiler";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
-import { Scope } from "../Scope";
-import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 
 export const LogicalExpressionCompiler = (
     input: LogicalExpression,

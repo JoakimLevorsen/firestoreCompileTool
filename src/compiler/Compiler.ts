@@ -1,10 +1,7 @@
-import {
-    InterfaceLiteral,
-    TypeLiteral
-} from "../parser/types/literal";
-import SyntaxComponent from "../parser/types/SyntaxComponent";
-import { ValueType } from "../parser/types/Token";
-import { Scope } from "./Scope";
+import { Scope } from ".";
+import { ValueType } from "../types";
+import { InterfaceLiteral, TypeLiteral } from "../types/literals";
+import SyntaxComponent from "../types/SyntaxComponent";
 
 export interface DatabaseLocation {
     key: string;

@@ -51,7 +51,7 @@ match /resturants/{resturant} {
     match /reviews/{review} {
         create: (newDoc) => {
             if newDoc isOnly Review {
-                return newDoc.user == newDoc.uid && newDoc.stars >= minStars;
+                return newDoc.user == newDoc.uid && newDoc.stars - 1 >= minStars;
             }
             return false;
         }

@@ -1,9 +1,9 @@
-import FileWrapper from "../parser/types/FileWrapper";
+import { FileWrapper } from "../types";
 import {
     ConstStatement,
     InterfaceStatement,
     MatchStatement
-} from "../parser/types/statements";
+} from "../types/statements";
 import { intitialScope } from "./Scope";
 import { ConstStatementCompiler } from "./statement/ConstStatementCompiler";
 import { InterfaceStatementCompiler } from "./statement/InterfaceStatementCompiler";

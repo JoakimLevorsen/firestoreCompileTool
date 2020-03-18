@@ -1,10 +1,19 @@
-import { ComparisonExpressionCompiler } from ".";
+import {
+    ComparisonExpressionCompiler,
+    MemberExpressionCompiler
+} from ".";
+import {
+    DatabaseLocation,
+    IdentifierCompiler,
+    isDatabaseLocation,
+    Scope
+} from "..";
+import { Identifier, ValueType } from "../../types";
+import { MemberExpression } from "../../types/expressions";
 import {
     ComparisonExpression,
-    EqualityExpression,
-    MemberExpression
-} from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
+    EqualityExpression
+} from "../../types/expressions/comparison";
 import Literal, {
     BooleanLiteral,
     InterfaceLiteral,
@@ -12,14 +21,9 @@ import Literal, {
     NumericLiteral,
     StringLiteral,
     TypeLiteral
-} from "../../parser/types/literal";
-import { ValueType } from "../../parser/types/Token";
-import { DatabaseLocation, isDatabaseLocation } from "../Compiler";
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
-import { IdentifierCompiler } from "../IdentifierCompiler";
 import { NonTypeLiteralCompiler } from "../literal";
-import { Scope } from "../Scope";
-import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 
 export const EqualityExpressionCompiler = (
     input: EqualityExpression,

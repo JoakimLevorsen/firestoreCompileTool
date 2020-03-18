@@ -1,5 +1,5 @@
+import { FileWrapperParser } from "./FileWrapperParser";
 import ParserErrorCreator from "./ParserError";
-import FileWrapperParser from "./parsers/FileWrapperParser";
 import { TokenParser } from "./TokenParser";
 
 const parse = (from: string) => {
@@ -15,3 +15,11 @@ const parse = (from: string) => {
 };
 
 export default parse;
+
+export * from "./FileWrapperParser";
+export * from "./IdentifierExtractor";
+export * from "./IdentifierOrLiteralExtractor";
+export * from "./Parser";
+export * from "./ParserError";
+export * from "./ParserGroup";
+export * from "./TokenParser";

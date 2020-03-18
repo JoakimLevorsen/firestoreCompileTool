@@ -1,13 +1,12 @@
-import { ComparisonExpression } from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
-import Literal, { BooleanLiteral } from "../../parser/types/literal";
-import { ReturnStatement } from "../../parser/types/statements";
+import { IdentifierCompiler, Scope } from "..";
+import { Identifier } from "../../types";
+import { ComparisonExpression } from "../../types/expressions/comparison";
+import Literal, { BooleanLiteral } from "../../types/literals";
+import { ReturnStatement } from "../../types/statements";
 import CompilerError from "../CompilerError";
 import { ComparisonExpressionCompiler } from "../expression";
-import { IdentifierCompiler } from "../IdentifierCompiler";
 import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
-import { Scope } from "../Scope";
 
 export const ReturnStatementCompiler = (
     item: ReturnStatement,

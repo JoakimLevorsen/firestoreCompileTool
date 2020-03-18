@@ -1,4 +1,4 @@
-import Identifier from "../parser/types/Identifier";
+import { Identifier } from "../types";
 import CompilerError from "./CompilerError";
 import { Scope } from "./Scope";
 

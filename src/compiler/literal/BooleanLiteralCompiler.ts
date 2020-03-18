@@ -1,4 +1,4 @@
-import { BooleanLiteral } from "../../parser/types/literal";
+import { BooleanLiteral } from "../../types/literals";
 import { LiteralCompiler } from "./LiteralCompiler";
 
 export const BooleanLiteralCompiler: LiteralCompiler<BooleanLiteral> = item =>

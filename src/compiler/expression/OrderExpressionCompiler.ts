@@ -1,23 +1,20 @@
+import { MathExpressionCompiler, MemberExpressionCompiler } from ".";
+import { DatabaseLocation, IdentifierCompiler, Scope } from "..";
+import { Identifier } from "../../types";
+import { MemberExpression } from "../../types/expressions";
 import {
     ComparisonExpression,
     ComparisonType,
     MathExpression,
-    MemberExpression,
     OrderExpression
-} from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
+} from "../../types/expressions/comparison";
 import Literal, {
     InterfaceLiteral,
     NumericLiteral,
     StringLiteral
-} from "../../parser/types/literal";
-import { DatabaseLocation } from "../Compiler";
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
-import { IdentifierCompiler } from "../IdentifierCompiler";
 import { NonTypeLiteralCompiler } from "../literal";
-import { Scope } from "../Scope";
-import { MathExpressionCompiler } from "./MathExpressionCompiler";
-import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 
 export const OrderExpressionCompiler = (
     input: OrderExpression,

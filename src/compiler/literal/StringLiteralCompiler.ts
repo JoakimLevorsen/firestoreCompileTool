@@ -1,4 +1,4 @@
-import { StringLiteral } from "../../parser/types/literal";
+import { StringLiteral } from "../../types/literals";
 import { LiteralCompiler } from "./LiteralCompiler";
 
 export const StringLiteralCompiler: LiteralCompiler<StringLiteral> = item =>

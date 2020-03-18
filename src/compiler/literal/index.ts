@@ -4,7 +4,7 @@ import Literal, {
     NumericLiteral,
     StringLiteral,
     TypeLiteral
-} from "../../parser/types/literal";
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { BooleanLiteralCompiler } from "./BooleanLiteralCompiler";
 import { LiteralCompiler } from "./LiteralCompiler";

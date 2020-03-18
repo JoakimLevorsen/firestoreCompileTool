@@ -5,12 +5,14 @@ import {
     LogicalExpression,
     MathExpression,
     OrderExpression
-} from "../../parser/types/expressions";
+} from "../../types/expressions/comparison";
 import { Scope } from "../Scope";
 import { EqualityExpressionCompiler } from "./EqualityExpressionCompiler";
+import { ExpressionCompiler } from "./ExpressionCompiler";
 import { IsExpressionCompiler } from "./IsExpressionCompiler";
 import { LogicalExpressionCompiler } from "./LogicalExpressionCompiler";
 import { MathExpressionCompiler } from "./MathExpressionCompiler";
+import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 import { OrderExpressionCompiler } from "./OrderExpressionCompiler";
 
 export const ComparisonExpressionCompiler = (
@@ -31,7 +33,11 @@ export const ComparisonExpressionCompiler = (
 };
 
 export {
-    LogicalExpressionCompiler,
+    EqualityExpressionCompiler,
+    ExpressionCompiler,
     IsExpressionCompiler,
-    EqualityExpressionCompiler
+    LogicalExpressionCompiler,
+    MathExpressionCompiler,
+    MemberExpressionCompiler,
+    OrderExpressionCompiler
 };

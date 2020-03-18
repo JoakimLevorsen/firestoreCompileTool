@@ -3,7 +3,7 @@ import {
     ConstStatement,
     InterfaceStatement,
     ReturnStatement
-} from "../../parser/types/statements";
+} from "../../types/statements";
 import CompilerError from "../CompilerError";
 import { Scope } from "../Scope";
 import { ConstStatementCompiler } from "./ConstStatementCompiler";

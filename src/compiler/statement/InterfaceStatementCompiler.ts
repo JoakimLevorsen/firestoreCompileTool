@@ -1,4 +1,4 @@
-import { InterfaceStatement } from "../../parser/types/statements";
+import { InterfaceStatement } from "../../types/statements";
 import { Compiler } from "../Compiler";
 import CompilerError from "../CompilerError";
 

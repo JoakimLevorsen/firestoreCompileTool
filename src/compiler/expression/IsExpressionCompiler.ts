@@ -1,17 +1,11 @@
-import {
-    IsExpression,
-    MemberExpression
-} from "../../parser/types/expressions";
-import Identifier from "../../parser/types/Identifier";
-import Literal, {
-    InterfaceLiteral
-} from "../../parser/types/literal";
-import { isDatabaseLocation } from "../Compiler";
+import { MemberExpressionCompiler } from ".";
+import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
+import { Identifier } from "../../types";
+import { MemberExpression } from "../../types/expressions";
+import { IsExpression } from "../../types/expressions/comparison";
+import Literal, { InterfaceLiteral } from "../../types/literals";
 import CompilerError from "../CompilerError";
-import { IdentifierCompiler } from "../IdentifierCompiler";
 import LiteralCompiler from "../literal";
-import { Scope } from "../Scope";
-import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 
 export const IsExpressionCompiler = (
     item: IsExpression,

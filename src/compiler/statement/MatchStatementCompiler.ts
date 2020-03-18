@@ -1,5 +1,5 @@
-import { TypeLiteral } from "../../parser/types/literal";
-import { MatchStatement } from "../../parser/types/statements";
+import { TypeLiteral } from "../../types/literals";
+import { MatchStatement } from "../../types/statements";
 import { Scope } from "../Scope";
 import { RuleStatementCompiler } from "./RuleStatementCompiler";
 

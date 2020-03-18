@@ -1,21 +1,21 @@
-import { ComparisonExpression } from "../../parser/types/expressions";
+import { BlockStatementCompiler } from ".";
+import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
+import { ComparisonExpression } from "../../types/expressions/comparison";
 import Literal, {
     BooleanLiteral,
     TypeLiteral
-} from "../../parser/types/literal";
+} from "../../types/literals";
 import {
     BlockStatement,
     RuleStatement
-} from "../../parser/types/statements";
-import { isDatabaseLocation } from "../Compiler";
+} from "../../types/statements";
 import CompilerError from "../CompilerError";
-import { ComparisonExpressionCompiler } from "../expression";
-import { MemberExpressionCompiler } from "../expression/MemberExpressionCompiler";
-import { IdentifierCompiler } from "../IdentifierCompiler";
+import {
+    ComparisonExpressionCompiler,
+    MemberExpressionCompiler
+} from "../expression";
 import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
-import { Scope } from "../Scope";
-import { BlockStatementCompiler } from "./BlockStatementCompiler";
 
 export const RuleStatementCompiler = (
     item: RuleStatement,

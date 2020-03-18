@@ -1,4 +1,4 @@
-import { nonKeywordTokens, Token } from "./types/Token";
+import { nonKeywordTokens, Token } from "../types/Token";
 
 const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
     switch (raw) {
