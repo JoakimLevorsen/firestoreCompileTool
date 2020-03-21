@@ -3,7 +3,7 @@
 import chalk from "chalk";
 import figlet from "figlet";
 import * as fs from "fs";
-import { FileWrapperCompiler } from "./compiler/FileWrapperCompiler";
+import compile from "./compiler";
 import { formatFile } from "./formatter";
 import parse from "./parser";
 
@@ -11,13 +11,14 @@ const [, , inputFile, outputFile] = process.argv;
 
 console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
 
-const compile = (input: string, output: string) => {
+const doCompile = (input: string, output: string, debug = false) => {
     const file = fs.readFileSync(input).toString();
 
     // const Oldb = extractBlock(file);
     const asp = parse(file);
     if (asp) {
-        const compiled = FileWrapperCompiler(asp);
+        const compiled = compile(asp, file, debug);
+        if (!compiled) return;
         fs.writeFileSync(output, formatFile(compiled));
         console.log(
             chalk.green(
@@ -44,7 +45,7 @@ if (
             fs.readFileSync("./kakao.json").toString()
         );
         if (data.input && data.output) {
-            compile(data.input, data.output);
+            doCompile(data.input, data.output);
         } else
             console.log(
                 chalk.red(
@@ -57,4 +58,4 @@ if (
                 "A path for input and output must be provided as arguments or in kakao.json."
             )
         );
-} else compile(inputFile, outputFile);
+} else doCompile(inputFile, outputFile);
