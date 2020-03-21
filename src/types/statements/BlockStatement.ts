@@ -3,12 +3,15 @@ import { ConstStatement } from "./ConstStatement";
 import { IfStatement } from "./IfStatement";
 import { InterfaceStatement } from "./InterfaceStatement";
 import { ReturnStatement } from "./ReturnStatement";
+import { CallExpression } from "../expressions/CallExpression";
 
 export type BlockLine =
     | ConstStatement
     | IfStatement
     | ReturnStatement
-    | InterfaceStatement;
+    | InterfaceStatement
+    // Se note in CallExpression.ts for why an expression is here
+    | CallExpression;
 
 export class BlockStatement extends SyntaxComponent {
     constructor(position: Position, private _body: BlockLine[] = []) {

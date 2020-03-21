@@ -3,12 +3,14 @@ import { MemberExpression } from "../expressions";
 import { BinaryExpression } from "../expressions/BinaryExpression";
 import Literal from "../literals";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
+import { CallExpression } from "../expressions/CallExpression";
 
 export type ConstStatementValue =
     | BinaryExpression
     | Identifier
     | Literal
-    | MemberExpression;
+    | MemberExpression
+    | CallExpression;
 
 export class ConstStatement extends SyntaxComponent {
     constructor(

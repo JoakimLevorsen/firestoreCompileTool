@@ -25,9 +25,9 @@ import {
 import Literal from "../../types/literals";
 import SyntaxComponent from "../../types/SyntaxComponent";
 import Stack from "../../utils/Stack";
-import LiteralParser from "../literal";
 import Parser from "../Parser";
-import MemberExpressionParser from "./MemberExpressionParser";
+import CallExpressionParser from "./CallExpressionParser";
+import { CallExpression } from "../../types/expressions/CallExpression";
 
 interface UnaryToken extends TypedToken<"-" | "!"> {
     unary: true;
@@ -70,9 +70,13 @@ export default class ExpressionParser extends Parser {
     private items: Array<
         SyntaxComponent | OperatorToken | GroupToken | UnaryToken
     > = [];
-    private subParser?: MemberExpressionParser | LiteralParser;
+    private subParser?: CallExpressionParser;
     // Since the other parsers return many times, we might have to ignore a couple of values along the way
-    private nextItem?: Identifier | Literal | MemberExpression;
+    private nextItem?:
+        | Identifier
+        | Literal
+        | MemberExpression
+        | CallExpression;
 
     public addToken(token: Token): SyntaxComponent | null {
         if (isNaN(this.start)) this.start = token.location;
@@ -92,39 +96,13 @@ export default class ExpressionParser extends Parser {
                     return null;
                 }
                 this.stage = "building item";
-                this.nextItem = undefined;
-                const result = IdentifierOrLiteralExtractor(
-                    token,
+                this.subParser = new CallExpressionParser(
                     this.errorCreator
                 );
-                if (result instanceof Parser) {
-                    this.subParser = result;
-                    return null;
-                }
-                if (result instanceof Literal) {
-                    // Since all of these are only ever one token, we can instantly move to the operator stage
-                    this.items.push(result);
-                    this.stage = "awaiting operator";
-                    return this.getResult();
-                }
-                if (result instanceof Identifier) {
-                    // This means this could be a member expression, so to be sure we add that parser
-                    this.subParser = new MemberExpressionParser(
-                        this.errorCreator
-                    );
-                    this.subParser.addToken(token);
-                    this.nextItem = result;
-                    return this.getResult(result);
-                }
-                this.subParser = result.parser;
-                this.nextItem = result.value;
-                try {
-                    // Return the right thing here
-                    // return shuntingYardExecuter()
-                } finally {
-                    // tslint:disable-next-line: no-unsafe-finally
-                    return this.getResult(this.nextItem);
-                }
+                const result = this.subParser.addToken(token);
+                this.nextItem = result ?? undefined;
+                if (this.items.length === 0) return result;
+                else return this.getResult(result ?? undefined);
             }
             case "building item": {
                 if (this.subParser!.canAccept(token)) {

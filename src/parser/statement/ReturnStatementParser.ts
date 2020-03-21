@@ -10,6 +10,7 @@ import { ReturnStatement } from "../../types/statements";
 import SyntaxComponent from "../../types/SyntaxComponent";
 import ExpressionParser from "../expression/ExpressionParser";
 import Parser from "../Parser";
+import { CallExpression } from "../../types/expressions/CallExpression";
 
 export class ReturnStatementParser extends Parser {
     private subParser = new ExpressionParser(this.errorCreator);
@@ -45,6 +46,7 @@ export class ReturnStatementParser extends Parser {
                 result &&
                 (result instanceof BooleanLiteral ||
                     result instanceof Identifier ||
+                    result instanceof CallExpression ||
                     isBinaryExpression(result))
             ) {
                 return new ReturnStatement(this.start, result);

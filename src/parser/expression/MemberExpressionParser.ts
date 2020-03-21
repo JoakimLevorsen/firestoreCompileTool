@@ -61,14 +61,15 @@ export default class MemberExpressionParser extends Parser {
                 this.firstElement = extracted.value;
                 this.stage = "building first";
                 return extracted.value;
-            case "building first": {
-                const returned = this.litParser!.addToken(token);
-                if (returned) {
-                    this.firstElement = returned;
-                    return returned;
+            case "building first":
+                if (this.litParser!.canAccept(token)) {
+                    const returned = this.litParser!.addToken(token);
+                    if (returned) {
+                        this.firstElement = returned;
+                        return returned;
+                    }
+                    return null;
                 }
-                return null;
-            }
             case "awaiting seperator":
                 if (token.type === "." || token.type === "?.") {
                     this.stage = "awaiting second";
