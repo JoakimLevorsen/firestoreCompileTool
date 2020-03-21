@@ -123,6 +123,7 @@ The next stages in development:
 1. ~~Uniary expressions like `!foo` or `-bar`~~ ✔️
 1. Print compiler errors more expressively
 1. More unit tests
+1. Stricter type usages regarding `?.` and `.`
 1. ~~Expression bubbeling (eg a == b && z isOnly A is understood as (a == b) && (z isOnly A))~~ ✔️
 1. ~~Math expressions like `+ - / * %`~~ ✔️
 1. More types like `array` and `map`

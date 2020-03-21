@@ -19,10 +19,10 @@ const mapFrom = (input: {
 
 const testSet = [
     {
-        input: `{a: TimeStamp}`,
+        input: `{a: timestamp}`,
         expected: new InterfaceLiteral(
             { start: 0, end: 13 },
-            mapFrom({ a: [new TypeLiteral(4, "TimeStamp")] })
+            mapFrom({ a: [new TypeLiteral(4, "timestamp")] })
         )
     },
     {
@@ -33,7 +33,7 @@ const testSet = [
         )
     },
     {
-        input: `{\na: string, 3?: TimeStamp | boolean\nb: {a: number}}`,
+        input: `{\na: string, 3?: timestamp | boolean\nb: {a: number}}`,
         expected: new InterfaceLiteral(
             { start: 0, end: 51 },
             mapFrom({
@@ -49,7 +49,7 @@ const testSet = [
             }),
             mapFrom({
                 3: [
-                    new TypeLiteral(17, "TimeStamp"),
+                    new TypeLiteral(17, "timestamp"),
                     new TypeLiteral(29, "boolean")
                 ]
             })

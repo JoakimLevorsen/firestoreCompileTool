@@ -1,11 +1,16 @@
 import { BlockStatement } from ".";
+import { MemberExpression } from "../expressions";
 import { BinaryExpression } from "../expressions/BinaryExpression";
+import { Identifier } from "../Identifier";
 import SyntaxComponent from "../SyntaxComponent";
 
 export class IfStatement extends SyntaxComponent {
     constructor(
         start: number,
-        private _test: BinaryExpression,
+        private _test:
+            | BinaryExpression
+            | Identifier
+            | MemberExpression,
         private _consequent: BlockStatement,
         private _alternate?: BlockStatement | IfStatement
     ) {

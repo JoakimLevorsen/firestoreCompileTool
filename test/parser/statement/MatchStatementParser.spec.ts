@@ -38,7 +38,7 @@ const testSet = [
                     ["read"],
                     { newDoc: "old" },
                     new MemberExpression(
-                        { start: 33, end: 42 },
+                        42,
                         new Identifier(33, "old"),
                         new Identifier(37, "public")
                     )
@@ -63,7 +63,7 @@ const testSet = [
                     ["update", "delete"],
                     {},
                     new MemberExpression(
-                        { start: 41, end: 50 },
+                        50,
                         new Identifier(41, "doc"),
                         new Identifier(45, "public")
                     )
@@ -96,7 +96,7 @@ const testSet = [
                     new EqualityExpression(
                         "==",
                         new MemberExpression(
-                            { start: 53, end: 62 },
+                            62,
                             new Identifier(53, "doc"),
                             new Identifier(57, "public")
                         ),

@@ -1,8 +1,14 @@
 import { BlockStatementParser } from ".";
-import { spaceTokens, Token, tokenHasType } from "../../types";
+import {
+    Identifier,
+    spaceTokens,
+    Token,
+    tokenHasType
+} from "../../types";
 import {
     BinaryExpression,
-    isBinaryExpression
+    isBinaryExpression,
+    MemberExpression
 } from "../../types/expressions";
 import { BlockStatement, IfStatement } from "../../types/statements";
 import SyntaxComponent from "../../types/SyntaxComponent";
@@ -20,7 +26,10 @@ export class IfStatementParser extends Parser {
     private conditionBuilder = new ExpressionParser(
         this.errorCreator
     );
-    private condition?: BinaryExpression;
+    private condition?:
+        | BinaryExpression
+        | Identifier
+        | MemberExpression;
     private blockBuilder = new BlockStatementParser(
         this.errorCreator
     );
@@ -46,7 +55,12 @@ export class IfStatementParser extends Parser {
                     const result = this.conditionBuilder.addToken(
                         token
                     );
-                    if (result && isBinaryExpression(result)) {
+                    if (
+                        result &&
+                        (isBinaryExpression(result) ||
+                            result instanceof Identifier ||
+                            result instanceof MemberExpression)
+                    ) {
                         this.condition = result;
                     }
                     return null;

@@ -3,7 +3,10 @@ import "mocha";
 import { ParserErrorCreator } from "../../../src/parser";
 import { IfStatementParser } from "../../../src/parser/statement";
 import { Identifier } from "../../../src/types";
-import { EqualityExpression } from "../../../src/types/expressions/comparison";
+import {
+    EqualityExpression,
+    MemberExpression
+} from "../../../src/types/expressions/comparison";
 import { BooleanLiteral } from "../../../src/types/literals";
 import {
     BlockStatement,
@@ -53,6 +56,24 @@ export const IfStatementTestSet = [
             ]),
             new BlockStatement({ start: 49, end: 85 }, [
                 new ReturnStatement(50, new BooleanLiteral(70, false))
+            ])
+        )
+    },
+    {
+        input: "if (a.b.c) {return true}",
+        expected: new IfStatement(
+            0,
+            new MemberExpression(
+                8,
+                new MemberExpression(
+                    6,
+                    new Identifier(4, "a"),
+                    new Identifier(6, "b")
+                ),
+                new Identifier(8, "c")
+            ),
+            new BlockStatement({ start: 11, end: 24 }, [
+                new ReturnStatement(12, new BooleanLiteral(19, true))
             ])
         )
     }

@@ -1,10 +1,10 @@
 import { Identifier } from "..";
 import Literal, { NumericLiteral, StringLiteral } from "../literals";
-import SyntaxComponent, { Position } from "../SyntaxComponent";
+import SyntaxComponent from "../SyntaxComponent";
 
 export class MemberExpression extends SyntaxComponent {
     constructor(
-        position: Position,
+        end: number,
         private _object: Literal | Identifier | MemberExpression,
         private _property:
             | NumericLiteral
@@ -14,7 +14,7 @@ export class MemberExpression extends SyntaxComponent {
         private _computed = false,
         private _optional = false
     ) {
-        super(position);
+        super({ start: _object.start, end });
     }
 
     public get object() {

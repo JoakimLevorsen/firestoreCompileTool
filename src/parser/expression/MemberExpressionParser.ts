@@ -183,10 +183,7 @@ export default class MemberExpressionParser extends Parser {
 
     private buildExpression = (computed = false, end?: number) =>
         new MemberExpression(
-            {
-                start: this.start,
-                end: end ?? this.secondElement!.end
-            },
+            end ?? this.secondElement!.end,
             this.firstElement!,
             this.secondElement!,
             computed,

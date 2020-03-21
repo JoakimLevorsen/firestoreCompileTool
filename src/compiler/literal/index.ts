@@ -10,6 +10,7 @@ import { BooleanLiteralCompiler } from "./BooleanLiteralCompiler";
 import { LiteralCompiler } from "./LiteralCompiler";
 import { NumericLiteralCompiler } from "./NumericLiteralCompiler";
 import { StringLiteralCompiler } from "./StringLiteralCompiler";
+import { TypeLiteralCompiler } from "./TypeLiteralCompiler";
 
 const LiteralCompiler = (item: Literal) => {
     if (item instanceof StringLiteral)
@@ -18,7 +19,7 @@ const LiteralCompiler = (item: Literal) => {
         return NumericLiteralCompiler(item);
     if (item instanceof BooleanLiteral)
         return BooleanLiteralCompiler(item);
-    if (item instanceof TypeLiteral) return item.value;
+    if (item instanceof TypeLiteral) return TypeLiteralCompiler(item);
     if (item instanceof InterfaceLiteral) return item.value;
     throw new CompilerError(item, "Unexpected outcome");
 };

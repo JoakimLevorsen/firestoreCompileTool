@@ -23,7 +23,7 @@ const testSet = [
             { start: 0, end: 16 },
             "a",
             new MemberExpression(
-                { start: 10, end: 16 },
+                16,
                 new Identifier(10, "foo"),
                 new Identifier(14, "bar")
             )
