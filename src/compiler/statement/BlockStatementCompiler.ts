@@ -5,7 +5,7 @@ import {
     ReturnStatement
 } from "../../types/statements";
 import CompilerError from "../CompilerError";
-import { Scope } from "../Scope";
+import { Scope } from "../scope";
 import { ConstStatementCompiler } from "./ConstStatementCompiler";
 import { IfStatementCompiler } from "./IfStatementCompiler";
 import { InterfaceStatementCompiler } from "./InterfaceStatementCompiler";

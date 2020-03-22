@@ -1,13 +1,15 @@
 import SyntaxComponent from "../SyntaxComponent";
 import { Identifier } from "../Identifier";
 import { MemberExpression } from "./comparison";
+import Literal from "../literals";
 
-// These are unique compared to JavaScript since they can act as Statements, this is since we can't modify variables at runtime, we don't have the ExpressionStatement
 export class CallExpression extends SyntaxComponent {
     constructor(
         end: number,
         private _target: Identifier | MemberExpression,
-        private _arguments: SyntaxComponent[] = []
+        private _arguments: Array<
+            Identifier | MemberExpression | Literal | CallExpression
+        > = []
     ) {
         super({ start: _target.start, end });
     }

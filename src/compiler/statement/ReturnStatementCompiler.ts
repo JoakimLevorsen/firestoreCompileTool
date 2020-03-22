@@ -7,6 +7,8 @@ import CompilerError from "../CompilerError";
 import { ComparisonExpressionCompiler } from "../expression";
 import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
 
 export const ReturnStatementCompiler = (
     item: ReturnStatement,
@@ -29,7 +31,11 @@ export const ReturnStatementCompiler = (
         }
         if (extracted instanceof ComparisonExpression)
             return ComparisonExpressionCompiler(extracted, scope);
+        if (extracted instanceof CallExpression)
+            return CallExpressionCompiler(extracted, scope).value;
         return extracted.key;
     }
+    if (body instanceof CallExpression)
+        return CallExpressionCompiler(body, scope).value;
     throw new CompilerError(item, "Internal error");
 };

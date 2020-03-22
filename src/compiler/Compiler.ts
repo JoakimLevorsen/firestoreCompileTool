@@ -24,7 +24,8 @@ export const isDatabaseLocation = (
                 k !== "key" &&
                 k !== "castAs" &&
                 k !== "children" &&
-                k !== "needsDotData"
+                k !== "needsDotData" &&
+                k !== "optionalCast"
         )
     )
         return false;

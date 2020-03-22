@@ -1,11 +1,9 @@
-import { MemberExpressionCompiler } from ".";
 import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
-import { Identifier } from "../../types";
-import { MemberExpression } from "../../types/expressions";
 import { IsExpression } from "../../types/expressions/comparison";
 import Literal, { InterfaceLiteral } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import LiteralCompiler from "../literal";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
 
 export const IsExpressionCompiler = (
     item: IsExpression,
@@ -110,27 +108,8 @@ const extractRules = (
 };
 
 const extractRight = (item: IsExpression, scope: Scope) => {
-    if (item.right instanceof MemberExpression) {
-        const extracted = MemberExpressionCompiler(item.right, scope);
-        if (extracted instanceof InterfaceLiteral) {
-            return extracted;
-        } else
-            throw new CompilerError(
-                item.right,
-                `An ${item.operator} operation can only be performed with an InterfaceLiteral as the right value`
-            );
-    }
-    if (item.right instanceof Identifier) {
-        const rightI = IdentifierCompiler(item.right, scope);
-        if (rightI instanceof InterfaceLiteral) {
-            return rightI;
-        } else
-            throw new CompilerError(
-                item,
-                `An ${item.operator} operation can only be performed with an InterfaceLiteral as the right value`
-            );
-    }
-    if (item.right instanceof InterfaceLiteral) return item.right;
+    const right = IdentifierMemberExtractor(item.right, scope);
+    if (right instanceof InterfaceLiteral) return right;
     else
         throw new CompilerError(
             item.right,
@@ -139,29 +118,9 @@ const extractRight = (item: IsExpression, scope: Scope) => {
 };
 
 const extractLeft = (item: IsExpression, scope: Scope) => {
-    if (item.left instanceof MemberExpression) {
-        const memberReturn = MemberExpressionCompiler(
-            item.left,
-            scope
-        );
-        if (isDatabaseLocation(memberReturn)) return memberReturn;
-        else
-            throw new CompilerError(
-                item.left,
-                `The left side of an ${item.operator} expression should be a reference to the database, otherwise it does not change for any document.`
-            );
-    }
-    if (item.left instanceof Identifier) {
-        const extracted = IdentifierCompiler(item.left, scope);
-        if (isDatabaseLocation(extracted)) return extracted;
-        else
-            throw new CompilerError(
-                item.left,
-                `The left side of an ${item.operator} expression should be a reference to the database, otherwise it does not change for any document.`
-            );
-    }
-    if (isDatabaseLocation(item.left)) {
-        return item.left;
+    const left = IdentifierMemberExtractor(item.left, scope);
+    if (isDatabaseLocation(left)) {
+        return left;
     } else
         throw new CompilerError(
             item.left,

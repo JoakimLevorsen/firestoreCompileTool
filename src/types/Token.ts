@@ -48,7 +48,9 @@ export const typeTokens = [
     "boolean",
     "number",
     "null",
-    "timestamp"
+    "timestamp",
+    "Map",
+    "Array"
 ] as const;
 export type ValueType = typeof typeTokens[number];
 

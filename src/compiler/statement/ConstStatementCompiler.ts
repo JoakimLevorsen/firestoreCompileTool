@@ -5,6 +5,7 @@ import { Compiler } from "../Compiler";
 import CompilerError from "../CompilerError";
 import { MemberExpressionCompiler } from "../expression/MemberExpressionCompiler";
 import { IdentifierCompiler } from "../IdentifierCompiler";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 
 export const ConstStatementCompiler: Compiler<ConstStatement> = (
     item,
@@ -19,6 +20,11 @@ export const ConstStatementCompiler: Compiler<ConstStatement> = (
         scope[item.name] = IdentifierCompiler(item.value, scope);
     } else if (item.value instanceof MemberExpression) {
         const extracted = MemberExpressionCompiler(item.value, scope);
+        if (extracted instanceof OutsideFunctionDeclaration)
+            throw new CompilerError(
+                item.value,
+                "Cannot assign function to constant"
+            );
         if (extracted instanceof Identifier) {
             scope[item.name] = IdentifierCompiler(extracted, scope);
         } else if (extracted instanceof Array) {

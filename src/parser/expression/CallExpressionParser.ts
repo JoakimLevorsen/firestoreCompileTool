@@ -73,7 +73,8 @@ export default class CallExpressionParser extends Parser {
                     return new CallExpression(
                         token.location,
                         this.target!,
-                        this.params
+                        // TO FIX
+                        this.params as Literal[]
                     );
                 }
             case "building param":
@@ -111,7 +112,8 @@ export default class CallExpressionParser extends Parser {
                     return new CallExpression(
                         token.location,
                         this.target!,
-                        this.params
+                        // TO FIX
+                        this.params as Literal[]
                     );
                 }
                 throw this.errorCreator(token)("Unexpected token");

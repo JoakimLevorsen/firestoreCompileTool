@@ -9,5 +9,7 @@ const rawValues: { [index: string]: string } = {
     boolean: "bool",
     number: "number",
     null: "null",
-    timestamp: "timestamp"
+    timestamp: "timestamp",
+    Array: "list",
+    Map: "map"
 };

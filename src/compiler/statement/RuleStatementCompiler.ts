@@ -16,6 +16,9 @@ import {
 } from "../expression";
 import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
 
 export const RuleStatementCompiler = (
     item: RuleStatement,
@@ -89,6 +92,11 @@ const extractRule = (
         }
         return extracted.key;
     }
+    if (extracted instanceof OutsideFunctionDeclaration)
+        throw new CompilerError(
+            extracted,
+            "Cannot use function as a return value, it must be a boolean"
+        );
     if (extracted.length !== 1)
         return "Can not return multiple types";
     const v = extracted[0];
@@ -105,6 +113,9 @@ const extractRule = (
                 "Can only return boolean values"
             );
         return NonTypeLiteralCompiler(deepExtracted);
+    }
+    if (deepExtracted instanceof CallExpression) {
+        return CallExpressionCompiler(deepExtracted, scope).value;
     }
     if (deepExtracted instanceof ComparisonExpression)
         return ComparisonExpressionCompiler(deepExtracted, scope);

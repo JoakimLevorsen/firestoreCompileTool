@@ -1,15 +1,5 @@
-import {
-    ComparisonExpressionCompiler,
-    MemberExpressionCompiler
-} from ".";
-import {
-    DatabaseLocation,
-    IdentifierCompiler,
-    isDatabaseLocation,
-    Scope
-} from "..";
-import { Identifier } from "../../types";
-import { MemberExpression } from "../../types/expressions";
+import { ComparisonExpressionCompiler } from ".";
+import { isDatabaseLocation, Scope } from "..";
 import {
     ComparisonExpression,
     LogicalExpression
@@ -20,20 +10,18 @@ import Literal, {
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "./CallExpressionCompiler";
 
 export const LogicalExpressionCompiler = (
     input: LogicalExpression,
     scope: Scope
 ): string => {
     // For this we just need to make sure no Interfaces or Types are involved, and check the comparison types return boolean values
-    let left: typeof input["left"] | DatabaseLocation = input.left;
-    let right: typeof input["right"] | DatabaseLocation = input.right;
-    if (left instanceof Identifier) {
-        left = IdentifierCompiler(left, scope);
-    }
-    if (right instanceof Identifier) {
-        right = IdentifierCompiler(right, scope);
-    }
+    const left = IdentifierMemberExtractor(input.left, scope);
+    const right = IdentifierMemberExtractor(input.right, scope);
     // Now we make sure the comparison isn't non boolean
     const [safeRight, safeLeft] = [right, left].map(v => {
         if (v instanceof Literal) {
@@ -44,21 +32,18 @@ export const LogicalExpressionCompiler = (
                 );
             return v;
         }
-        if (v instanceof MemberExpression) {
-            const extracted = MemberExpressionCompiler(v, scope);
-            if (
-                isDatabaseLocation(extracted) &&
-                (extracted.castAs === undefined ||
-                    (extracted.castAs instanceof TypeLiteral &&
-                        extracted.castAs.value === "boolean"))
-            )
-                return extracted;
-            if (!(extracted instanceof BooleanLiteral))
-                throw new CompilerError(
-                    v,
-                    `Only boolean values expected in ${input.operator} expression`
-                );
-            return extracted;
+        if (v instanceof OutsideFunctionDeclaration)
+            throw new CompilerError(
+                v,
+                "Cannot use function reference as value"
+            );
+        if (v instanceof CallExpression) {
+            const compiled = CallExpressionCompiler(v, scope);
+            if (compiled.returnType === "boolean") return compiled;
+            throw new CompilerError(
+                v,
+                "Cannot use non boolean return type in &&/|| expression"
+            );
         }
         if (isDatabaseLocation(v)) {
             if (
@@ -85,7 +70,8 @@ export const LogicalExpressionCompiler = (
             if (v instanceof BooleanLiteral) {
                 return BooleanLiteralCompiler(v);
             }
-            return v.key;
+            if (isDatabaseLocation(v)) return v.key;
+            return v.value;
         }
     );
     return `(${compiledLeft} ${input.operator} ${compiledRight})`;

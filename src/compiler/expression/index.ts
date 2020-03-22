@@ -6,7 +6,7 @@ import {
     MathExpression,
     OrderExpression
 } from "../../types/expressions/comparison";
-import { Scope } from "../Scope";
+import { Scope } from "../scope";
 import { EqualityExpressionCompiler } from "./EqualityExpressionCompiler";
 import { ExpressionCompiler } from "./ExpressionCompiler";
 import { IsExpressionCompiler } from "./IsExpressionCompiler";
