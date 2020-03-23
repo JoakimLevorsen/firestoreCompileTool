@@ -130,3 +130,7 @@ The next stages in development:
 1. More types like `array` and `map`
 1. Support for loops of iterations known at compile time.
 1. Support for functions
+1. `is` expression should also work for
+1. Add literal values as interface values
+1. `if (auth == null) return false` Causes stack overflow.
+1. Strings don't work in equality expressions: `doc.stage == "seeking talent"`
