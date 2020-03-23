@@ -4,7 +4,7 @@ import {
     InterfaceStatement,
     MatchStatement
 } from "../types/statements";
-import { intitialScope } from "./Scope";
+import { intitialScope } from "./scope";
 import { ConstStatementCompiler } from "./statement/ConstStatementCompiler";
 import { InterfaceStatementCompiler } from "./statement/InterfaceStatementCompiler";
 import { MatchStatementCompiler } from "./statement/MatchStatementCompiler";

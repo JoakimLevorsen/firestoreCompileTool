@@ -1,7 +1,4 @@
-import { MemberExpressionCompiler } from ".";
-import { DatabaseLocation, IdentifierCompiler, Scope } from "..";
-import { Identifier } from "../../types";
-import { MemberExpression } from "../../types/expressions";
+import { Scope } from "..";
 import {
     ComparisonExpression,
     ComparisonType,
@@ -13,6 +10,11 @@ import Literal, {
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { NumericLiteralCompiler } from "../literal/NumericLiteralCompiler";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "./CallExpressionCompiler";
+import { isDatabaseLocation } from "../Compiler";
 
 export const MathExpressionCompiler = (
     input: MathExpression,
@@ -25,58 +27,50 @@ export const MathExpressionCompiler = (
             return NumericLiteralCompiler(clean);
         if (clean instanceof MathExpression)
             return MathExpressionCompiler(clean, scope);
-        return clean.key;
+        if (isDatabaseLocation(clean)) return clean.key;
+        return clean.value;
     });
     return `${left} ${input.operator} ${right}`;
 };
 
-const cleanUpInputs = (
-    input: ComparisonType,
-    scope: Scope
-): NumericLiteral | MathExpression | DatabaseLocation => {
-    let root:
-        | Literal
-        | DatabaseLocation
-        | ComparisonExpression
-        | Identifier;
-    if (input instanceof MemberExpression) {
-        const extracted = MemberExpressionCompiler(input, scope);
-        if (extracted instanceof Array) {
-            if (extracted.length !== 1)
-                throw new CompilerError(
-                    input,
-                    "Multi value objects cannot be used for comparisons"
-                );
-            root = extracted[0];
-        } else root = extracted;
-    } else root = input;
-    let root2: Literal | DatabaseLocation | ComparisonExpression;
-    if (root instanceof Identifier) {
-        root2 = IdentifierCompiler(root, scope);
-    } else root2 = root;
-    if (root2 instanceof Literal) {
-        if (root2 instanceof NumericLiteral) return root2;
+const cleanUpInputs = (input: ComparisonType, scope: Scope) => {
+    const clean = IdentifierMemberExtractor(input, scope);
+    if (clean instanceof Literal) {
+        if (clean instanceof NumericLiteral) return clean;
         throw new CompilerError(
             input,
             "Can only compare numbers with numbers"
         );
     }
-    if (root2 instanceof ComparisonExpression) {
-        if (root2 instanceof MathExpression) return root2;
+    if (clean instanceof ComparisonExpression) {
+        if (clean instanceof MathExpression) return clean;
         throw new CompilerError(
             input,
             "Can not compare numbers and booleans"
         );
     }
-    if (root2.castAs === undefined) return root2;
-    if (root2.castAs instanceof InterfaceLiteral)
+    if (clean instanceof OutsideFunctionDeclaration)
+        throw new CompilerError(
+            clean,
+            "Cannot use function reference as value"
+        );
+    if (clean instanceof CallExpression) {
+        const compiled = CallExpressionCompiler(clean, scope);
+        if (compiled.returnType === "number") return compiled;
+        throw new CompilerError(
+            clean,
+            "Can not use non number in math expression"
+        );
+    }
+    if (clean.castAs === undefined) return clean;
+    if (clean.castAs instanceof InterfaceLiteral)
         throw new CompilerError(
             input,
             "Cannot compare interface with number"
         );
-    if (root2.castAs.value === "number") return root2;
+    if (clean.castAs.value === "number") return clean;
     throw new CompilerError(
         input,
-        `Cannot use math expression with ${root2.castAs.value}`
+        `Cannot use math expression with ${clean.castAs.value}`
     );
 };

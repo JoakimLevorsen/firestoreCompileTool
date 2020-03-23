@@ -1,6 +1,6 @@
 import { TypeLiteral } from "../../types/literals";
 import { MatchStatement } from "../../types/statements";
-import { Scope } from "../Scope";
+import { Scope } from "../scope";
 import { RuleStatementCompiler } from "./RuleStatementCompiler";
 
 export const MatchStatementCompiler = (

@@ -10,66 +10,60 @@ import Literal, {
     TypeLiteral
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { LiteralFunctions } from "../scope/literalFunctions";
+import SyntaxComponent from "../../types/SyntaxComponent";
 
 export const MemberExpressionCompiler = (
     item: MemberExpression,
     scope: Scope
-): Literal | DatabaseLocation | Array<Literal | Identifier> => {
-    let root:
-        | Literal
-        | Identifier
-        | ReturnType<typeof MemberExpressionCompiler>;
-    if (item.object instanceof MemberExpression) {
-        root = MemberExpressionCompiler(item.object, scope);
-    } else root = item.object;
-    let root2: Literal | ReturnType<typeof MemberExpressionCompiler>;
-    if (root instanceof Identifier) {
-        const extracted = IdentifierCompiler(root, scope);
-        // Since this is a member expression, we can discard all comparisons so it fits in idRoot
-        if (extracted instanceof ComparisonExpression)
-            throw new CompilerError(
-                root,
-                "Cannot access property of comparison"
+):
+    | Literal
+    | DatabaseLocation
+    | OutsideFunctionDeclaration
+    | (Literal | Identifier)[] => {
+    const root = IdentifierMemberExtractor(item.object, scope);
+    if (root instanceof OutsideFunctionDeclaration)
+        throw new CompilerError(
+            item.object,
+            "Functions do not have any children"
+        );
+    if (
+        root instanceof CallExpression ||
+        root instanceof ComparisonExpression
+    )
+        throw new Error("Feature to be added");
+    let root2: InterfaceLiteral | DatabaseLocation;
+    if (root instanceof Literal) {
+        if (root instanceof InterfaceLiteral) {
+            root2 = root;
+        } else if (root instanceof StringLiteral) {
+            console.log(
+                "Keys are",
+                Object.keys(LiteralFunctions).toString()
             );
-        root2 = extracted;
-    } else root2 = root;
-    let root3: Literal | DatabaseLocation;
-    if (root2 instanceof Array) {
-        // This means we might have multiple values, if only one is present we extract it
-        if (root2.length !== 1)
+            const litFunctions = LiteralFunctions.string;
+            const referenced =
+                litFunctions[(item.property as Identifier).name];
+            if (referenced) return referenced.withCallee(root);
             throw new CompilerError(
-                item.object,
-                "Cannot find member of a collection of multiple types"
+                item.property,
+                "Function not found"
             );
-        const v = root2[0];
-        if (v instanceof Identifier) {
-            const extracted = IdentifierCompiler(v, scope);
-            // Since this is a member expression, we can discard all comparisons so it fits in idRoot
-            if (extracted instanceof ComparisonExpression)
-                throw new CompilerError(
-                    v,
-                    "Cannot access property of comparison"
-                );
-            root3 = extracted;
-        } else root3 = v;
-    } else root3 = root2;
-    let root4: InterfaceLiteral | DatabaseLocation;
-    if (root3 instanceof Literal) {
-        if (root3 instanceof InterfaceLiteral) {
-            root4 = root3;
         } else
             throw new CompilerError(
-                root3,
+                root,
                 "Members of Literals of non interfaces don't exist yet."
             );
-    } else root4 = root3;
+    } else root2 = root;
     // Now we have the object ready to find the child of.
     // If this expression isn't computed it's easy
     if (!item.computed) {
         // This means the property is a string, but saved in an Identifier
         const propName = (item.property as Identifier).name;
         return extractValueForProperty(
-            root4,
+            root2,
             item.optional,
             propName,
             item
@@ -78,7 +72,7 @@ export const MemberExpressionCompiler = (
         // This means we have to extract the property
         const prop = extractProperty(item.property, scope);
         return extractValueForProperty(
-            root4,
+            root2,
             item.optional,
             prop,
             item
@@ -119,11 +113,24 @@ const extractValueForProperty = (
             object.key += `.${key}`;
             return object;
         }
-        if (object.castAs instanceof TypeLiteral)
+        if (object.castAs instanceof TypeLiteral) {
+            const litFunctions =
+                LiteralFunctions[object.castAs.value];
+            if (litFunctions) {
+                const referenced = litFunctions[key].withCallee(
+                    item.object as Literal
+                );
+                if (referenced) return referenced;
+                throw new CompilerError(
+                    item.property,
+                    "Function not found"
+                );
+            }
             throw new CompilerError(
                 item.property,
                 "Members of literals do not exist yet"
             );
+        }
         // Now we examine the InterfaceLiteral it was cast as
         if (item.optional) {
             if (object.castAs.optionals.has(key)) {
@@ -178,7 +185,6 @@ const extractProperty = (
         | StringLiteral
         | MemberExpression
         | DatabaseLocation;
-
     if (item instanceof Identifier) {
         const extracted = IdentifierCompiler(item, scope);
         if (extracted instanceof ComparisonExpression)
@@ -237,6 +243,8 @@ const extractProperty = (
                 "Only strings and numbers can be used for accessing properties"
             );
         }
+        if (extracted instanceof OutsideFunctionDeclaration)
+            throw new CompilerError(item, "Internal error");
         // Now if this database location isn't cast we assume this is okay
         // TODO: After 'as' expression has been added, this loophole should be closed
         if (extracted.castAs === undefined) return extracted;
@@ -272,4 +280,37 @@ const extractProperty = (
         item,
         "Only strings and numbers can be used for accessing properties"
     );
+};
+
+// This is kinda bad, but to avoid a circular import this is a clone of the IdentifierMemberExtractor function
+
+const IdentifierMemberExtractor = <S extends SyntaxComponent>(
+    input: Identifier | MemberExpression | S,
+    scope: Scope
+):
+    | Literal
+    | DatabaseLocation
+    | ComparisonExpression
+    | CallExpression
+    | OutsideFunctionDeclaration
+    | S => {
+    if (input instanceof MemberExpression) {
+        const x = MemberExpressionCompiler(input, scope);
+        if (x instanceof Array) {
+            if (x.length === 1) {
+                if (x[0] instanceof Identifier)
+                    return IdentifierCompiler(x[0], scope);
+                else return x[0];
+            } else
+                throw new CompilerError(
+                    input,
+                    "Item has multiple values"
+                );
+        }
+        return x;
+    }
+    if (input instanceof Identifier) {
+        return IdentifierCompiler(input, scope);
+    }
+    return input;
 };

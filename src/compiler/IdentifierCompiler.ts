@@ -1,6 +1,6 @@
 import { Identifier } from "../types";
 import CompilerError from "./CompilerError";
-import { Scope } from "./Scope";
+import { Scope } from "./scope";
 
 export const IdentifierCompiler = (
     item: Identifier,

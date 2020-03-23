@@ -2,12 +2,18 @@ import { expect } from "chai";
 import "mocha";
 import { ParserErrorCreator } from "../../../src/parser";
 import { BlockStatementParser } from "../../../src/parser/statement";
-import { BooleanLiteral } from "../../../src/types/literals";
+import {
+    BooleanLiteral,
+    StringLiteral
+} from "../../../src/types/literals";
 import {
     BlockStatement,
     ReturnStatement
 } from "../../../src/types/statements";
 import ParserRunner, { tokenize } from "../ParserRunner";
+import { CallExpression } from "../../../src/types/expressions/CallExpression";
+import { MemberExpression } from "../../../src/types/expressions";
+import { Identifier } from "../../../src/types";
 
 export const BlockTestSet = [
     {
@@ -16,6 +22,23 @@ export const BlockTestSet = [
     }`,
         expected: new BlockStatement({ start: 0, end: 27 }, [
             new ReturnStatement(1, new BooleanLiteral(17, true))
+        ])
+    },
+    {
+        input: "{return 'test'.datch('2')}",
+        expected: new BlockStatement({ start: 0, end: 26 }, [
+            new ReturnStatement(
+                1,
+                new CallExpression(
+                    24,
+                    new MemberExpression(
+                        19,
+                        new StringLiteral(8, "test"),
+                        new Identifier(15, "datch")
+                    ),
+                    [new StringLiteral(21, "2")]
+                )
+            )
         ])
     }
 ];

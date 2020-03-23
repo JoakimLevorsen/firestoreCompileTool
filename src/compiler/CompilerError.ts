@@ -6,7 +6,7 @@ export default class CompilerError extends Error {
         private _item: SyntaxComponent,
         private _msg: string
     ) {
-        super(`Got error ${_msg} on ${_item}`);
+        super(`Got error ${_msg} on ${JSON.stringify(_item)}`);
     }
 
     public get item() {

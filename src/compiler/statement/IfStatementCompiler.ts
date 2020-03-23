@@ -16,8 +16,11 @@ import {
 } from "../expression";
 import { IdentifierCompiler } from "../IdentifierCompiler";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
-import { Scope } from "../Scope";
+import { Scope } from "../scope";
 import { BlockStatementCompiler } from "./BlockStatementCompiler";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
 
 export const IfStatementCompiler = (
     item: IfStatement,
@@ -47,6 +50,11 @@ export const IfStatementCompiler = (
                 item.test,
                 scope
             );
+            if (internal instanceof OutsideFunctionDeclaration)
+                throw new CompilerError(
+                    internal,
+                    "Can only use boolean values as tests, not functions"
+                );
             if (internal instanceof Array) {
                 if (internal.length === 1) memFree = internal[0];
                 else
@@ -59,6 +67,7 @@ export const IfStatementCompiler = (
         let identFree:
             | Literal
             | DatabaseLocation
+            | CallExpression
             | ComparisonExpression;
         if (memFree instanceof Identifier) {
             identFree = IdentifierCompiler(memFree, scope);
@@ -73,6 +82,8 @@ export const IfStatementCompiler = (
                 );
         } else if (identFree instanceof ComparisonExpression) {
             test = ComparisonExpressionCompiler(identFree, scope);
+        } else if (identFree instanceof CallExpression) {
+            test = CallExpressionCompiler(identFree, scope).value;
         } else {
             if (!identFree.castAs)
                 test = identFree.needsDotData

@@ -1,15 +1,6 @@
-import {
-    ComparisonExpressionCompiler,
-    MemberExpressionCompiler
-} from ".";
-import {
-    DatabaseLocation,
-    IdentifierCompiler,
-    isDatabaseLocation,
-    Scope
-} from "..";
-import { Identifier, ValueType } from "../../types";
-import { MemberExpression } from "../../types/expressions";
+import { ComparisonExpressionCompiler } from ".";
+import { DatabaseLocation, isDatabaseLocation, Scope } from "..";
+import { ValueType } from "../../types";
 import {
     ComparisonExpression,
     EqualityExpression
@@ -24,6 +15,10 @@ import Literal, {
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { NonTypeLiteralCompiler } from "../literal";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
+import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
+import { CallExpression } from "../../types/expressions/CallExpression";
+import { CallExpressionCompiler } from "./CallExpressionCompiler";
 
 export const EqualityExpressionCompiler = (
     input: EqualityExpression,
@@ -32,74 +27,26 @@ export const EqualityExpressionCompiler = (
     // For equality, we need to make sure we have no InterfaceLiterals or TypeLiterals, and that comparison types are compatible.
     // First we check for no Interfaces
     const [left, right] = [input.left, input.right].map(v => {
-        if (v instanceof Identifier) {
-            const extracted = IdentifierCompiler(v, scope);
-            if (
-                extracted instanceof TypeLiteral &&
-                extracted.value === "null"
-            )
-                return null;
-            if (
-                extracted instanceof InterfaceLiteral ||
-                extracted instanceof TypeLiteral ||
-                (isDatabaseLocation(extracted) &&
-                    extracted.castAs instanceof InterfaceLiteral &&
-                    extracted.optionalCast !== true)
-            )
-                throw new CompilerError(
-                    v,
-                    "Interfaces/Types cannot be compared with equality"
-                );
-            return extracted;
-        }
-        if (v instanceof MemberExpression) {
-            const extracted = MemberExpressionCompiler(v, scope);
-            if (
-                extracted instanceof InterfaceLiteral ||
-                extracted instanceof TypeLiteral
-            )
-                throw new CompilerError(
-                    v,
-                    "Interfaces/Types cannot be compared with equality"
-                );
-            if (extracted instanceof Array) {
-                if (extracted.length !== 1)
-                    throw new CompilerError(
-                        v,
-                        "Cannot do comparison with multiple types"
-                    );
-                const deep = extracted[0];
-                if (deep instanceof Identifier) {
-                    const subExtracted = IdentifierCompiler(
-                        deep,
-                        scope
-                    );
-                    if (
-                        subExtracted instanceof InterfaceLiteral ||
-                        subExtracted instanceof TypeLiteral ||
-                        (isDatabaseLocation(subExtracted) &&
-                            subExtracted.castAs instanceof
-                                InterfaceLiteral)
-                    )
-                        throw new CompilerError(
-                            v,
-                            "Interfaces/Types cannot be compared with equality"
-                        );
-                    return subExtracted;
-                }
-                return deep;
-            }
-            return extracted;
-        }
-        if (
-            v instanceof InterfaceLiteral ||
-            (v instanceof TypeLiteral && v.value !== "null")
-        )
+        const nonIden = IdentifierMemberExtractor(v, scope);
+        if (nonIden instanceof ComparisonExpression) return nonIden;
+        if (nonIden instanceof OutsideFunctionDeclaration)
             throw new CompilerError(
                 v,
+                "Function ref not usable as value"
+            );
+        if (nonIden instanceof CallExpression) {
+            return CallExpressionCompiler(nonIden, scope);
+        }
+        if (
+            nonIden instanceof InterfaceLiteral ||
+            (nonIden instanceof TypeLiteral &&
+                nonIden.value !== "null")
+        )
+            throw new CompilerError(
+                nonIden,
                 "Interfaces/Types cannot be compared with equality"
             );
-        return v;
+        return nonIden;
     });
 
     // Now we compile the two sides, and compare their types
@@ -125,7 +72,12 @@ export const EqualityExpressionCompiler = (
 };
 
 const extractTypeAndValue = (
-    from: ComparisonExpression | Literal | DatabaseLocation | null,
+    from:
+        | ComparisonExpression
+        | Literal
+        | DatabaseLocation
+        | ReturnType<typeof CallExpressionCompiler>
+        | null,
     input: EqualityExpression,
     scope: Scope
 ): { type: ValueType | "ANY"; value: string } => {
@@ -150,13 +102,16 @@ const extractTypeAndValue = (
             );
         return { type, value: NonTypeLiteralCompiler(from) };
     }
-    if (isInterfaceLiteralValues(from.castAs?.value)) {
-        if (from.optionalCast)
-            return { type: "ANY", value: from.key };
-        throw new CompilerError(
-            input,
-            "One of the values has multiple possible types, and can therefore not be compared"
-        );
+    if (isDatabaseLocation(from)) {
+        if (isInterfaceLiteralValues(from.castAs?.value)) {
+            if (from.optionalCast)
+                return { type: "ANY", value: from.key };
+            throw new CompilerError(
+                input,
+                "One of the values has multiple possible types, and can therefore not be compared"
+            );
+        }
+        return { type: from.castAs?.value ?? "ANY", value: from.key };
     }
-    return { type: from.castAs?.value ?? "ANY", value: from.key };
+    return { type: from.returnType, value: from.value };
 };

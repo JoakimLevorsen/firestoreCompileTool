@@ -1,7 +1,4 @@
-import { MemberExpressionCompiler } from ".";
 import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
-import { Identifier } from "../../types";
-import { MemberExpression } from "../../types/expressions";
 import { IsExpression } from "../../types/expressions/comparison";
 import Literal, {
     InterfaceLiteral,
@@ -137,29 +134,9 @@ const extractRight = (item: IsExpression, scope: Scope) => {
 };
 
 const extractLeft = (item: IsExpression, scope: Scope) => {
-    if (item.left instanceof MemberExpression) {
-        const memberReturn = MemberExpressionCompiler(
-            item.left,
-            scope
-        );
-        if (isDatabaseLocation(memberReturn)) return memberReturn;
-        else
-            throw new CompilerError(
-                item.left,
-                `The left side of an ${item.operator} expression should be a reference to the database, otherwise it does not change for any document.`
-            );
-    }
-    if (item.left instanceof Identifier) {
-        const extracted = IdentifierCompiler(item.left, scope);
-        if (isDatabaseLocation(extracted)) return extracted;
-        else
-            throw new CompilerError(
-                item.left,
-                `The left side of an ${item.operator} expression should be a reference to the database, otherwise it does not change for any document.`
-            );
-    }
-    if (isDatabaseLocation(item.left)) {
-        return item.left;
+    const left = IdentifierMemberExtractor(item.left, scope);
+    if (isDatabaseLocation(left)) {
+        return left;
     } else
         throw new CompilerError(
             item.left,

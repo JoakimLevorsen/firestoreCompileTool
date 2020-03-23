@@ -3,12 +3,14 @@ import { MemberExpression } from "../../expressions";
 import Literal from "../../literals";
 import SyntaxComponent, { Position } from "../../SyntaxComponent";
 import { ComparisonOperator } from "./ComparisonOperators";
+import { CallExpression } from "../CallExpression";
 
 export type ComparisonType =
     | Literal
     | Identifier
     | ComparisonExpression
-    | MemberExpression;
+    | MemberExpression
+    | CallExpression;
 
 export const isComparisonType = (
     input: any
@@ -16,7 +18,8 @@ export const isComparisonType = (
     input instanceof Literal ||
     input instanceof Identifier ||
     input instanceof ComparisonExpression ||
-    input instanceof MemberExpression;
+    input instanceof MemberExpression ||
+    input instanceof CallExpression;
 
 export abstract class ComparisonExpression extends SyntaxComponent {
     constructor(
