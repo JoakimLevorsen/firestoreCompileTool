@@ -3,15 +3,20 @@ import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
 import { Identifier } from "../../types";
 import { MemberExpression } from "../../types/expressions";
 import { IsExpression } from "../../types/expressions/comparison";
-import Literal, { InterfaceLiteral } from "../../types/literals";
+import Literal, {
+    InterfaceLiteral,
+    TypeLiteral
+} from "../../types/literals";
 import CompilerError from "../CompilerError";
 import LiteralCompiler from "../literal";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
+import { TypeLiteralCompiler } from "../literal/TypeLiteralCompiler";
 
 export const IsExpressionCompiler = (
     item: IsExpression,
     scope: Scope
 ) => {
-    // First we make sure the Right value is an interfaceLiteral/interfaceValue
+    // First we make sure the Right value is an interfaceLiteral/interfaceValue/typeLiteral
     const rightValue = extractRight(item, scope);
     // We now expect the Left value to be a DatabaseLocation or a literal.
     const leftValue = extractLeft(item, scope);
@@ -21,7 +26,15 @@ export const IsExpressionCompiler = (
     const dataKey = leftValue.needsDotData
         ? `${leftValue.key}.data`
         : leftValue.key;
-
+    if (rightValue instanceof TypeLiteral) {
+        // types are only valid with is expressions
+        if (item.operator !== "is")
+            throw new CompilerError(
+                rightValue,
+                "Types can only be compared using the is expression"
+            );
+        return `${dataKey} is ${TypeLiteralCompiler(rightValue)}`;
+    }
     return extractRules(rightValue, item.operator, dataKey, scope);
 };
 
@@ -110,27 +123,12 @@ const extractRules = (
 };
 
 const extractRight = (item: IsExpression, scope: Scope) => {
-    if (item.right instanceof MemberExpression) {
-        const extracted = MemberExpressionCompiler(item.right, scope);
-        if (extracted instanceof InterfaceLiteral) {
-            return extracted;
-        } else
-            throw new CompilerError(
-                item.right,
-                `An ${item.operator} operation can only be performed with an InterfaceLiteral as the right value`
-            );
-    }
-    if (item.right instanceof Identifier) {
-        const rightI = IdentifierCompiler(item.right, scope);
-        if (rightI instanceof InterfaceLiteral) {
-            return rightI;
-        } else
-            throw new CompilerError(
-                item,
-                `An ${item.operator} operation can only be performed with an InterfaceLiteral as the right value`
-            );
-    }
-    if (item.right instanceof InterfaceLiteral) return item.right;
+    const right = IdentifierMemberExtractor(item.right, scope);
+    if (
+        right instanceof InterfaceLiteral ||
+        right instanceof TypeLiteral
+    )
+        return right;
     else
         throw new CompilerError(
             item.right,

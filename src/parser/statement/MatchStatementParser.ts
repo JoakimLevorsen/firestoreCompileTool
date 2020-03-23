@@ -25,7 +25,10 @@ export class MatchStatementParser extends Parser {
     private itemToAdd?: RuleStatement | MatchStatement;
     private subStatements: MatchStatement[] = [];
 
-    public addToken(token: Token): MatchStatement | null {
+    public addToken(
+        token: Token,
+        selfCall = false
+    ): MatchStatement | null {
         const error = this.errorCreator(token);
         if (isNaN(this.start) && token.type !== " ")
             this.start = token.location;
@@ -102,8 +105,12 @@ export class MatchStatementParser extends Parser {
                 }
                 this.state = "awaiting rule";
                 this.subParser = undefined;
-                // Now we repeat this function since we need to recover the token
-                return this.addToken(token);
+                // Now we repeat this function since we need to recover the token. Tough with recursion prevention
+                if (!selfCall) {
+                    return this.addToken(token, true);
+                } else {
+                    throw error("Unexpeted token");
+                }
             case "closed":
                 throw error("Internal error");
         }

@@ -11,7 +11,10 @@ export class BlockStatementParser extends Parser {
     private subParser?: ReturnType<typeof NonBlockStatementGroup>;
     private start = NaN;
 
-    public addToken(token: Token): SyntaxComponent | null {
+    public addToken(
+        token: Token,
+        selfCall = false
+    ): SyntaxComponent | null {
         if (isNaN(this.start)) this.start = token.location;
         const error = this.errorCreator(token);
         switch (this.state) {
@@ -51,8 +54,14 @@ export class BlockStatementParser extends Parser {
                         this.lines
                     );
                 }
-                // If the token wasn't } we'll run this function again since the subParser likely was reset
-                return this.addToken(token);
+                // If the token wasn't } we'll run this function again since the subParser likely was reset. Though only if this addToken was not already called recursively.
+                if (!selfCall) {
+                    return this.addToken(token, true);
+                } else {
+                    throw this.errorCreator(token)(
+                        "Unexpected token"
+                    );
+                }
             case "Closed":
                 throw error("Unexpected Token");
         }

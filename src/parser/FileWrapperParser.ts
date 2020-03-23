@@ -29,7 +29,10 @@ export class FileWrapperParser extends Parser {
         MatchStatement | InterfaceStatement | ConstStatement
     > = [];
 
-    public addToken(token: Token): FileWrapper | null {
+    public addToken(
+        token: Token,
+        selfCall = false
+    ): FileWrapper | null {
         if (this.subParser) {
             // If this subParser can accept the token, we assume its done
             if (this.subParser.canAccept(token)) {
@@ -51,6 +54,11 @@ export class FileWrapperParser extends Parser {
             if (this.itemToAdd) {
                 this.content.push(this.itemToAdd);
                 this.itemToAdd = undefined;
+            } else {
+                // If this parser didn't return anything something went wrong
+                throw this.errorCreator(token)(
+                    "Parser failed unexpectedly"
+                );
             }
             this.subParser = undefined;
         }
@@ -82,8 +90,12 @@ export class FileWrapperParser extends Parser {
             default:
                 throw this.errorCreator(token)("Unexpected token");
         }
-        // Now since we assigned the new subParser, we run this function again
-        return this.addToken(token);
+        // Now since we assigned the new subParser, we run this function again. Though we prevent infinite recursion
+        if (!selfCall) {
+            return this.addToken(token, true);
+        } else {
+            throw this.errorCreator(token)("Unexpected token");
+        }
     }
 
     public canAccept(token: Token): boolean {

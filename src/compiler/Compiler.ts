@@ -29,7 +29,13 @@ export const isDatabaseLocation = (
     )
         return false;
     if (typeof input.key !== "string") return false;
-    if (input.castAs && !(input.castAs instanceof InterfaceLiteral))
+    if (
+        input.castAs &&
+        !(
+            input.castAs instanceof InterfaceLiteral ||
+            input.castAs instanceof TypeLiteral
+        )
+    )
         return false;
     if (input.needsDotData && typeof input.needsDotData !== "boolean")
         return false;
