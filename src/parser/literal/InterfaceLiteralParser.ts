@@ -75,6 +75,8 @@ export class InterfaceLiteralParser extends LiteralParser {
                     return null;
                 if (token.type === "?:" || token.type === ":") {
                     this.state = "awaitingType";
+                    // We make sure the subParser is reset
+                    this.subParser = undefined;
                     this.nextKeyOptional = token.type === "?:";
                     return null;
                 }
@@ -116,6 +118,7 @@ export class InterfaceLiteralParser extends LiteralParser {
             case "awaitingSeperatorOrClose":
                 if (token.type === "|") {
                     this.state = "awaitingType";
+                    this.subParser = undefined;
                     return null;
                 }
                 if (token.type === "}") {
@@ -162,13 +165,21 @@ export class InterfaceLiteralParser extends LiteralParser {
                     if (this.subParser.canAccept(token)) return true;
                     // If this subParser couldn't handle the result, we fall trough to the next case
                 } else {
-                    return (
-                        tokenHasType(token, [
-                            ...spaceTokens,
-                            ...typeTokens,
-                            "{"
-                        ]) || token.type === "Keyword"
-                    );
+                    try {
+                        IdentifierOrLiteralExtractor(
+                            token,
+                            this.errorCreator
+                        );
+                        return true;
+                    } catch (e) {
+                        return (
+                            tokenHasType(token, [
+                                ...spaceTokens,
+                                ...typeTokens,
+                                "{"
+                            ]) || token.type === "Keyword"
+                        );
+                    }
                 }
             case "awaitingSeperatorOrClose":
                 return tokenHasType(token, [

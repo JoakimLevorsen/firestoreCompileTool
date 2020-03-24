@@ -10,6 +10,7 @@ import Literal, {
 } from "../../types/literals";
 import { NonTypeLiteralCompiler } from "../literal";
 import { ValueType } from "../../types";
+import { isDatabaseLocation } from "../Compiler";
 
 export const CallExpressionCompiler = (
     input: CallExpression,
@@ -45,19 +46,26 @@ export const CallExpressionCompiler = (
     });
 
     // First we get the literal we were called on
-    const callee = target.callee!;
+    const callee = IdentifierMemberExtractor(target.callee!, scope);
     if (
         callee instanceof InterfaceLiteral ||
         callee instanceof TypeLiteral
     )
         throw new CompilerError(callee, "Internal error");
-
-    const value = `${NonTypeLiteralCompiler(
-        callee as StringLiteral
-    )}.${target.name}(${stringParams.reduce(
-        (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
-        ""
-    )})`;
+    let value: string;
+    if (callee instanceof Literal) {
+        value = `${NonTypeLiteralCompiler(callee as StringLiteral)}.${
+            target.name
+        }(${stringParams.reduce(
+            (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
+            ""
+        )})`;
+    } else if (isDatabaseLocation(callee)) {
+        value = `${callee.key}.${target.name}(${stringParams.reduce(
+            (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
+            ""
+        )})`;
+    } else throw new Error("TODO");
     const { returnType } = target;
 
     return { value, returnType };

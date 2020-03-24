@@ -74,16 +74,27 @@ const extractRules = (
                     return extractRules(
                         literal,
                         opType,
-                        dataRef + k,
+                        `${dataRef}.${k}`,
                         scope
                     );
+                }
+                if (literal instanceof TypeLiteral) {
+                    return {
+                        value: LiteralCompiler(literal),
+                        type: "value"
+                    };
                 }
                 // Since only an InterfaceLiteral returns a nonString, we just typecast the return
                 return LiteralCompiler(literal) as string;
             });
         rule += `&& (${values
-            .map(v => `${dataRef}.${k} is ${v}`)
-            .reduce((pV, v) => `${pV} && ${v}`)})`;
+            .map(
+                v =>
+                    `${dataRef}.${k} ${
+                        typeof v === "string" ? "==" : "is"
+                    } ${typeof v === "string" ? v : v.value}`
+            )
+            .reduce((pV, v) => `${pV} || ${v}`)})`;
     });
     from.optionals.forEach((rawValues, k) => {
         // First we remove all the Identifiers
@@ -102,9 +113,15 @@ const extractRules = (
                     return extractRules(
                         literal,
                         opType,
-                        dataRef + k,
+                        `${dataRef}.${k}`,
                         scope
                     );
+                }
+                if (literal instanceof TypeLiteral) {
+                    return {
+                        value: LiteralCompiler(literal),
+                        type: "value"
+                    };
                 }
                 // Since only an InterfaceLiteral returns a nonString, we just typecast the return
                 return LiteralCompiler(literal) as string;
@@ -112,9 +129,11 @@ const extractRules = (
         rule += `&& (${values
             .map(
                 v =>
-                    `(!('${k}' in ${dataRef}) || ${dataRef}.${k} is ${v})`
+                    `(!('${k}' in ${dataRef}) || ${dataRef}.${k} ${
+                        typeof v === "string" ? "==" : "is"
+                    } ${typeof v === "string" ? v : v.value})`
             )
-            .reduce((pV, v) => `${pV} && ${v}`)})`;
+            .reduce((pV, v) => `${pV} || ${v}`)})`;
     });
     return rule;
 };

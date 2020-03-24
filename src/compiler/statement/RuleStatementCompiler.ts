@@ -1,6 +1,9 @@
 import { BlockStatementCompiler } from ".";
-import { IdentifierCompiler, isDatabaseLocation, Scope } from "..";
-import { ComparisonExpression } from "../../types/expressions/comparison";
+import { isDatabaseLocation, Scope } from "..";
+import {
+    ComparisonExpression,
+    MemberExpression
+} from "../../types/expressions/comparison";
 import Literal, {
     BooleanLiteral,
     TypeLiteral
@@ -10,15 +13,13 @@ import {
     RuleStatement
 } from "../../types/statements";
 import CompilerError from "../CompilerError";
-import {
-    ComparisonExpressionCompiler,
-    MemberExpressionCompiler
-} from "../expression";
+import { ComparisonExpressionCompiler } from "../expression";
 import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
 import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
+import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
 
 export const RuleStatementCompiler = (
     item: RuleStatement,
@@ -69,55 +70,41 @@ const extractRule = (
     if (rule instanceof ComparisonExpression) {
         return ComparisonExpressionCompiler(rule, scope);
     }
-    const extracted = MemberExpressionCompiler(rule, scope);
-    if (extracted instanceof Literal) {
-        if (extracted instanceof BooleanLiteral)
-            return BooleanLiteralCompiler(extracted);
+    const safe = IdentifierMemberExtractor(rule, scope);
+    if (safe instanceof MemberExpression) {
+        throw new Error("This will literally never happen");
+    }
+    if (safe instanceof Literal) {
+        if (safe instanceof BooleanLiteral)
+            return BooleanLiteralCompiler(safe);
         throw new CompilerError(
-            extracted,
+            safe,
             "Can only return boolean values"
         );
     }
-    if (isDatabaseLocation(extracted)) {
-        if (extracted.castAs) {
+    if (isDatabaseLocation(safe)) {
+        if (safe.castAs) {
             if (
-                extracted.castAs instanceof TypeLiteral &&
-                extracted.castAs.value === "boolean"
+                safe.castAs instanceof TypeLiteral &&
+                safe.castAs.value === "boolean"
             )
-                return extracted.key;
+                return safe.key;
             throw new CompilerError(
                 rule,
                 "Can only return boolean values"
             );
         }
-        return extracted.key;
+        return safe.key;
     }
-    if (extracted instanceof OutsideFunctionDeclaration)
+    if (safe instanceof OutsideFunctionDeclaration)
         throw new CompilerError(
-            extracted,
+            safe,
             "Cannot use function as a return value, it must be a boolean"
         );
-    if (extracted.length !== 1)
-        return "Can not return multiple types";
-    const v = extracted[0];
-    if (v instanceof Literal) {
-        if (v instanceof BooleanLiteral)
-            return BooleanLiteralCompiler(v);
-        throw new CompilerError(v, "Can only return multiple values");
+    if (safe instanceof CallExpression) {
+        return CallExpressionCompiler(safe, scope).value;
     }
-    const deepExtracted = IdentifierCompiler(v, scope);
-    if (deepExtracted instanceof Literal) {
-        if (!(deepExtracted instanceof BooleanLiteral))
-            throw new CompilerError(
-                deepExtracted,
-                "Can only return boolean values"
-            );
-        return NonTypeLiteralCompiler(deepExtracted);
-    }
-    if (deepExtracted instanceof CallExpression) {
-        return CallExpressionCompiler(deepExtracted, scope).value;
-    }
-    if (deepExtracted instanceof ComparisonExpression)
-        return ComparisonExpressionCompiler(deepExtracted, scope);
-    return deepExtracted.key;
+    if (safe instanceof ComparisonExpression)
+        return ComparisonExpressionCompiler(safe, scope);
+    throw new Error("Did not expect this to happen");
 };
