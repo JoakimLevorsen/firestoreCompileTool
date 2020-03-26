@@ -2,7 +2,7 @@ import LiteralParser, { LiteralParserGroup } from ".";
 import { IdentifierOrLiteralExtractor } from "..";
 import {
     Identifier,
-    nonKeywordTokens,
+    tokenType,
     spaceTokens,
     Token,
     tokenHasType,
@@ -14,7 +14,7 @@ import Literal, {
 } from "../../types/literals";
 import Parser from "../Parser";
 
-const seperatorTokens: nonKeywordTokens[] = [",", ";", "\n"];
+const seperatorTokens: tokenType[] = [",", ";", "\n"];
 
 export class InterfaceLiteralParser extends LiteralParser {
     private currentValue: InterfaceLiteralValues = new Map();

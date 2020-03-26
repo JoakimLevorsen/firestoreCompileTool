@@ -14,6 +14,8 @@ import { LogicalExpressionCompiler } from "./LogicalExpressionCompiler";
 import { MathExpressionCompiler } from "./MathExpressionCompiler";
 import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 import { OrderExpressionCompiler } from "./OrderExpressionCompiler";
+import { InExpression } from "../../types/expressions/comparison/InExpression";
+import { InExpressionCompiler } from "./InExpressionCompiler";
 
 export const ComparisonExpressionCompiler = (
     input: ComparisonExpression,
@@ -29,6 +31,8 @@ export const ComparisonExpressionCompiler = (
         return OrderExpressionCompiler(input, scope);
     if (input instanceof MathExpression)
         return MathExpressionCompiler(input, scope);
+    if (input instanceof InExpression)
+        return InExpressionCompiler(input, scope);
     throw new Error("Internal error");
 };
 

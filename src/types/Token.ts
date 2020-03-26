@@ -1,10 +1,12 @@
 import {
     ComparisonOperator,
-    ComparisonOperators
+    ComparisonOperators,
+    KeywordComparisonOperators,
+    NonKeywordComparisonOperators
 } from "./expressions/comparison";
 import { UnaryOperators } from "./expressions/unary";
 
-const tokenTypes = [
+const operatorTokenTypes = [
     "(",
     ")",
     "{",
@@ -55,29 +57,38 @@ export const typeTokens = [
 export type ValueType = typeof typeTokens[number];
 
 // We sort reverse alphabetically, so || comes before | in the list, and is not read as | and |
-export const nonKeywordTokens = [
-    ...tokenTypes,
+export const tokenTypes = [
+    ...operatorTokenTypes,
     ...ComparisonOperators,
     ...UnaryOperators,
     ...spaceTokens,
     ...wordTokens,
     ...typeTokens
 ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
-export type nonKeywordTokens = typeof nonKeywordTokens[number];
+export type tokenType = typeof tokenTypes[number];
+export const nonKeywordTokenTypes = [
+    ...operatorTokenTypes,
+    ...NonKeywordComparisonOperators,
+    ...UnaryOperators,
+    ...spaceTokens
+].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
+export const keywordTokenTypes = [
+    ...wordTokens,
+    ...typeTokens,
+    ...KeywordComparisonOperators
+].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
 
 export type Operator = ComparisonOperator;
 export type OperatorToken = TypedToken<Operator>;
 
-export interface TypedToken<T extends nonKeywordTokens> {
+export interface TypedToken<T extends tokenType> {
     type: T;
     location: number;
 }
 
 export type Token =
-    | TypedToken<nonKeywordTokens>
+    | TypedToken<tokenType>
     | { type: "Keyword"; value: string; location: number };
 
-export const tokenHasType = (
-    { type }: Token,
-    types: nonKeywordTokens[]
-) => types.some(t => type === t);
+export const tokenHasType = ({ type }: Token, types: tokenType[]) =>
+    types.some(t => type === t);

@@ -28,6 +28,7 @@ import Stack from "../../utils/Stack";
 import Parser from "../Parser";
 import CallExpressionParser from "./CallExpressionParser";
 import { CallExpression } from "../../types/expressions/CallExpression";
+import { InExpression } from "../../types/expressions/comparison/InExpression";
 
 interface UnaryToken extends TypedToken<"-" | "!"> {
     unary: true;
@@ -220,6 +221,8 @@ const binaryPrecedence = (
         case "is":
         case "isOnly":
         case "only":
+        case "in":
+        case "inn't":
             return 13;
         case "*":
         case "/":
@@ -383,8 +386,13 @@ const syntaxComponentifier = (
                         left,
                         right
                     );
-                default:
-                    throw new Error("Unexpected operator");
+                case "in":
+                case "inn't":
+                    return new InExpression(
+                        operator.type,
+                        left,
+                        right
+                    );
             }
         }
         case "Unary": {

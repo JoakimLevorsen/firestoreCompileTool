@@ -1,6 +1,10 @@
-import { nonKeywordTokens, Token } from "../types/Token";
+import {
+    nonKeywordTokenTypes,
+    Token,
+    keywordTokenTypes
+} from "../types/Token";
 
-const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
+const escapedNonKeywordTokens = nonKeywordTokenTypes.map(raw => {
     switch (raw) {
         case ".":
         case "(":
@@ -34,7 +38,7 @@ const escapedNonKeywordTokens = nonKeywordTokens.map(raw => {
     }
 });
 
-const keywordRegex = new RegExp(
+const nonTokenRegex = new RegExp(
     `^([^\t\f\v ${escapedNonKeywordTokens
         .filter(({ raw }) => !/^\w*$/.test(raw))
         .reduce(
@@ -53,6 +57,11 @@ const nonKeywordRegex = escapedNonKeywordTokens.map(
     })
 );
 
+const keywordRegex = keywordTokenTypes.map(type => ({
+    type,
+    regex: new RegExp(`^${type}([^\\w]|$)`)
+}));
+
 export class TokenParser {
     public static extractAll(from: string) {
         const parser = new TokenParser(from);
@@ -67,6 +76,7 @@ export class TokenParser {
     private location: number = 0;
     private remaining: string;
     private commentMode?: "//" | "/**/";
+    private stringMode?: '"' | "'";
 
     constructor(input: string) {
         this.remaining = input;
@@ -75,14 +85,31 @@ export class TokenParser {
     public nextToken(): Token {
         const { location, remaining } = this;
         if (remaining === "") return { type: "EOF", location };
+        // If we're in string mode, we just return the next chunk untill the closing ' or "
+        if (this.stringMode) {
+            const regex =
+                this.stringMode === '"'
+                    ? /^((?:[^"]|\\")+[^\\])"/
+                    : /^((?:[^\']|\\\')+[^\\])\'/;
+            const value = remaining.match(regex)?.[1];
+            if (value) {
+                this.remaining = remaining.substr(value.length);
+                this.location += value.length;
+                return { type: "Keyword", location, value };
+            }
+        }
         for (const { type, regex } of nonKeywordRegex) {
             const escaped = remaining.match(regex);
             if (escaped == null) continue;
             this.remaining = escaped.input!.substr(escaped[0].length);
             this.location += escaped[0].length;
-            if (!this.commentMode) {
+            if (!this.commentMode && !this.stringMode) {
                 if (type === "/*") this.commentMode = "/**/";
                 else if (type === "//") this.commentMode = "//";
+                else if (type === "'" || type === '"') {
+                    this.stringMode = type;
+                    return { type, location };
+                }
             }
             if (this.commentMode) {
                 if (this.commentMode === "//" && type === "\n")
@@ -91,9 +118,23 @@ export class TokenParser {
                     this.commentMode = undefined;
                 return this.nextToken();
             }
+            if (this.stringMode === type) {
+                this.stringMode = undefined;
+            }
             return { type, location };
         }
-        const kMatch = remaining.match(keywordRegex);
+        for (const { type, regex } of keywordRegex) {
+            const match = remaining.match(regex);
+            if (!match) continue;
+            // Then we can remove from remaining and return
+            this.remaining = remaining.substr(type.length);
+            this.location += type.length;
+            if (this.commentMode) {
+                return this.nextToken();
+            }
+            return { type, location };
+        }
+        const kMatch = remaining.match(nonTokenRegex);
         if (kMatch && kMatch[1]) {
             this.remaining = remaining.substr(kMatch[1].length);
             this.location += kMatch[1].length;
