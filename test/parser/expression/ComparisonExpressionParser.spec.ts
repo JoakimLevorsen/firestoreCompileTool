@@ -23,6 +23,7 @@ import SyntaxComponent from "../../../src/types/SyntaxComponent";
 import { LiteralTestSet } from "../LiteralParser.spec";
 import ParserRunner, { tokenize } from "../ParserRunner";
 import { MemberExpressionParserTestSet } from "./MemberExpressionParser.spec";
+import { InExpression } from "../../../src/types/expressions/comparison/InExpression";
 
 const secondSet = (start: number) =>
     LiteralTestSet.map(item => {
@@ -72,6 +73,9 @@ const constructorForCompType = (
         case "*":
         case "/":
             return new MathExpression(op, first, second);
+        case "in":
+        case "inn't":
+            return new InExpression(op, first, second);
         default:
             return new OrderExpression(op, first, second);
     }
