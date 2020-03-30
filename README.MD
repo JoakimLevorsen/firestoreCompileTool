@@ -53,13 +53,14 @@ These interfaces can then be used to check contents of firebase docs.
 
 Data can be manipulated in a couple of ways, here are the currently supported operators:
 
-| Expression | Meaning                                                               |
-| ---------- | --------------------------------------------------------------------- |
-| A is B     | Does A have all and possibly more of fields from interface B          |
-| A only B   | Does A have only fields present in B, but not nessesarily all of them |
-| A isOnly B | Does A fit the interface B perfectly (A is B && A only B)             |
-| A == B     | Is A equal to the value B                                             |
-| A != B     | Is A not equal to the value B                                         |
+| Expression    | Meaning                                                               |
+| ------------- | --------------------------------------------------------------------- |
+| A is B        | Does A have all and possibly more of fields from interface/type B     |
+| A only B      | Does A have only fields present in B, but not nessesarily all of them |
+| A isOnly B    | Does A fit the interface B perfectly (A is B && A only B)             |
+| A == B        | Is A equal to the value B                                             |
+| A != B        | Is A not equal to the value B                                         |
+| A </<=/>=/> B | Compare the order of A and B                                          |
 
 ## Rules
 
@@ -130,4 +131,9 @@ The next stages in development:
 1. More types like `array` and `map`
 1. Support for loops of iterations known at compile time.
 1. Support for functions (System functions have been addded for literals)
+1. Check function parameter types
 1. Add literal values as interface values
+1. When doing interface literals with double children, it compiles wrong.
+1. `newDoc.cvr.matches("^\d{8}$")` compiles wrong
+1. Let interfaces extend eachother
+1. RegExp literals as types

@@ -3,6 +3,7 @@
 import SyntaxComponent from "../types/SyntaxComponent";
 import { ValueType } from "../types";
 import Literal from "../types/literals";
+import { DatabaseLocation } from "./Compiler";
 
 export interface Parameter {
     name: string;
@@ -10,7 +11,7 @@ export interface Parameter {
 }
 
 export class OutsideFunctionDeclaration extends SyntaxComponent {
-    private _callee?: Literal;
+    private _callee?: Literal | DatabaseLocation;
     constructor(
         private _name: string,
         private _returnType: ValueType,
@@ -49,8 +50,16 @@ export class OutsideFunctionDeclaration extends SyntaxComponent {
         );
     }
 
-    public withCallee(callee: Literal): OutsideFunctionDeclaration {
-        this._callee = callee;
-        return this;
+    public withCallee(
+        callee: Literal | DatabaseLocation
+    ): OutsideFunctionDeclaration {
+        // We do some complicated code to clone this object, since we must preserve the prototype
+        // https://stackoverflow.com/questions/41474986/how-to-clone-a-javascript-es6-class-instance
+        const that = Object.assign(
+            Object.create(Object.getPrototypeOf(this)),
+            this
+        );
+        that._callee = callee;
+        return that;
     }
 }

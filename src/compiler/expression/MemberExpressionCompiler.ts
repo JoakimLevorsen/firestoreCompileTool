@@ -12,7 +12,11 @@ import Literal, {
 import CompilerError from "../CompilerError";
 import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
-import { LiteralFunctions } from "../scope/literalFunctions";
+import {
+    LiteralFunctions,
+    AllLiteralFunctions,
+    functionsForLiteral
+} from "../scope/literalFunctions";
 import SyntaxComponent from "../../types/SyntaxComponent";
 
 export const MemberExpressionCompiler = (
@@ -66,7 +70,8 @@ export const MemberExpressionCompiler = (
             root2,
             item.optional,
             propName,
-            item
+            item,
+            scope
         );
     } else {
         // This means we have to extract the property
@@ -75,7 +80,8 @@ export const MemberExpressionCompiler = (
             root2,
             item.optional,
             prop,
-            item
+            item,
+            scope
         );
     }
 };
@@ -84,7 +90,8 @@ const extractValueForProperty = (
     object: InterfaceLiteral | DatabaseLocation,
     optional: boolean,
     key: ReturnType<typeof extractProperty>,
-    item: MemberExpression
+    item: MemberExpression,
+    scope: Scope
 ) => {
     if (typeof key === "number")
         throw new CompilerError(
@@ -106,6 +113,11 @@ const extractValueForProperty = (
         // Since this DatabaseLocation is passed by ref, we clone it to preserve the origial
         object = { ...object };
         if (object.castAs === undefined) {
+            // First we check if the name is a function
+            const matchingFunction = AllLiteralFunctions[key];
+            if (matchingFunction) {
+                return matchingFunction.withCallee(object);
+            }
             if (object.needsDotData) {
                 object.needsDotData = false;
                 if (key !== "id") object.key += ".data";
@@ -131,6 +143,17 @@ const extractValueForProperty = (
                 "Members of literals do not exist yet"
             );
         }
+        if (!(object.castAs instanceof InterfaceLiteral)) {
+            // Then this is a function
+            const litFunctions = functionsForLiteral(object.castAs);
+            const referenced =
+                litFunctions[(item.property as Identifier).name];
+            if (referenced) return referenced.withCallee(object);
+            throw new CompilerError(
+                item.property,
+                "Function not found"
+            );
+        }
         // Now we examine the InterfaceLiteral it was cast as
         if (item.optional) {
             if (object.castAs.optionals.has(key)) {
@@ -150,8 +173,19 @@ const extractValueForProperty = (
                 if (key !== "id") object.key += ".data";
             }
             object.key += `.${key}`;
-            // TODO: preserve the cast of the location
-            object.castAs = undefined;
+            const newType = object.castAs.value.get(key)!;
+            if (newType.length === 1) {
+                const newSpecificType = newType[0];
+                if (newSpecificType instanceof Identifier) {
+                    const real = IdentifierCompiler(
+                        newSpecificType,
+                        scope
+                    );
+                    if (real instanceof Literal) {
+                        object.castAs = real;
+                    } else object.castAs = undefined;
+                } else object.castAs = newSpecificType;
+            } else object.castAs = undefined;
             return object;
         }
         throw new CompilerError(

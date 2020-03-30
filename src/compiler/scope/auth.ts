@@ -7,7 +7,7 @@ export const auth: DatabaseLocation = {
         { start: -1, end: -1 },
         {
             uid: [new TypeLiteral(-1, "string")],
-            token: [new InterfaceLiteral({ start: -1, end: -1 }, {})]
+            token: [new TypeLiteral(-1, "Map")]
         }
     ),
     optionalCast: true

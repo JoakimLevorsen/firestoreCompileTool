@@ -1,11 +1,11 @@
 import { Scope } from ".";
 import { ValueType } from "../types";
-import { InterfaceLiteral, TypeLiteral } from "../types/literals";
+import Literal from "../types/literals";
 import SyntaxComponent from "../types/SyntaxComponent";
 
 export interface DatabaseLocation {
     key: string;
-    castAs?: InterfaceLiteral | TypeLiteral;
+    castAs?: Literal;
     // The cast might be optional
     optionalCast?: boolean;
     // We may have some shortcut children
@@ -30,13 +30,7 @@ export const isDatabaseLocation = (
     )
         return false;
     if (typeof input.key !== "string") return false;
-    if (
-        input.castAs &&
-        !(
-            input.castAs instanceof InterfaceLiteral ||
-            input.castAs instanceof TypeLiteral
-        )
-    )
+    if (input.castAs && !(input.castAs instanceof Literal))
         return false;
     if (input.needsDotData && typeof input.needsDotData !== "boolean")
         return false;

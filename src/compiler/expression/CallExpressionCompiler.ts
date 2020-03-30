@@ -11,13 +11,19 @@ import Literal, {
 import { NonTypeLiteralCompiler } from "../literal";
 import { ValueType } from "../../types";
 import { isDatabaseLocation } from "../Compiler";
+import { AllLiteralFunctions } from "../scope/literalFunctions";
 
 export const CallExpressionCompiler = (
     input: CallExpression,
     scope: Scope
 ): { value: string; returnType: ValueType } => {
     const target = IdentifierMemberExtractor(input.target, scope);
-    if (!(target instanceof OutsideFunctionDeclaration))
+    if (
+        !(
+            target instanceof OutsideFunctionDeclaration ||
+            isDatabaseLocation(target)
+        )
+    )
         throw new CompilerError(
             input.target,
             "Cannot execute non function"
@@ -45,8 +51,32 @@ export const CallExpressionCompiler = (
         return NonTypeLiteralCompiler(litVal as StringLiteral);
     });
 
+    if (isDatabaseLocation(target)) {
+        // TODO do better
+        const functionName = target.key.match(
+            /\.(?!data)(\w*)$/
+        )?.[1];
+        if (!functionName)
+            throw new CompilerError(input, "Method not found");
+        const functionMatch = AllLiteralFunctions[functionName];
+        if (!functionMatch)
+            throw new CompilerError(input, "Method not found");
+        return {
+            value: `${
+                target.needsDotData
+                    ? `${target.key}.data`
+                    : target.key
+            }(${stringParams.reduce(
+                (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
+                ""
+            )})`,
+            returnType: functionMatch.returnType
+        };
+    }
     // First we get the literal we were called on
-    const callee = IdentifierMemberExtractor(target.callee!, scope);
+    const callee = isDatabaseLocation(target.callee)
+        ? target.callee
+        : IdentifierMemberExtractor(target.callee!, scope);
     if (
         callee instanceof InterfaceLiteral ||
         callee instanceof TypeLiteral

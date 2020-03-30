@@ -12,6 +12,7 @@ const [, , inputFile, outputFile] = process.argv;
 console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
 
 const doCompile = (input: string, output: string, debug = false) => {
+    const start = new Date().getTime();
     const file = fs.readFileSync(input).toString();
 
     // const Oldb = extractBlock(file);
@@ -20,9 +21,10 @@ const doCompile = (input: string, output: string, debug = false) => {
         const compiled = compile(asp, file, debug);
         if (!compiled) return;
         fs.writeFileSync(output, formatFile(compiled));
+        const runTime = (new Date().getTime() - start) / 1000;
         console.log(
             chalk.green(
-                `✔️  compiled ${input} and saved it as ${output}`
+                `✔️  compiled ${input} and saved it as ${output} in ${runTime} seconds`
             )
         );
     } else
@@ -45,7 +47,7 @@ if (
             fs.readFileSync("./kakao.json").toString()
         );
         if (data.input && data.output) {
-            doCompile(data.input, data.output);
+            doCompile(data.input, data.output, true);
         } else
             console.log(
                 chalk.red(
@@ -58,4 +60,4 @@ if (
                 "A path for input and output must be provided as arguments or in kakao.json."
             )
         );
-} else doCompile(inputFile, outputFile);
+} else doCompile(inputFile, outputFile, true);

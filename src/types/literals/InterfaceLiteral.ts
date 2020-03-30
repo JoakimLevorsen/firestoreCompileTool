@@ -1,5 +1,5 @@
 import Literal from ".";
-import { Identifier } from "..";
+import { Identifier, ValueType } from "..";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 
 export type InterfaceLiteralValues = Map<
@@ -25,6 +25,7 @@ export const isInterfaceLiteralValues = (
 };
 
 export class InterfaceLiteral extends Literal {
+    public type: ValueType;
     protected _value: InterfaceLiteralValues;
     protected _optionalValues: InterfaceLiteralValues;
 
@@ -45,6 +46,7 @@ export class InterfaceLiteral extends Literal {
             );
         }
         super(position, v);
+        this.type = "Map";
         this._value = v;
         this._optionalValues = optionals || new Map();
     }

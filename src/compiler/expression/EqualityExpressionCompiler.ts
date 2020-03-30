@@ -111,7 +111,12 @@ const extractTypeAndValue = (
                 "One of the values has multiple possible types, and can therefore not be compared"
             );
         }
-        return { type: from.castAs?.value ?? "ANY", value: from.key };
+        if (from.castAs instanceof TypeLiteral)
+            return {
+                type: from.castAs?.value ?? "ANY",
+                value: from.key
+            };
+        return { type: from.castAs?.type ?? "ANY", value: from.key };
     }
     return { type: from.returnType, value: from.value };
 };

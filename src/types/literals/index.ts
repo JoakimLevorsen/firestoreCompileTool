@@ -1,5 +1,6 @@
 import SyntaxComponent, { Position } from "../SyntaxComponent";
 import { InterfaceLiteralValues } from "./InterfaceLiteral";
+import { ValueType } from "../Token";
 
 type LiteralTypes =
     | string
@@ -16,6 +17,8 @@ export default abstract class Literal extends SyntaxComponent {
     }
 
     public abstract get value(): LiteralTypes;
+
+    public abstract type: ValueType;
 
     protected internalEquals(other: SyntaxComponent): boolean {
         if (!(other instanceof Literal)) return false;

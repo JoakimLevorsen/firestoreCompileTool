@@ -1,6 +1,8 @@
 import Literal from ".";
+import { ValueType } from "../Token";
 
 export class BooleanLiteral extends Literal {
+    public type: ValueType = "boolean";
     protected _value: boolean;
 
     constructor(start: number, value: boolean) {

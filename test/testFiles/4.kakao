@@ -1,60 +1,115 @@
-//test
-// Test gni asdaio dsfj oa
-
-interface User {
-    name: string;
-    displayName?: string;
-}/* das fjosad
-asd 
-ag 
-df 
-dh sghkaps df*/
-
-interface Resturant {
-    name: string; // More testins
-    url?: string;
-    owner: string;
+interface Profile {
+    displayName: string
+    profilePic: string
+    bio?: string
 }
 
-interface Review {
-    title: string;
-    stars: number;
-    imageURL?: number;
-    user: string;
+match /profiles/{profile} {
+    read: () => auth.token.admin;
+    write: (newDoc) => profile == auth.uid && newDoc isOnly Profile
 }
 
-const minStars = 4
+const nationalityRegex = "^(((A(D|E|F|G|I|L|M|N|O|R|S|T|Q|U|W|X|Z)|B(A|B|D|E|F|G|H|I|J|L|M|N|O|R|S|T|V|W|Y|Z)|C(A|C|D|F|G|H|I|K|L|M|N|O|R|U|V|X|Y|Z)|D(E|J|K|M|O|Z)|E(C|E|G|H|R|S|T)|F(I|J|K|M|O|R)|G(A|B|D|E|F|G|H|I|L|M|N|P|Q|R|S|T|U|W|Y)|H(K|M|N|R|T|U)|I(D|E|Q|L|M|N|O|R|S|T)|J(E|M|O|P)|K(E|G|H|I|M|N|P|R|W|Y|Z)|L(A|B|C|I|K|R|S|T|U|V|Y)|M(A|C|D|E|F|G|H|K|L|M|N|O|Q|P|R|S|T|U|V|W|X|Y|Z)|N(A|C|E|F|G|I|L|O|P|R|U|Z)|OM|P(A|E|F|G|H|K|L|M|N|R|S|T|W|Y)|QA|R(E|O|S|U|W)|S(A|B|C|D|E|G|H|I|J|K|L|M|N|O|R|T|V|Y|Z)|T(C|D|F|G|H|J|K|L|M|N|O|R|T|V|W|Z)|U(A|G|M|S|Y|Z)|V(A|C|E|G|I|N|U)|W(F|S)|Y(E|T)|Z(A|M|W))))$"
+
+interface 1User {
+    acceptsGigs?: boolean
+    admin?: boolean
+    birthdate: timestamp
+    cprNr: string
+    nationality: string
+    languages: Array
+}
 
 match /users/{user} {
-    read: (_, doc) => auth.token.admin;
-    write: (newDoc) => {
-        if newDoc.ud == newDoc.id {
-            return newDoc isOnly User;
+    read: () => {
+        if (auth == null) {
+            return false
         }
-        return false;
+        if (auth.uid == user || auth.token.admin == true) {
+            return true
+        }
+        return false
     }
+    // Only users can create themselves, and ofcourse not as admins
+    create: (newDoc) => {
+        if (auth != null && auth.uid == user) {
+            return newDoc isOnly 1User && newDoc.admin != true && newDoc.nationality.matches(nationalityRegex) && newDoc.cvr.matches("^\d{8}$")
+        }
+        return false
+    }
+    update: (newDoc, currentDoc) => {
+        if (auth.token.admin == true) {
+            return true
+        }
+        if (auth == null || auth.uid != user || auth.token.admin != true) {
+            return false
+        }
+        if (newDoc isOnly 1User && newDoc.nationality.matches(nationalityRegex) && newDoc.cvr.matches("^\d{8}$")) {
+            if (newDoc?.admin != true) {
+                return true
+            } else if (currentDoc?.admin == newDoc.admin) {
+                return true
+            } else if (auth.token.admin == true) {
+                return true
+            }
+            return false
+        }
+        return false
+    }
+    delete: () => auth != null && (auth.uid == user || auth.token.admin == true)
 }
 
-match /resturants/{resturant} {
+interface Gig0 {
+    title: string
+    // category: Array
+    description?: string
+    creationDate: timestamp
+    language: string
+    stage: "seeking talent" | "ongoing" | "thingy" | 10
+    // requirements: Array
+    client?: {
+        name: string
+        cvr: {
+            start: number
+            end: timestamp
+        }
+    }
+    email?: string
+    // files: Array
+}
+
+match /gigs/{gig} {
     create: (newDoc) => {
-        if newDoc isOnly Resturant {
-            return newDoc.owner == newDoc.id;
-        }
-        return false;
-    }
-    write: (newDoc) => {
-        if newDoc.owner == newDoc.id {
-            return newDoc isOnly Resturant;
-        }
-        return false;
-    }
-    match /reviews/{review} {
-        create: (newDoc) => {
-            if newDoc isOnly Review {
-                return newDoc.user == newDoc.uid && newDoc.stars - 1 >= minStars;
+        if (newDoc isOnly Gig0 && newDoc.stage == "initial offer") {
+            // If this user is signed in the client field should be filled (TODO, is for types not functioning currently)
+            if (auth != null) {
+                // Then the client field must be present, and a company id on their token (array in operator not existing yet)
+                return newDoc is {client: string} // && newDoc.client in auth.token.keys() && auth.token[newDoc.client] == true
+            } else {
+                // Then the email field must be filled
+                return newDoc is {email: string} // TODO: Add email regex
             }
-            return false;
         }
-        delete: (doc) => doc.user == doc.id;
+        return false
     }
+    read: (doc) => {
+        // A gig can always be seen by the creator, or an admin.
+        // A gig can be seen by a talent if its in "seeking talent" or they're assigned to it
+        if (auth == null) {
+            return false
+        }
+        if (auth.token.admin == true ) {
+            return true
+        }
+        if (doc.client is string) {
+        // Then check this key exists on their token 
+            return true
+        }
+        if (doc.stage == "seeking talent") {
+            return true
+        }
+        // Create check for if talent is in Talents
+        return false
+    }
+    
 }

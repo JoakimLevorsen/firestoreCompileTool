@@ -1,6 +1,8 @@
 import Literal from ".";
+import { ValueType } from "..";
 
 export class StringLiteral extends Literal {
+    public type: ValueType = "string";
     protected _value: string;
 
     constructor(start: number, value: string) {

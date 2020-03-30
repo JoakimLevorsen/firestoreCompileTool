@@ -19,6 +19,7 @@ export const BlockStatementCompiler = (
     const { body } = item;
     // Now we go through all the lines, and return when we get to a return statement. If we get an if statement, we append them by ||'ing them together, unless it has an else expression
     const textVals: string[] = [];
+    /*  */
     for (const line of body) {
         if (line instanceof ReturnStatement) {
             textVals.push(ReturnStatementCompiler(line, newScope));

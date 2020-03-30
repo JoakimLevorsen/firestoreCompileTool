@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{user} {
+      allow read: if request.auth.token.admin;
+      allow write: if (request.resource.data.ud == request.resource.id 
+        && (request.resource.data.keys().hasAll(['name']) 
+          && request.resource.data.keys().hasOnly(['name','displayName'])
+          && (request.resource.data.name is string)
+          && (
+            (!('displayName' in request.resource.data) 
+      || request.resource.data.displayName is string)))) 
+      || false;
+    }
+    match /resturants/{resturant} {
+      allow create: if (request.resource.data.keys().hasAll(['name','owner']) 
+        && request.resource.data.keys().hasOnly(['name','owner','url'])
+        && (request.resource.data.name is string)
+        && (request.resource.data.owner is string)
+        && (
+          (!('url' in request.resource.data) 
+        || request.resource.data.url is string)) 
+      && (request.resource.data.owner == request.resource.id)) 
+      || false;
+      allow write: if (request.resource.data.owner == request.resource.id 
+        && (request.resource.data.keys().hasAll(['name','owner']) 
+          && request.resource.data.keys().hasOnly(['name','owner','url'])
+          && (request.resource.data.name is string)
+          && (request.resource.data.owner is string)
+          && (
+            (!('url' in request.resource.data) 
+      || request.resource.data.url is string)))) 
+      || false;
+      match /reviews/{review} {
+        allow create: if (request.resource.data.keys().hasAll(['title','stars','user']) 
+          && request.resource.data.keys().hasOnly(['title','stars','user','imageURL'])
+          && (request.resource.data.title is string)
+          && (request.resource.data.stars is number)
+          && (request.resource.data.user is string)
+          && (
+            (!('imageURL' in request.resource.data) 
+          || request.resource.data.imageURL is number)) 
+          && (
+            (request.resource.data.user == request.resource.data.uid 
+        && request.resource.data.stars - 1 >= 4))) 
+        || false;
+        allow delete: if request.resource.data.user == request.resource.id;
+      }
+    }
+  }
+}

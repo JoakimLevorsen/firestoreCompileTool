@@ -10,7 +10,8 @@ export default abstract class SyntaxComponent {
         this.position = position;
     }
 
-    public equals(other: SyntaxComponent): boolean {
+    public equals(other?: SyntaxComponent): boolean {
+        if (other === undefined) return false;
         if (
             this.position.end !== other.position.end ||
             this.position.start !== other.position.start
