@@ -4,10 +4,10 @@ import {
     InterfaceStatement,
     MatchStatement
 } from "../types/statements";
-import { intitialScope } from "./scope";
 import { ConstStatementCompiler } from "./statement/ConstStatementCompiler";
 import { InterfaceStatementCompiler } from "./statement/InterfaceStatementCompiler";
 import { MatchStatementCompiler } from "./statement/MatchStatementCompiler";
+import { intitialScope } from ".";
 
 const fileHeader = `rules_version = '2';\n service cloud.firestore { \n match /databases/{database}/documents {`;
 
@@ -38,6 +38,6 @@ export const FileWrapperCompiler = (wrapper: FileWrapper): string => {
     const body = wrapper.content
         .filter(c => c instanceof MatchStatement)
         .map(m => MatchStatementCompiler(m as MatchStatement, scope))
-        .reduce((pV, v) => `${pV}\n${v}`);
+        .reduce((pV, v) => (pV === "" ? v : `${pV}\n${v}`), "");
     return `${fileHeader}\n${body}\n${fileFooter}`;
 };

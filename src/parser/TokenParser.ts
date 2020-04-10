@@ -62,6 +62,8 @@ const keywordRegex = keywordTokenTypes.map(type => ({
     regex: new RegExp(`^${type}([^\\w]|$)`)
 }));
 
+const whitespaceRegex = /^\s/;
+
 export class TokenParser {
     public static extractAll(from: string) {
         const parser = new TokenParser(from);
@@ -122,6 +124,30 @@ export class TokenParser {
                 this.stringMode = undefined;
             }
             return { type, location };
+        }
+        if (whitespaceRegex.test(remaining)) {
+            const char = remaining.substr(0, 1);
+            this.remaining = remaining.substr(1);
+            this.location++;
+            switch (char) {
+                case " ":
+                case "\t":
+                case "\r":
+                case "\n":
+                    return {
+                        type: char,
+                        location
+                    };
+                // We interpret non-breaking space as a normal space
+                case "\xa0":
+                    return {
+                        type: " ",
+                        location
+                    };
+                default:
+                    const code = char.charCodeAt(0);
+                    throw new Error("Token error " + code);
+            }
         }
         for (const { type, regex } of keywordRegex) {
             const match = remaining.match(regex);

@@ -21,7 +21,9 @@ const compile = (
             if (e instanceof CompilerError) {
                 console.log(e.prettyPrint(file));
                 return null;
-            } else throw new Error("Internal error");
+            } else {
+                throw new Error("Internal error");
+            }
         }
     }
 };

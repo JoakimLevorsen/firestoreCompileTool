@@ -8,7 +8,12 @@ export const IdentifierCompiler = (
 ) => {
     let result = scope[item.name];
     if (!result)
-        throw new CompilerError(item, "Could not find Identifier");
+        throw new CompilerError(
+            item,
+            `Could not find Identifier ${JSON.stringify(
+                Object.keys(scope)
+            )}`
+        );
     while (result instanceof Identifier) {
         result = scope[result.name];
         if (!result)
