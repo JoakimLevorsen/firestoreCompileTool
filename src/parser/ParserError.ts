@@ -1,39 +1,41 @@
+import chalk from "chalk";
 import { Token } from "../types/Token";
 
 export class ParserError extends Error {
-    constructor(fromToken: Token, file: Token[], msg: string) {
+    constructor(fromToken: Token, file: string, msg: string) {
         // First we find the index of the problematic token
-        const index = file.findIndex(
-            t => t.location === fromToken.location
+        // First we get the line of the errors
+        // We get the substring from start, till the problem arose
+        const start = fromToken.location;
+        const end =
+            start +
+            (fromToken.type === "Keyword"
+                ? fromToken.value.length
+                : fromToken.type.length) -
+            1;
+        const preError = file.substr(0, start);
+        // Now we count the newLines
+        const lines = preError.split("\n").length;
+        // Now we get the characters after the last newLine (if this line contained anything else)
+        const beforeErrorRegex = preError.match(/(\n|\r)[^\n\r]*$/);
+        // We remove the first char, since that is the newline
+        const beforeError = beforeErrorRegex?.[0].substr(1) ?? "";
+        // Then we get the area with the error
+        const errorArea = file.substr(start, end - start + 1);
+        // Now we get the area after
+        const afterErrorRegex = file.substr(end + 1).match(/^.*/);
+        const afterError = afterErrorRegex?.[0] ?? "";
+        super(
+            `\n${chalk.redBright(
+                "Error during compilation:"
+            )}\n${msg}\n${beforeError}${chalk.red(
+                errorArea
+            )}${afterError}\non line ${lines}`
         );
-        if (index !== -1) {
-            //  We get all the new lines on the way
-            const newLinesCount = file
-                .slice(0, index)
-                .filter(t => t.type === "\n");
-            if (newLinesCount.length === 0) {
-                super(
-                    `'${msg}' occured on ${JSON.stringify(
-                        fromToken
-                    )} on Line 0, char ${fromToken.location}`
-                );
-                return;
-            }
-            // This means the error must be on the newLinesCount line, with the char of the difference between the two locations
-            const char = newLinesCount[newLinesCount.length - 1];
-            super(
-                `'${msg}' occured on ${JSON.stringify(
-                    fromToken
-                )} on Line ${newLinesCount.length +
-                    1}, char ${fromToken.location - char.location}`
-            );
-            return;
-        }
-        super(`'${msg}' occured on ${JSON.stringify(fromToken)}`);
     }
 }
 
-export const ParserErrorCreator = (file: Token[]) => (
+export const ParserErrorCreator = (file: string) => (
     token: Token
 ) => (msg: string) => new ParserError(token, file, msg);
 

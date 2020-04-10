@@ -141,7 +141,7 @@ describe("ComparisonExpressionParser", () => {
         LiteralTestSet.forEach(({ input, expected }) =>
             it(`Parsing ${input}`, () => {
                 const tokens = tokenize(input);
-                const error = ParserErrorCreator(tokens);
+                const error = ParserErrorCreator(input);
                 const actual = ParserRunner(
                     tokens,
                     new ExpressionParser(error)
@@ -162,7 +162,7 @@ describe("ComparisonExpressionParser", () => {
         MemberExpressionParserTestSet.forEach(({ input, expected }) =>
             it(`Parsing ${input}`, () => {
                 const tokens = tokenize(input);
-                const error = ParserErrorCreator(tokens);
+                const error = ParserErrorCreator(input);
                 const parsed = ParserRunner(
                     tokens,
                     new ExpressionParser(error)
@@ -181,7 +181,7 @@ describe("ComparisonExpressionParser", () => {
                     let parsed;
                     try {
                         const tokens = tokenize(input);
-                        const error = ParserErrorCreator(tokens);
+                        const error = ParserErrorCreator(input);
                         parsed = ParserRunner(
                             tokens,
                             new ExpressionParser(error)
@@ -206,7 +206,7 @@ describe("ComparisonExpressionParser", () => {
                 let parsed;
                 try {
                     const tokens = tokenize(input);
-                    const error = ParserErrorCreator(tokens);
+                    const error = ParserErrorCreator(input);
                     parsed = ParserRunner(
                         tokens,
                         new ExpressionParser(error)

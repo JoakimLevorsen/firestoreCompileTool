@@ -5,7 +5,7 @@ import { TokenParser } from "./TokenParser";
 const parse = (from: string) => {
     const tokens = TokenParser.extractAll(from);
     // We now start a FileParser and parse
-    const parser = new FileWrapperParser(ParserErrorCreator(tokens));
+    const parser = new FileWrapperParser(ParserErrorCreator(from));
     let parsed;
     for (const token of tokens) {
         const result = parser.addToken(token);

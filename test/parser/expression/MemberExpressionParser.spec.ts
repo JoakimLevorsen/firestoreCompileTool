@@ -71,7 +71,7 @@ describe("MemberExpressionParser", () => {
         LiteralTestSet.forEach(({ input, expected }) =>
             it(`Parsing ${input}`, () => {
                 const tokens = tokenize(input);
-                const error = ParserErrorCreator(tokens);
+                const error = ParserErrorCreator(input);
                 const actual = ParserRunner(
                     tokens,
                     new MemberExpressionParser(error)
@@ -91,7 +91,7 @@ describe("MemberExpressionParser", () => {
     MemberExpressionParserTestSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
-            const error = ParserErrorCreator(tokens);
+            const error = ParserErrorCreator(input);
             const parsed = ParserRunner(
                 tokens,
                 new MemberExpressionParser(error)

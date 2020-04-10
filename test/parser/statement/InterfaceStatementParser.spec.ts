@@ -74,7 +74,7 @@ describe("InterfaceLiteralParser", () => {
     testSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
-            const error = ParserErrorCreator(tokens);
+            const error = ParserErrorCreator(input);
             const parsed = ParserRunner(
                 tokens,
                 new InterfaceStatementParser(error)

@@ -47,7 +47,7 @@ describe("BlockStatementParser", () =>
     BlockTestSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
-            const error = ParserErrorCreator(tokens);
+            const error = ParserErrorCreator(input);
             const actual = ParserRunner(
                 tokens,
                 new BlockStatementParser(error)

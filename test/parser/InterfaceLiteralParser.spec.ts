@@ -33,16 +33,17 @@ const testSet = [
         )
     },
     {
-        input: `{\na: string, 3?: timestamp | boolean\nb: {a: number}}`,
+        input: `{\na: string, 3?: timestamp | boolean\nb: string | {a: number}}`,
         expected: new InterfaceLiteral(
-            { start: 0, end: 51 },
+            { start: 0, end: 60 },
             mapFrom({
                 a: [new TypeLiteral(5, "string")],
                 b: [
+                    new TypeLiteral(40, "string"),
                     new InterfaceLiteral(
-                        { start: 40, end: 50 },
+                        { start: 49, end: 59 },
                         mapFrom({
-                            a: [new TypeLiteral(44, "number")]
+                            a: [new TypeLiteral(53, "number")]
                         })
                     )
                 ]
@@ -61,7 +62,7 @@ describe("InterfaceLiteralParser", () => {
     testSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
-            const error = ParserErrorCreator(tokens);
+            const error = ParserErrorCreator(input);
             const parsed = ParserRunner(
                 tokens,
                 new InterfaceLiteralParser(error)

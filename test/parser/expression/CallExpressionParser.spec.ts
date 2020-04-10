@@ -60,7 +60,7 @@ describe("CallExpressionParser", () =>
         ({ input, expected }) =>
             it(`Testing ${input}`, () => {
                 const tokens = tokenize(input);
-                const error = ParserErrorCreator(tokens);
+                const error = ParserErrorCreator(input);
                 const parsed = ParserRunner(
                     tokens,
                     new CallExpressionParser(error)

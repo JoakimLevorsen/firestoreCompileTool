@@ -83,7 +83,7 @@ describe("IfStatementParser", () =>
     IfStatementTestSet.forEach(({ input, expected }) =>
         it(`Parsing ${input}`, () => {
             const tokens = tokenize(input);
-            const error = ParserErrorCreator(tokens);
+            const error = ParserErrorCreator(input);
             const actual = ParserRunner(
                 tokens,
                 new IfStatementParser(error)
