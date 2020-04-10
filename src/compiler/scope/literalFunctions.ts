@@ -13,7 +13,6 @@ export const LiteralFunctions: {
 } = {
     string,
     boolean: {},
-    null: {},
     number: {},
     timestamp: {},
     Map: {},

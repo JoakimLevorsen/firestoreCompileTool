@@ -49,7 +49,6 @@ export const typeTokens = [
     "string",
     "boolean",
     "number",
-    "null",
     "timestamp",
     "Map",
     "Array"

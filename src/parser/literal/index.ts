@@ -14,6 +14,7 @@ export default abstract class LiteralParser extends Parser {
 export * from "./BooleanLiteralParser";
 export * from "./InterfaceLiteralParser";
 export * from "./LiteralParserGroup";
+export * from "./NullLiteralParser";
 export * from "./NumericLiteralParser";
 export * from "./StringLiteralParser";
 export * from "./TypeLiteralParser";

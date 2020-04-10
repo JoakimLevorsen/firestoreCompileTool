@@ -1,14 +1,14 @@
 import { TypeLiteral } from "../../types/literals";
 import { LiteralCompiler } from "./LiteralCompiler";
+import { ValueType } from "../../types";
 
 export const TypeLiteralCompiler: LiteralCompiler<TypeLiteral> = item =>
     `${rawValues[item.value]}`;
 
-const rawValues: { [index: string]: string } = {
+const rawValues: { [index in ValueType]: string } = {
     string: "string",
     boolean: "bool",
     number: "number",
-    null: "null",
     timestamp: "timestamp",
     Array: "list",
     Map: "map"

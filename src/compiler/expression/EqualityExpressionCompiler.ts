@@ -11,7 +11,8 @@ import Literal, {
     isInterfaceLiteralValues,
     NumericLiteral,
     StringLiteral,
-    TypeLiteral
+    TypeLiteral,
+    NullLiteral
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { NonTypeLiteralCompiler } from "../literal";
@@ -39,8 +40,7 @@ export const EqualityExpressionCompiler = (
         }
         if (
             nonIden instanceof InterfaceLiteral ||
-            (nonIden instanceof TypeLiteral &&
-                nonIden.value !== "null")
+            nonIden instanceof TypeLiteral
         )
             throw new CompilerError(
                 nonIden,
@@ -76,12 +76,10 @@ const extractTypeAndValue = (
         | ComparisonExpression
         | Literal
         | DatabaseLocation
-        | ReturnType<typeof CallExpressionCompiler>
-        | null,
+        | ReturnType<typeof CallExpressionCompiler>,
     input: EqualityExpression,
     scope: Scope
-): { type: ValueType | "ANY"; value: string } => {
-    if (from === null) return { type: "null", value: "null" };
+): { type: ValueType | "ANY" | "null"; value: string } => {
     if (from instanceof ComparisonExpression) {
         return {
             type: "boolean",
@@ -89,12 +87,11 @@ const extractTypeAndValue = (
         };
     }
     if (from instanceof Literal) {
-        let type: ValueType;
+        let type: ValueType | "null";
         if (from instanceof BooleanLiteral) type = "boolean";
         else if (from instanceof StringLiteral) type = "string";
         else if (from instanceof NumericLiteral) type = "number";
-        else if (from instanceof TypeLiteral && from.value === "null")
-            return { type: "null", value: "null" };
+        else if (from instanceof NullLiteral) type = "null";
         else
             throw new CompilerError(
                 from,

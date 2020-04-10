@@ -3,14 +3,16 @@ import { Identifier, Token } from "../types";
 import {
     BooleanLiteral,
     NumericLiteral,
-    TypeLiteral
+    TypeLiteral,
+    NullLiteral
 } from "../types/literals";
 import {
     BooleanLiteralParser,
     InterfaceLiteralParser,
     NumericLiteralParser,
     StringLiteralParser,
-    TypeLiteralParser
+    TypeLiteralParser,
+    NullLiteralParser
 } from "./literal";
 
 export const IdentifierOrLiteralExtractor = (
@@ -19,6 +21,7 @@ export const IdentifierOrLiteralExtractor = (
 ):
     | Identifier
     | BooleanLiteral
+    | NullLiteral
     | NumericLiteralParser
     | TypeLiteral
     | { parser: NumericLiteralParser; value: NumericLiteral }
@@ -27,6 +30,9 @@ export const IdentifierOrLiteralExtractor = (
     const bParser = new BooleanLiteralParser(error);
     if (bParser.canAccept(token))
         return (bParser.addToken(token) as unknown) as BooleanLiteral;
+    const nullParser = new NullLiteralParser(error);
+    if (nullParser.canAccept(token))
+        return (nullParser.addToken(token) as unknown) as NullLiteral;
     const nParser = new NumericLiteralParser(error);
     if (nParser.canAccept(token)) {
         const response = nParser.addToken(token);

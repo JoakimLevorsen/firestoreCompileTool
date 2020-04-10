@@ -3,7 +3,8 @@ import Literal, {
     InterfaceLiteral,
     NumericLiteral,
     StringLiteral,
-    TypeLiteral
+    TypeLiteral,
+    NullLiteral
 } from "../../types/literals";
 import CompilerError from "../CompilerError";
 import { BooleanLiteralCompiler } from "./BooleanLiteralCompiler";
@@ -11,10 +12,12 @@ import { LiteralCompiler } from "./LiteralCompiler";
 import { NumericLiteralCompiler } from "./NumericLiteralCompiler";
 import { StringLiteralCompiler } from "./StringLiteralCompiler";
 import { TypeLiteralCompiler } from "./TypeLiteralCompiler";
+import { NullLiteralCompiler } from "./NullLiteralCompiler";
 
 const LiteralCompiler = (item: Literal) => {
     if (item instanceof StringLiteral)
         return StringLiteralCompiler(item);
+    if (item instanceof NullLiteral) return NullLiteralCompiler(item);
     if (item instanceof NumericLiteral)
         return NumericLiteralCompiler(item);
     if (item instanceof BooleanLiteral)
@@ -25,10 +28,15 @@ const LiteralCompiler = (item: Literal) => {
 };
 
 export const NonTypeLiteralCompiler = (
-    item: NumericLiteral | StringLiteral | BooleanLiteral
+    item:
+        | NumericLiteral
+        | StringLiteral
+        | BooleanLiteral
+        | NullLiteral
 ) => {
     if (item instanceof StringLiteral)
         return StringLiteralCompiler(item);
+    if (item instanceof NullLiteral) return NullLiteralCompiler(item);
     if (item instanceof NumericLiteral)
         return NumericLiteralCompiler(item);
     if (item instanceof BooleanLiteral)

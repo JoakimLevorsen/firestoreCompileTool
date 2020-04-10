@@ -5,6 +5,7 @@ type LiteralTypes =
     | string
     | number
     | boolean
+    | null
     | InterfaceLiteralValues;
 
 export default abstract class Literal extends SyntaxComponent {
@@ -26,6 +27,7 @@ export default abstract class Literal extends SyntaxComponent {
 export { Literal };
 export * from "./BooleanLiteral";
 export * from "./InterfaceLiteral";
+export * from "./NullLiteral";
 export * from "./NumericLiteral";
 export * from "./StringLiteral";
 export * from "./TypeLiteral";
