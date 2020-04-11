@@ -31,6 +31,10 @@ export default abstract class SyntaxComponent {
         return this.position.start;
     }
 
+    public set start(s: number) {
+        this.position.start = s;
+    }
+
     protected setEnd = (e: number) => (this.position.end = e);
 
     protected abstract internalEquals(

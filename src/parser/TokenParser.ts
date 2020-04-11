@@ -68,11 +68,11 @@ const maxTokenLength = Object.keys(organizedTokens).reduce(
 export function* tokenParser(from: string): Generator<Token> {
     let location = 0;
     let remaining = from;
-    let commentMode: "//" | "/**/" | null = null;
+    let commentMode: "//" | "/*" | null = null;
     let stringMode: '"' | "'" | null = null;
 
     // Regexes
-    const lineCommentEnd = /^.*?\n/;
+    const lineCommentEnd = /^.*/;
     const blockCommmentEnd = /^.*?\*\//;
     const qouteStringEnd = /^.*?([^\\]|^)"/;
     const apostropheStringEnd = /^.*?([^\\]|^)'/;
@@ -87,8 +87,10 @@ export function* tokenParser(from: string): Generator<Token> {
                 commentMode === "//"
                     ? lineCommentEnd
                     : blockCommmentEnd;
-            const commentContent = remaining.match(regexToUse);
-            if (!commentContent) throw new Error("Unending comment");
+            const commentContent = remaining.match(regexToUse)?.[0];
+            if (!commentContent) {
+                throw new Error("Unending comment");
+            }
             // Now we just add the comment to the lenght, and remove it from the remaining
             const commentLength = commentContent.length;
             remaining = remaining.substr(commentLength);
@@ -134,12 +136,31 @@ export function* tokenParser(from: string): Generator<Token> {
             // First we check if any tokens have this length
             const possibleToken = remaining.substr(0, i);
             const tokenMatch = organizedTokens[i]?.[possibleToken];
-            if (tokenMatch) {
-                // This means we encounted a function
+            // If this tokenMatch is letters, we need to check it's not followed by more letters, so 'inspect' doesn't register as 'in' and 'spect'
+            if (
+                tokenMatch &&
+                (!/^\w*$/.test(possibleToken) ||
+                    /^([^\w]|$)/.test(remaining.substr(i)))
+            ) {
                 remaining = remaining.substr(possibleToken.length);
-                yield { type: possibleToken as tokenType, location };
+                // We only return if this is not a comment
+                if (
+                    possibleToken === "//" ||
+                    possibleToken === "/*"
+                ) {
+                    commentMode = possibleToken;
+                } else {
+                    yield {
+                        type: possibleToken as tokenType,
+                        location
+                    };
+                }
                 location += possibleToken.length;
                 foundToken = true;
+                // If this was a string, we also enter stringmode
+                if (possibleToken === "'" || possibleToken === '"') {
+                    stringMode = possibleToken;
+                }
                 break;
             }
         }

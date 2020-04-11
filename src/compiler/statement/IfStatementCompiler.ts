@@ -112,7 +112,30 @@ export const IfStatementCompiler = (
             alternate = IfStatementCompiler(item.alternate, scope);
         } else
             alternate = BlockStatementCompiler(item.alternate, scope);
-        return `((${test} && (${consequent})) || ${alternate})`;
+        // Look in newLogic.md for explanation of logic
+        // return `((${test} && (${consequent})) || ${alternate})`;
+        if (consequent === "true") {
+            // If the alternate is just "false", we ignore it
+            if (alternate === "false") return `(${test})`;
+            return `(${test}) || (${alternate})`;
+        }
+        if (consequent === "false") {
+            // If both are false, we just return false
+            if (alternate === "false") return `false`;
+            if (alternate === "true") return `(!${test})`;
+            return `(!(${test}) && ${alternate})`;
+        }
+        if (alternate === "false") {
+            return `((${test}) && (${consequent}))`;
+        }
+        return `((${test}) ? (${consequent}) : ${alternate})`;
     }
-    return `(${test} && (${consequent}))`;
+    // If the consequent is just 'true' or 'false' we do something else
+    if (consequent === "true") {
+        return `(${test})`;
+    }
+    if (consequent === "false") {
+        return `(!(${test}))`;
+    }
+    return `((${test}) ? (${consequent}) : false)`;
 };

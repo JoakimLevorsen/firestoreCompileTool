@@ -14,7 +14,7 @@ import { BlockStatement, IfStatement } from "../../types/statements";
 import SyntaxComponent from "../../types/SyntaxComponent";
 import ExpressionParser from "../expression/ExpressionParser";
 import Parser from "../Parser";
-import ParserGroup from "../ParserGroup";
+import { BlockContentParser } from "./BlockContentParser";
 
 export class IfStatementParser extends Parser {
     private state:
@@ -34,7 +34,10 @@ export class IfStatementParser extends Parser {
         this.errorCreator
     );
     private block?: BlockStatement;
-    private alternateParser?: ParserGroup;
+    private alternateParser?:
+        | IfStatementParser
+        | BlockContentParser
+        | BlockStatementParser;
     private alternate?: IfStatement | BlockStatement;
     private start = NaN;
 
@@ -85,33 +88,46 @@ export class IfStatementParser extends Parser {
                 }
                 throw error("Unexpected token");
             case "awaiting else":
-                if (tokenHasType(token, [...spaceTokens]))
+                // We ignore the keyword else
+                if (tokenHasType(token, [...spaceTokens, "else"]))
                     return null;
-                if (token.type === "else") {
+                if (token.type === "if") {
+                    this.alternateParser = new IfStatementParser(
+                        this.errorCreator
+                    );
+                    this.alternateParser.addToken(token);
+                    this.state = "building alternate";
+                    return null;
+                }
+                if (token.type === "{") {
+                    this.alternateParser = new BlockStatementParser(
+                        this.errorCreator
+                    );
+                    this.alternateParser.addToken(token);
+                    this.state = "building alternate";
+                    return null;
+                }
+                const bParser = new BlockContentParser(
+                    this.errorCreator
+                );
+                if (bParser.canAccept(token)) {
+                    this.alternateParser = bParser;
+                    bParser.addToken(token);
                     this.state = "building alternate";
                     return null;
                 }
                 throw error("Unexpected token");
             case "building alternate":
-                if (!this.alternateParser) {
-                    if (tokenHasType(token, [...spaceTokens]))
-                        return null;
-                    this.alternateParser = new ParserGroup(
-                        new IfStatementParser(this.errorCreator),
-                        new BlockStatementParser(this.errorCreator)
-                    );
-                }
-                if (this.alternateParser.canAccept(token)) {
-                    const result = this.alternateParser.addToken(
+                if (this.alternateParser!.canAccept(token)) {
+                    const result = this.alternateParser!.addToken(
                         token
                     );
-                    if (result && result.length === 1) {
-                        const actual = result[0];
+                    if (result) {
                         if (
-                            actual instanceof BlockStatement ||
-                            actual instanceof IfStatement
+                            result instanceof BlockStatement ||
+                            result instanceof IfStatement
                         ) {
-                            this.alternate = actual;
+                            this.alternate = result;
                             return new IfStatement(
                                 this.start,
                                 this.condition!,
@@ -138,17 +154,20 @@ export class IfStatementParser extends Parser {
             case "building block":
                 return this.blockBuilder.canAccept(token);
             case "awaiting else":
-                return tokenHasType(token, [...spaceTokens, "else"]);
+                if (
+                    tokenHasType(token, [
+                        ...spaceTokens,
+                        "else",
+                        "if",
+                        "{"
+                    ])
+                )
+                    return true;
+                return new BlockContentParser(
+                    this.errorCreator
+                ).canAccept(token);
             case "building alternate":
-                if (!this.alternateParser) {
-                    if (tokenHasType(token, [...spaceTokens]))
-                        return true;
-                    this.alternateParser = new ParserGroup(
-                        new IfStatementParser(this.errorCreator),
-                        new BlockStatementParser(this.errorCreator)
-                    );
-                }
-                return this.alternateParser.canAccept(token);
+                return this.alternateParser!.canAccept(token);
         }
     }
 }
