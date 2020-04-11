@@ -1,7 +1,8 @@
 import {
     nonKeywordTokenTypes,
     Token,
-    keywordTokenTypes
+    tokenTypes,
+    tokenType
 } from "../types/Token";
 
 const escapedNonKeywordTokens = nonKeywordTokenTypes.map(raw => {
@@ -50,129 +51,140 @@ const nonTokenRegex = new RegExp(
         )}]+)`
 );
 
-const nonKeywordRegex = escapedNonKeywordTokens.map(
-    ({ escaped, raw }) => ({
-        type: raw,
-        regex: new RegExp(`^${escaped ?? raw}`)
-    })
+// We take all the possible tokens, and turn them into an object based on their length, containing the tokens as keys, so we can do O(1) lookups.
+const organizedTokens = tokenTypes.reduce<{
+    [index: number]: { [index: string]: boolean };
+}>((pV, token) => {
+    const l = token.length;
+    if (!pV[l]) pV[l] = {};
+    pV[l][token] = true;
+    return pV;
+}, {});
+const maxTokenLength = Object.keys(organizedTokens).reduce(
+    (pV, v) => (+v > pV ? +v : pV),
+    0
 );
 
-const keywordRegex = keywordTokenTypes.map(type => ({
-    type,
-    regex: new RegExp(`^${type}([^\\w]|$)`)
-}));
+export function* tokenParser(from: string): Generator<Token> {
+    let location = 0;
+    let remaining = from;
+    let commentMode: "//" | "/**/" | null = null;
+    let stringMode: '"' | "'" | null = null;
 
-const whitespaceRegex = /^\s/;
+    // Regexes
+    const lineCommentEnd = /^.*?\n/;
+    const blockCommmentEnd = /^.*?\*\//;
+    const qouteStringEnd = /^.*?([^\\]|^)"/;
+    const apostropheStringEnd = /^.*?([^\\]|^)'/;
 
-export class TokenParser {
-    public static extractAll(from: string) {
-        const parser = new TokenParser(from);
-        const tokens: Token[] = [];
-        let token: Token;
-        do {
-            token = parser.nextToken();
-            tokens.push(token);
-        } while (token.type !== "EOF");
-        return tokens;
-    }
-    private location: number = 0;
-    private remaining: string;
-    private commentMode?: "//" | "/**/";
-    private stringMode?: '"' | "'";
-
-    constructor(input: string) {
-        this.remaining = input;
-    }
-
-    public nextToken(): Token {
-        const { location, remaining } = this;
-        if (remaining === "") return { type: "EOF", location };
-        // If we're in string mode, we just return the next chunk untill the closing ' or "
-        if (this.stringMode) {
-            const regex =
-                this.stringMode === '"'
-                    ? /^((?:[^"]|\\")+[^\\])"/
-                    : /^((?:[^\']|\\\')+[^\\])\'/;
-            const value = remaining.match(regex)?.[1];
-            if (value) {
-                this.remaining = remaining.substr(value.length);
-                this.location += value.length;
-                return { type: "Keyword", location, value };
+    while (remaining.length !== 0) {
+        // To prevent infinite loops, we keep track of the old remaining
+        let lastRemaining = remaining;
+        // First we check for comment mode
+        if (commentMode) {
+            // Since we're in comment mode, we just cheat and continue untill the comment is over
+            const regexToUse =
+                commentMode === "//"
+                    ? lineCommentEnd
+                    : blockCommmentEnd;
+            const commentContent = remaining.match(regexToUse);
+            if (!commentContent) throw new Error("Unending comment");
+            // Now we just add the comment to the lenght, and remove it from the remaining
+            const commentLength = commentContent.length;
+            remaining = remaining.substr(commentLength);
+            location += commentLength;
+            commentMode = null;
+            continue;
+        }
+        if (stringMode) {
+            const regexToUse =
+                stringMode === "'"
+                    ? apostropheStringEnd
+                    : qouteStringEnd;
+            const stringContent = remaining.match(regexToUse)?.[0];
+            if (!stringContent) throw new Error("Unending string");
+            // Now here we are a little cheeky, and first yield the string content, and then the end '/"
+            // Only if the string has content that is
+            if (stringContent.length > 1) {
+                const stringSubContent = stringContent.substr(
+                    0,
+                    stringContent.length - 1
+                );
+                yield {
+                    type: "Keyword",
+                    location,
+                    value: stringSubContent
+                };
+                location += stringSubContent.length;
+            }
+            // We disable string mode, and add the last "/' to the location
+            location += 1;
+            yield { type: stringMode, location };
+            stringMode = null;
+            remaining = remaining.substr(stringContent.length);
+            // Now we continue on to the remaining code, since both string and commentmode can't be active
+        }
+        // Now we go through all the organized tokens to check if we've encountered any tokens (We start with the longest to make sure we don't interpret eg (== as = and =, or ?. as ? and .))
+        let foundToken = false;
+        for (
+            let i = Math.min(maxTokenLength, remaining.length);
+            i > 0;
+            i--
+        ) {
+            // First we check if any tokens have this length
+            const possibleToken = remaining.substr(0, i);
+            const tokenMatch = organizedTokens[i]?.[possibleToken];
+            if (tokenMatch) {
+                // This means we encounted a function
+                remaining = remaining.substr(possibleToken.length);
+                yield { type: possibleToken as tokenType, location };
+                location += possibleToken.length;
+                foundToken = true;
+                break;
             }
         }
-        for (const { type, regex } of nonKeywordRegex) {
-            const escaped = remaining.match(regex);
-            if (escaped == null) continue;
-            this.remaining = escaped.input!.substr(escaped[0].length);
-            this.location += escaped[0].length;
-            if (!this.commentMode && !this.stringMode) {
-                if (type === "/*") this.commentMode = "/**/";
-                else if (type === "//") this.commentMode = "//";
-                else if (type === "'" || type === '"') {
-                    this.stringMode = type;
-                    return { type, location };
+        // If we didn't find a token we return a normal string token
+        if (!foundToken) {
+            // Though first we check for the sneeky \xa0 (fixed width space), that would've been missed by the previous code
+            if (/^\xa0/.test(remaining)) {
+                remaining = remaining.substr(1);
+                yield { type: " ", location };
+                location += 1;
+            } else {
+                // This means we have a keyword, keywords are often seperated by a space, but this is not mandetory. This means we have to take into account it can end with a reserved character.
+                const match = remaining.match(nonTokenRegex);
+                const keyword = match?.[1];
+                if (keyword) {
+                    remaining = remaining.substr(keyword.length);
+                    yield {
+                        type: "Keyword",
+                        value: keyword,
+                        location
+                    };
+                    location += keyword.length;
                 }
-            }
-            if (this.commentMode) {
-                if (this.commentMode === "//" && type === "\n")
-                    this.commentMode = undefined;
-                else if (this.commentMode === "/**/" && type === "*/")
-                    this.commentMode = undefined;
-                return this.nextToken();
-            }
-            if (this.stringMode === type) {
-                this.stringMode = undefined;
-            }
-            return { type, location };
-        }
-        if (whitespaceRegex.test(remaining)) {
-            const char = remaining.substr(0, 1);
-            this.remaining = remaining.substr(1);
-            this.location++;
-            switch (char) {
-                case " ":
-                case "\t":
-                case "\r":
-                case "\n":
-                    return {
-                        type: char,
-                        location
-                    };
-                // We interpret non-breaking space as a normal space
-                case "\xa0":
-                    return {
-                        type: " ",
-                        location
-                    };
-                default:
-                    const code = char.charCodeAt(0);
-                    throw new Error("Token error " + code);
+                // Otherwise we have a token, and will loop around to extract it
             }
         }
-        for (const { type, regex } of keywordRegex) {
-            const match = remaining.match(regex);
-            if (!match) continue;
-            // Then we can remove from remaining and return
-            this.remaining = remaining.substr(type.length);
-            this.location += type.length;
-            if (this.commentMode) {
-                return this.nextToken();
-            }
-            return { type, location };
+        // Lastly we make sure remaining has changed, otherwise no token was extracted
+        if (remaining.length === lastRemaining.length) {
+            throw new Error(
+                "Could not extract token from" + remaining
+            );
         }
-        const kMatch = remaining.match(nonTokenRegex);
-        if (kMatch && kMatch[1]) {
-            this.remaining = remaining.substr(kMatch[1].length);
-            this.location += kMatch[1].length;
-            if (this.commentMode) return this.nextToken();
-            return {
-                type: "Keyword",
-                value: kMatch[1],
-                location
-            };
-        }
-        throw new Error(
-            "Token could not be extracted from " + remaining
-        );
     }
+    // This means we're done with extractin, so we just return and EOF
+    return { type: "EOF", location };
 }
+
+export const getAllTokens = (file: string) => {
+    const content: Token[] = [];
+    const extractor = tokenParser(file);
+    let done = false;
+    do {
+        const result = extractor.next();
+        done = result.done || false;
+        content.push(result.value);
+    } while (!done);
+    return content;
+};

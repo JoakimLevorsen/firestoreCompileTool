@@ -15,7 +15,6 @@ const operatorTokenTypes = [
     "]",
     ".",
     "?.",
-    "EOF",
     "?:",
     ":",
     ";",
@@ -87,7 +86,10 @@ export interface TypedToken<T extends tokenType> {
 
 export type Token =
     | TypedToken<tokenType>
+    | { type: "EOF"; location: number }
     | { type: "Keyword"; value: string; location: number };
 
-export const tokenHasType = ({ type }: Token, types: tokenType[]) =>
-    types.some(t => type === t);
+export const tokenHasType = (
+    { type }: Token,
+    types: Array<tokenType | "EOF">
+) => types.some(t => type === t);

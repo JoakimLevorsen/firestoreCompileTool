@@ -1,9 +1,9 @@
 import { FileWrapperParser } from "./FileWrapperParser";
 import ParserErrorCreator from "./ParserError";
-import { TokenParser } from "./TokenParser";
+import { getAllTokens } from "./TokenParser";
 
 const parse = (from: string) => {
-    const tokens = TokenParser.extractAll(from);
+    const tokens = getAllTokens(from);
     // We now start a FileParser and parse
     const parser = new FileWrapperParser(ParserErrorCreator(from));
     let parsed;

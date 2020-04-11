@@ -1,14 +1,14 @@
-import { TokenParser } from "../../src/parser";
+import { tokenParser } from "../../src/parser/TokenParser";
 import Parser from "../../src/parser/Parser";
 import ParserGroup from "../../src/parser/ParserGroup";
 import { Token } from "../../src/types";
 import SyntaxComponent from "../../src/types/SyntaxComponent";
 
 export const tokenize = (input: string) => {
-    const tParser = new TokenParser(input);
+    const tParser = tokenParser(input);
     const tokens: Token[] = [];
     while (true) {
-        const next = tParser.nextToken();
+        const next = tParser.next().value;
         if (next.type === "EOF") return tokens;
         tokens.push(next);
     }
