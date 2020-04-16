@@ -88,12 +88,16 @@ const extractRules = (
                 return LiteralCompiler(literal) as string;
             });
         rule += `&& (${values
-            .map(
-                v =>
-                    `${dataRef}.${k} ${
-                        typeof v === "string" ? "==" : "is"
-                    } ${typeof v === "string" ? v : v.value}`
-            )
+            .map(v => {
+                if (typeof v !== "string") {
+                    return `${dataRef}.${k} is ${v.value}`;
+                }
+                // TODO: Make this better
+                if (/(&&|\|\|)/.test(v)) {
+                    return `(${v})`;
+                }
+                return `${dataRef}.${k} == ${v}`;
+            })
             .reduce((pV, v) => `${pV} || ${v}`)})`;
     });
     from.optionals.forEach((rawValues, k) => {
