@@ -20,6 +20,7 @@ import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
 import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const RuleStatementCompiler = (
     item: RuleStatement,
@@ -38,8 +39,10 @@ export const RuleStatementCompiler = (
                 `A constant with the name ${item.params.newDoc} already exists`
             );
         newScope[item.params.newDoc] = {
-            key: "request.resource",
-            needsDotData: true
+            value: {
+                key: "request.resource",
+                needsDotData: true
+            }
         };
     }
     if (item.params.oldDoc) {
@@ -49,8 +52,10 @@ export const RuleStatementCompiler = (
                 `A constant with the name ${item.params.oldDoc} already exists`
             );
         newScope[item.params.oldDoc] = {
-            key: "resource",
-            needsDotData: true
+            value: {
+                key: "resource",
+                needsDotData: true
+            }
         };
     }
     const content = extractRule(item.rule, newScope);
@@ -67,44 +72,63 @@ const extractRule = (
     if (rule instanceof BooleanLiteral) {
         return NonTypeLiteralCompiler(rule);
     }
+    const optionals = new OptionalDependecyTracker();
     if (rule instanceof ComparisonExpression) {
-        return ComparisonExpressionCompiler(rule, scope);
+        const subReturn = ComparisonExpressionCompiler(
+            rule,
+            scope,
+            optionals
+        );
+        const opReturn = optionals.export();
+        if (opReturn) {
+            return `(${opReturn} && ${subReturn})`;
+        }
+        return subReturn;
     }
-    const safe = IdentifierMemberExtractor(rule, scope);
+    const safe = IdentifierMemberExtractor(rule, scope, optionals);
+    let subReturn: string | undefined;
     if (safe instanceof MemberExpression) {
         throw new Error("This will literally never happen");
     }
     if (safe instanceof Literal) {
         if (safe instanceof BooleanLiteral)
-            return BooleanLiteralCompiler(safe);
-        throw new CompilerError(
-            safe,
-            "Can only return boolean values"
-        );
-    }
-    if (isDatabaseLocation(safe)) {
+            subReturn = BooleanLiteralCompiler(safe);
+        else
+            throw new CompilerError(
+                safe,
+                "Can only return boolean values"
+            );
+    } else if (isDatabaseLocation(safe)) {
         if (safe.castAs) {
             if (
                 safe.castAs instanceof TypeLiteral &&
                 safe.castAs.value === "boolean"
             )
-                return safe.key;
-            throw new CompilerError(
-                rule,
-                "Can only return boolean values"
-            );
-        }
-        return safe.key;
-    }
-    if (safe instanceof OutsideFunctionDeclaration)
+                subReturn = safe.key;
+            else
+                throw new CompilerError(
+                    rule,
+                    "Can only return boolean values"
+                );
+        } else subReturn = safe.key;
+    } else if (safe instanceof OutsideFunctionDeclaration)
         throw new CompilerError(
             safe,
             "Cannot use function as a return value, it must be a boolean"
         );
-    if (safe instanceof CallExpression) {
-        return CallExpressionCompiler(safe, scope).value;
+    else if (safe instanceof CallExpression) {
+        subReturn = CallExpressionCompiler(safe, scope, optionals)
+            .value;
+    } else if (safe instanceof ComparisonExpression)
+        subReturn = ComparisonExpressionCompiler(
+            safe,
+            scope,
+            optionals
+        );
+    if (subReturn) {
+        const opReturn = optionals.export();
+        if (opReturn) return `(${opReturn} && ${subReturn})`;
+        return subReturn;
     }
-    if (safe instanceof ComparisonExpression)
-        return ComparisonExpressionCompiler(safe, scope);
     throw new Error("Did not expect this to happen");
 };

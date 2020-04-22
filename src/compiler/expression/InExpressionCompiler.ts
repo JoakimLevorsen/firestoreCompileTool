@@ -17,13 +17,15 @@ import { CallExpressionCompiler } from "./CallExpressionCompiler";
 import { ComparisonExpression } from "../../types/expressions/comparison";
 import { ComparisonExpressionCompiler } from ".";
 import { NonTypeLiteralCompiler } from "../literal";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const InExpressionCompiler = (
     item: InExpression,
     scope: Scope
 ): string => {
+    const optionals = new OptionalDependecyTracker();
     const [left, right] = [item.left, item.right].map(i =>
-        IdentifierMemberExtractor(i, scope)
+        IdentifierMemberExtractor(i, scope, optionals)
     );
     // We verify the right one is an array
     if (!isDatabaseLocation(right))
@@ -49,23 +51,26 @@ export const InExpressionCompiler = (
         return getOutput(
             left.needsDotData ? `${left.key}.data` : left.key,
             rightC,
-            item.operator
+            item.operator,
+            optionals
         );
     }
     if (left instanceof OutsideFunctionDeclaration)
         throw new CompilerError(left, "Cannot use function referece");
     if (left instanceof CallExpression) {
         return getOutput(
-            CallExpressionCompiler(left, scope).value,
+            CallExpressionCompiler(left, scope, optionals).value,
             rightC,
-            item.operator
+            item.operator,
+            optionals
         );
     }
     if (left instanceof ComparisonExpression) {
         return getOutput(
-            ComparisonExpressionCompiler(left, scope),
+            ComparisonExpressionCompiler(left, scope, optionals),
             rightC,
-            item.operator
+            item.operator,
+            optionals
         );
     }
     if (
@@ -79,15 +84,21 @@ export const InExpressionCompiler = (
     return getOutput(
         NonTypeLiteralCompiler(left as StringLiteral),
         rightC,
-        item.operator
+        item.operator,
+        optionals
     );
 };
 
 const getOutput = (
     left: string,
     right: string,
-    operator: InOperator
+    operator: InOperator,
+    optionals: OptionalDependecyTracker
 ) =>
-    operator === "in"
+    optionals.export()
+        ? operator === "in"
+            ? `(${optionals.export()} && ${left} in ${right})`
+            : `(${optionals.export()} && !(${left} in ${right}))`
+        : operator === "in"
         ? `${left} in ${right}`
         : `!(${left} in ${right})`;

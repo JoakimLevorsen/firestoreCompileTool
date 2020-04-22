@@ -21,6 +21,7 @@ import { BlockStatementCompiler } from "./BlockStatementCompiler";
 import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const IfStatementCompiler = (
     item: IfStatement,
@@ -35,10 +36,15 @@ export const IfStatementCompiler = (
     */
     let test: string;
     // TODO: Add support for Identifiers/MemberExpressions as tests
+    const testOptionals = new OptionalDependecyTracker();
     if (item.test instanceof BooleanLiteral) {
         test = BooleanLiteralCompiler(item.test);
     } else if (item.test instanceof ComparisonExpression) {
-        test = ComparisonExpressionCompiler(item.test, scope);
+        test = ComparisonExpressionCompiler(
+            item.test,
+            scope,
+            testOptionals
+        );
     } else {
         let memFree:
             | Literal
@@ -48,7 +54,8 @@ export const IfStatementCompiler = (
         if (item.test instanceof MemberExpression) {
             const internal = MemberExpressionCompiler(
                 item.test,
-                scope
+                scope,
+                testOptionals
             );
             if (internal instanceof OutsideFunctionDeclaration)
                 throw new CompilerError(
@@ -70,7 +77,9 @@ export const IfStatementCompiler = (
             | CallExpression
             | ComparisonExpression;
         if (memFree instanceof Identifier) {
-            identFree = IdentifierCompiler(memFree, scope);
+            const raw = IdentifierCompiler(memFree, scope);
+            identFree = raw.value;
+            testOptionals.cloneDepsFrom(raw.optionalChecks);
         } else identFree = memFree;
         if (identFree instanceof Literal) {
             if (identFree instanceof BooleanLiteral)
@@ -81,9 +90,17 @@ export const IfStatementCompiler = (
                     "Can only use boolean values as sole comparison values"
                 );
         } else if (identFree instanceof ComparisonExpression) {
-            test = ComparisonExpressionCompiler(identFree, scope);
+            test = ComparisonExpressionCompiler(
+                identFree,
+                scope,
+                testOptionals
+            );
         } else if (identFree instanceof CallExpression) {
-            test = CallExpressionCompiler(identFree, scope).value;
+            test = CallExpressionCompiler(
+                identFree,
+                scope,
+                testOptionals
+            ).value;
         } else {
             if (!identFree.castAs)
                 test = identFree.needsDotData
@@ -105,6 +122,9 @@ export const IfStatementCompiler = (
                 );
         }
     }
+    // Now if we have any optionals for the test, we just add them first
+    const testExport = testOptionals.export();
+    if (testExport) test = `(${testExport} && ${test})`;
     const consequent = BlockStatementCompiler(item.consequent, scope);
     if (item.alternate) {
         let alternate;

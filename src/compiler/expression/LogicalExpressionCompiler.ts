@@ -14,14 +14,24 @@ import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
 import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "./CallExpressionCompiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const LogicalExpressionCompiler = (
     input: LogicalExpression,
     scope: Scope
 ): string => {
     // For this we just need to make sure no Interfaces or Types are involved, and check the comparison types return boolean values
-    const left = IdentifierMemberExtractor(input.left, scope);
-    const right = IdentifierMemberExtractor(input.right, scope);
+    const optionals = new OptionalDependecyTracker();
+    const left = IdentifierMemberExtractor(
+        input.left,
+        scope,
+        optionals
+    );
+    const right = IdentifierMemberExtractor(
+        input.right,
+        scope,
+        optionals
+    );
     // Now we make sure the comparison isn't non boolean
     const [safeRight, safeLeft] = [right, left].map(v => {
         if (v instanceof Literal) {
@@ -38,7 +48,11 @@ export const LogicalExpressionCompiler = (
                 "Cannot use function reference as value"
             );
         if (v instanceof CallExpression) {
-            const compiled = CallExpressionCompiler(v, scope);
+            const compiled = CallExpressionCompiler(
+                v,
+                scope,
+                optionals
+            );
             if (compiled.returnType === "boolean") return compiled;
             throw new CompilerError(
                 v,
@@ -65,7 +79,11 @@ export const LogicalExpressionCompiler = (
     const [compiledRight, compiledLeft] = [safeRight, safeLeft].map(
         v => {
             if (v instanceof ComparisonExpression) {
-                return ComparisonExpressionCompiler(v, scope);
+                return ComparisonExpressionCompiler(
+                    v,
+                    scope,
+                    optionals
+                );
             }
             if (v instanceof BooleanLiteral) {
                 return BooleanLiteralCompiler(v);
@@ -74,5 +92,9 @@ export const LogicalExpressionCompiler = (
             return v.value;
         }
     );
+    const prefix = optionals.export();
+    if (prefix) {
+        return `(${prefix} && (${compiledLeft} ${input.operator} ${compiledRight}))`;
+    }
     return `(${compiledLeft} ${input.operator} ${compiledRight})`;
 };

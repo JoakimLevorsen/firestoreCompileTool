@@ -1,7 +1,9 @@
-import { DatabaseLocation } from "..";
 import { InterfaceLiteral, TypeLiteral } from "../../types/literals";
+import { ScopeItem } from ".";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
+import { DatabaseLocation } from "../Compiler";
 
-export const auth: DatabaseLocation = {
+const authItem: DatabaseLocation = {
     key: "request.auth",
     castAs: new InterfaceLiteral(
         { start: -1, end: -1 },
@@ -10,5 +12,12 @@ export const auth: DatabaseLocation = {
             token: [new InterfaceLiteral({ start: -1, end: -1 }, {})]
         }
     ),
-    optionalCast: true
+    optional: true
+};
+
+export const auth: ScopeItem = {
+    value: authItem,
+    optionalChecks: new OptionalDependecyTracker([
+        { type: "Exist", value: authItem }
+    ])
 };

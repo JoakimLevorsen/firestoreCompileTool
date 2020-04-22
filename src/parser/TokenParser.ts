@@ -79,7 +79,7 @@ export function* tokenParser(from: string): Generator<Token> {
 
     while (remaining.length !== 0) {
         // To prevent infinite loops, we keep track of the old remaining
-        let lastRemaining = remaining;
+        const lastRemaining = remaining;
         // First we check for comment mode
         if (commentMode) {
             // Since we're in comment mode, we just cheat and continue untill the comment is over

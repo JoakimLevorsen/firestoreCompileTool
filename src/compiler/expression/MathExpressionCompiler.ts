@@ -15,26 +15,32 @@ import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "./CallExpressionCompiler";
 import { isDatabaseLocation } from "../Compiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const MathExpressionCompiler = (
     input: MathExpression,
-    scope: Scope
+    scope: Scope,
+    optionals: OptionalDependecyTracker
 ): string => {
     // We need to make sure both sides are numbers, then we can return
     const [left, right] = [input.left, input.right].map(i => {
-        const clean = cleanUpInputs(i, scope);
+        const clean = cleanUpInputs(i, scope, optionals);
         if (clean instanceof NumericLiteral)
             return NumericLiteralCompiler(clean);
         if (clean instanceof MathExpression)
-            return MathExpressionCompiler(clean, scope);
+            return MathExpressionCompiler(clean, scope, optionals);
         if (isDatabaseLocation(clean)) return clean.key;
         return clean.value;
     });
     return `${left} ${input.operator} ${right}`;
 };
 
-const cleanUpInputs = (input: ComparisonType, scope: Scope) => {
-    const clean = IdentifierMemberExtractor(input, scope);
+const cleanUpInputs = (
+    input: ComparisonType,
+    scope: Scope,
+    optionals: OptionalDependecyTracker
+) => {
+    const clean = IdentifierMemberExtractor(input, scope, optionals);
     if (clean instanceof Literal) {
         if (clean instanceof NumericLiteral) return clean;
         throw new CompilerError(
@@ -55,7 +61,11 @@ const cleanUpInputs = (input: ComparisonType, scope: Scope) => {
             "Cannot use function reference as value"
         );
     if (clean instanceof CallExpression) {
-        const compiled = CallExpressionCompiler(clean, scope);
+        const compiled = CallExpressionCompiler(
+            clean,
+            scope,
+            optionals
+        );
         if (compiled.returnType === "number") return compiled;
         throw new CompilerError(
             clean,

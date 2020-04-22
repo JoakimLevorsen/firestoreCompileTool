@@ -8,15 +8,17 @@ import CompilerError from "../CompilerError";
 import LiteralCompiler from "../literal";
 import { IdentifierMemberExtractor } from "../IdentifierMemberExtractor";
 import { TypeLiteralCompiler } from "../literal/TypeLiteralCompiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const IsExpressionCompiler = (
     item: IsExpression,
     scope: Scope
 ) => {
+    const optionals = new OptionalDependecyTracker();
     // First we make sure the Right value is an interfaceLiteral/interfaceValue/typeLiteral
-    const rightValue = extractRight(item, scope);
+    const rightValue = extractRight(item, scope, optionals);
     // We now expect the Left value to be a DatabaseLocation or a literal.
-    const leftValue = extractLeft(item, scope);
+    const leftValue = extractLeft(item, scope, optionals);
     // We can now use this to compile a comparison
 
     // The database key might need a .data, so we add it if needed
@@ -32,14 +34,21 @@ export const IsExpressionCompiler = (
             );
         return `${dataKey} is ${TypeLiteralCompiler(rightValue)}`;
     }
-    return extractRules(rightValue, item.operator, dataKey, scope);
+    return extractRules(
+        rightValue,
+        item.operator,
+        dataKey,
+        scope,
+        optionals
+    );
 };
 
 const extractRules = (
     from: InterfaceLiteral,
     opType: "is" | "only" | "isOnly",
     dataRef: string,
-    scope: Scope
+    scope: Scope,
+    optionals?: OptionalDependecyTracker
 ): string => {
     let header: string;
     const keys = Array.from(from.value.keys());
@@ -139,11 +148,24 @@ const extractRules = (
             )
             .reduce((pV, v) => `${pV} || ${v}`)})`;
     });
+    // If we have optionals we return slightly different rules
+    const rulePrefix = optionals?.export();
+    if (rulePrefix) {
+        return `(${rulePrefix} && ${rule})`;
+    }
     return rule;
 };
 
-const extractRight = (item: IsExpression, scope: Scope) => {
-    const right = IdentifierMemberExtractor(item.right, scope);
+const extractRight = (
+    item: IsExpression,
+    scope: Scope,
+    optionals: OptionalDependecyTracker
+) => {
+    const right = IdentifierMemberExtractor(
+        item.right,
+        scope,
+        optionals
+    );
     if (
         right instanceof InterfaceLiteral ||
         right instanceof TypeLiteral
@@ -156,8 +178,16 @@ const extractRight = (item: IsExpression, scope: Scope) => {
         );
 };
 
-const extractLeft = (item: IsExpression, scope: Scope) => {
-    const left = IdentifierMemberExtractor(item.left, scope);
+const extractLeft = (
+    item: IsExpression,
+    scope: Scope,
+    optionals: OptionalDependecyTracker
+) => {
+    const left = IdentifierMemberExtractor(
+        item.left,
+        scope,
+        optionals
+    );
     if (isDatabaseLocation(left)) {
         return left;
     } else

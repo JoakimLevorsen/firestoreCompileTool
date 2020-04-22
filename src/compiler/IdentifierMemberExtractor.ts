@@ -10,10 +10,12 @@ import { OutsideFunctionDeclaration } from "./OutsideFunctionDeclaration";
 import SyntaxComponent from "../types/SyntaxComponent";
 import { ComparisonExpression } from "../types/expressions/comparison";
 import { CallExpression } from "../types/expressions/CallExpression";
+import OptionalDependecyTracker from "./OptionalDependencyTracker";
 
 export const IdentifierMemberExtractor = <S extends SyntaxComponent>(
     input: Identifier | MemberExpression | S,
-    scope: Scope
+    scope: Scope,
+    optionalChecks: OptionalDependecyTracker
 ):
     | Literal
     | DatabaseLocation
@@ -22,12 +24,20 @@ export const IdentifierMemberExtractor = <S extends SyntaxComponent>(
     | OutsideFunctionDeclaration
     | S => {
     if (input instanceof MemberExpression) {
-        const x = MemberExpressionCompiler(input, scope);
+        const x = MemberExpressionCompiler(
+            input,
+            scope,
+            optionalChecks
+        );
         if (x instanceof Array) {
             if (x.length === 1) {
-                if (x[0] instanceof Identifier)
-                    return IdentifierCompiler(x[0], scope);
-                else return x[0];
+                if (x[0] instanceof Identifier) {
+                    const stored = IdentifierCompiler(x[0], scope);
+                    optionalChecks.cloneDepsFrom(
+                        stored.optionalChecks
+                    );
+                    return stored.value;
+                } else return x[0];
             } else
                 throw new CompilerError(
                     input,
@@ -37,7 +47,9 @@ export const IdentifierMemberExtractor = <S extends SyntaxComponent>(
         return x;
     }
     if (input instanceof Identifier) {
-        return IdentifierCompiler(input, scope);
+        const stored = IdentifierCompiler(input, scope);
+        optionalChecks.cloneDepsFrom(stored.optionalChecks);
+        return stored.value;
     }
     return input;
 };

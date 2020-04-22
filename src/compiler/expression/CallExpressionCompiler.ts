@@ -11,12 +11,18 @@ import Literal, {
 import { NonTypeLiteralCompiler } from "../literal";
 import { ValueType } from "../../types";
 import { isDatabaseLocation } from "../Compiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const CallExpressionCompiler = (
     input: CallExpression,
-    scope: Scope
+    scope: Scope,
+    optionalChecks: OptionalDependecyTracker
 ): { value: string; returnType: ValueType } => {
-    const target = IdentifierMemberExtractor(input.target, scope);
+    const target = IdentifierMemberExtractor(
+        input.target,
+        scope,
+        optionalChecks
+    );
     if (!(target instanceof OutsideFunctionDeclaration))
         throw new CompilerError(
             input.target,
@@ -26,7 +32,11 @@ export const CallExpressionCompiler = (
     const stringParams = input.arguments.map(a => {
         let litVal: Literal;
         if (!(a instanceof Literal)) {
-            const x = IdentifierMemberExtractor(a, scope);
+            const x = IdentifierMemberExtractor(
+                a,
+                scope,
+                optionalChecks
+            );
             if (!(x instanceof Literal))
                 throw new CompilerError(
                     a,
@@ -46,7 +56,11 @@ export const CallExpressionCompiler = (
     });
 
     // First we get the literal we were called on
-    const callee = IdentifierMemberExtractor(target.callee!, scope);
+    const callee = IdentifierMemberExtractor(
+        target.callee!,
+        scope,
+        optionalChecks
+    );
     if (
         callee instanceof InterfaceLiteral ||
         callee instanceof TypeLiteral

@@ -9,6 +9,7 @@ import { NonTypeLiteralCompiler } from "../literal";
 import { BooleanLiteralCompiler } from "../literal/BooleanLiteralCompiler";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { CallExpressionCompiler } from "../expression/CallExpressionCompiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const ReturnStatementCompiler = (
     item: ReturnStatement,
@@ -17,10 +18,19 @@ export const ReturnStatementCompiler = (
     const { body } = item;
     if (body instanceof BooleanLiteral)
         return BooleanLiteralCompiler(body);
-    if (body instanceof ComparisonExpression)
-        return ComparisonExpressionCompiler(body, scope);
+    const optionals = new OptionalDependecyTracker();
+    if (body instanceof ComparisonExpression) {
+        const subReturn = ComparisonExpressionCompiler(
+            body,
+            scope,
+            optionals
+        );
+        return optionals.returnFor(subReturn);
+    }
     if (body instanceof Identifier) {
-        const extracted = IdentifierCompiler(body, scope);
+        const rawExtracted = IdentifierCompiler(body, scope);
+        const extracted = rawExtracted.value;
+        optionals.cloneDepsFrom(rawExtracted.optionalChecks);
         if (extracted instanceof Literal) {
             if (!(extracted instanceof BooleanLiteral))
                 throw new CompilerError(
@@ -29,13 +39,31 @@ export const ReturnStatementCompiler = (
                 );
             return NonTypeLiteralCompiler(extracted);
         }
-        if (extracted instanceof ComparisonExpression)
-            return ComparisonExpressionCompiler(extracted, scope);
-        if (extracted instanceof CallExpression)
-            return CallExpressionCompiler(extracted, scope).value;
+        if (extracted instanceof ComparisonExpression) {
+            const subReturn = ComparisonExpressionCompiler(
+                extracted,
+                scope,
+                optionals
+            );
+            return optionals.returnFor(subReturn);
+        }
+        if (extracted instanceof CallExpression) {
+            const subReturn = CallExpressionCompiler(
+                extracted,
+                scope,
+                optionals
+            ).value;
+            return optionals.returnFor(subReturn);
+        }
         return extracted.key;
     }
-    if (body instanceof CallExpression)
-        return CallExpressionCompiler(body, scope).value;
+    if (body instanceof CallExpression) {
+        const subReturn = CallExpressionCompiler(
+            body,
+            scope,
+            optionals
+        ).value;
+        return optionals.returnFor(subReturn);
+    }
     throw new CompilerError(item, "Internal error");
 };

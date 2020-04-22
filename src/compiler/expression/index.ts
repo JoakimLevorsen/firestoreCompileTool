@@ -16,10 +16,12 @@ import { MemberExpressionCompiler } from "./MemberExpressionCompiler";
 import { OrderExpressionCompiler } from "./OrderExpressionCompiler";
 import { InExpression } from "../../types/expressions/comparison/InExpression";
 import { InExpressionCompiler } from "./InExpressionCompiler";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const ComparisonExpressionCompiler = (
     input: ComparisonExpression,
-    scope: Scope
+    scope: Scope,
+    optionals: OptionalDependecyTracker
 ) => {
     if (input instanceof LogicalExpression)
         return LogicalExpressionCompiler(input, scope);
@@ -30,7 +32,7 @@ export const ComparisonExpressionCompiler = (
     if (input instanceof OrderExpression)
         return OrderExpressionCompiler(input, scope);
     if (input instanceof MathExpression)
-        return MathExpressionCompiler(input, scope);
+        return MathExpressionCompiler(input, scope, optionals);
     if (input instanceof InExpression)
         return InExpressionCompiler(input, scope);
     throw new Error("Internal error");

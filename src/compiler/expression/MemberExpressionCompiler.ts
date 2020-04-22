@@ -14,16 +14,22 @@ import { OutsideFunctionDeclaration } from "../OutsideFunctionDeclaration";
 import { CallExpression } from "../../types/expressions/CallExpression";
 import { LiteralFunctions } from "../scope/literalFunctions";
 import SyntaxComponent from "../../types/SyntaxComponent";
+import OptionalDependecyTracker from "../OptionalDependencyTracker";
 
 export const MemberExpressionCompiler = (
     item: MemberExpression,
-    scope: Scope
+    scope: Scope,
+    optionalChecks: OptionalDependecyTracker
 ):
     | Literal
     | DatabaseLocation
     | OutsideFunctionDeclaration
-    | (Literal | Identifier)[] => {
-    const root = IdentifierMemberExtractor(item.object, scope);
+    | Array<Literal | Identifier> => {
+    const root = IdentifierMemberExtractor(
+        item.object,
+        scope,
+        optionalChecks
+    );
     if (root instanceof OutsideFunctionDeclaration)
         throw new CompilerError(
             item.object,
@@ -66,16 +72,22 @@ export const MemberExpressionCompiler = (
             root2,
             item.optional,
             propName,
-            item
+            item,
+            optionalChecks
         );
     } else {
         // This means we have to extract the property
-        const prop = extractProperty(item.property, scope);
+        const prop = extractProperty(
+            item.property,
+            scope,
+            optionalChecks
+        );
         return extractValueForProperty(
             root2,
             item.optional,
             prop,
-            item
+            item,
+            optionalChecks
         );
     }
 };
@@ -84,7 +96,8 @@ const extractValueForProperty = (
     object: InterfaceLiteral | DatabaseLocation,
     optional: boolean,
     key: ReturnType<typeof extractProperty>,
-    item: MemberExpression
+    item: MemberExpression,
+    optionalChecks: OptionalDependecyTracker
 ) => {
     if (typeof key === "number")
         throw new CompilerError(
@@ -103,9 +116,19 @@ const extractValueForProperty = (
                 `This interface does not have the key ${key}`
             );
         }
-        // Since this DatabaseLocation is passed by ref, we clone it to preserve the origial
+        // First we make sure the correct operator was used
+        if (object.optional && item.optional === false)
+            throw new CompilerError(
+                item,
+                "You must use ?. when accessing optional properties"
+            );
+        // Since this DatabaseLocation is passed by ref, we clone it to preserve the original
         object = { ...object };
+        // If the castAs is undefined, ?. should be used to access it
         if (object.castAs === undefined) {
+            // If this object is not cast we assume it's optional
+            optionalChecks.addDep(object, key);
+
             if (object.needsDotData) {
                 object.needsDotData = false;
                 if (key !== "id") object.key += ".data";
@@ -132,24 +155,27 @@ const extractValueForProperty = (
             );
         }
         // Now we examine the InterfaceLiteral it was cast as
-        if (item.optional) {
-            if (object.castAs.optionals.has(key)) {
-                if (object.needsDotData) {
-                    object.needsDotData = false;
-                    if (key !== "id") object.key += ".data";
-                }
-                object.key += `.${key}`;
-                // TODO: preserve the cast of the location
-                object.castAs = undefined;
-                return object;
+
+        if (object.castAs.optionals.has(key)) {
+            optionalChecks.addDep(object);
+            if (object.needsDotData) {
+                object.needsDotData = false;
+                if (key !== "id") object.key += ".data";
             }
+            object.key += `.${key}`;
+            object.optional = true;
+            // TODO: preserve the cast of the location
+            object.castAs = undefined;
+            return object;
         }
+
         if (object.castAs.value.has(key)) {
             if (object.needsDotData) {
                 object.needsDotData = false;
                 if (key !== "id") object.key += ".data";
             }
             object.key += `.${key}`;
+            object.optional = false;
             // TODO: preserve the cast of the location
             object.castAs = undefined;
             return object;
@@ -164,6 +190,12 @@ const extractValueForProperty = (
             object,
             "Database values cannot be used to access interface values, since database values are not known at compile time"
         );
+    // First we make sure the correct operator was used
+    if (object.optional && item.optional === false)
+        throw new CompilerError(
+            item,
+            "You must use ?. when accessing optional properties"
+        );
     // Since this DatabaseLocation is passed by ref, we clone it to preserve the origial
     object = { ...object };
     // Since both variables are unknown in value, we just return
@@ -173,12 +205,15 @@ const extractValueForProperty = (
     }
     object.castAs = undefined;
     object.key += `[${key.key}]`;
+    // These values are always optional since kakao can't verify it's safe
+    object.optional = true;
     return object;
 };
 
 const extractProperty = (
     item: MemberExpression["property"],
-    scope: Scope
+    scope: Scope,
+    optionalChecks: OptionalDependecyTracker
 ): string | number | DatabaseLocation => {
     let prop:
         | NumericLiteral
@@ -186,7 +221,9 @@ const extractProperty = (
         | MemberExpression
         | DatabaseLocation;
     if (item instanceof Identifier) {
-        const extracted = IdentifierCompiler(item, scope);
+        const rawExtracted = IdentifierCompiler(item, scope);
+        optionalChecks.cloneDepsFrom(rawExtracted.optionalChecks);
+        const extracted = rawExtracted.value;
         if (extracted instanceof ComparisonExpression)
             throw new CompilerError(
                 item,
@@ -208,7 +245,11 @@ const extractProperty = (
     } else prop = item;
 
     if (prop instanceof MemberExpression) {
-        const extracted = MemberExpressionCompiler(prop, scope);
+        const extracted = MemberExpressionCompiler(
+            prop,
+            scope,
+            optionalChecks
+        );
         if (extracted instanceof Literal) {
             if (
                 extracted instanceof StringLiteral ||
@@ -235,7 +276,8 @@ const extractProperty = (
             ) {
                 return extractProperty(
                     x as StringLiteral | NumericLiteral | Identifier,
-                    scope
+                    scope,
+                    optionalChecks
                 );
             }
             throw new CompilerError(
@@ -247,7 +289,14 @@ const extractProperty = (
             throw new CompilerError(item, "Internal error");
         // Now if this database location isn't cast we assume this is okay
         // TODO: After 'as' expression has been added, this loophole should be closed
-        if (extracted.castAs === undefined) return extracted;
+        if (extracted.castAs === undefined) {
+            // Again we assume no cast means we need to check for optionals
+            console.log(
+                `Added ${extracted.key} to ops since undefined cast 2`
+            );
+            optionalChecks.addDep(extracted);
+            return extracted;
+        }
         if (extracted.castAs instanceof InterfaceLiteral)
             throw new CompilerError(
                 prop,
@@ -267,7 +316,14 @@ const extractProperty = (
     if (prop instanceof Literal) {
         return prop.value;
     }
-    if (prop.castAs === undefined) return prop;
+    if (prop.castAs === undefined) {
+        // Again we assume no cast means we need to check for optionals
+        console.log(
+            `Added ${prop.key} to ops since undefined cast 3`
+        );
+        optionalChecks.addDep(prop);
+        return prop;
+    }
     if (prop.castAs instanceof InterfaceLiteral)
         throw new CompilerError(item, "Cannot use interface as key");
     if (
@@ -286,7 +342,8 @@ const extractProperty = (
 
 const IdentifierMemberExtractor = <S extends SyntaxComponent>(
     input: Identifier | MemberExpression | S,
-    scope: Scope
+    scope: Scope,
+    optionalChecks: OptionalDependecyTracker
 ):
     | Literal
     | DatabaseLocation
@@ -295,12 +352,20 @@ const IdentifierMemberExtractor = <S extends SyntaxComponent>(
     | OutsideFunctionDeclaration
     | S => {
     if (input instanceof MemberExpression) {
-        const x = MemberExpressionCompiler(input, scope);
+        const x = MemberExpressionCompiler(
+            input,
+            scope,
+            optionalChecks
+        );
         if (x instanceof Array) {
             if (x.length === 1) {
-                if (x[0] instanceof Identifier)
-                    return IdentifierCompiler(x[0], scope);
-                else return x[0];
+                if (x[0] instanceof Identifier) {
+                    const stored = IdentifierCompiler(x[0], scope);
+                    optionalChecks.cloneDepsFrom(
+                        stored.optionalChecks
+                    );
+                    return stored.value;
+                } else return x[0];
             } else
                 throw new CompilerError(
                     input,
@@ -310,7 +375,9 @@ const IdentifierMemberExtractor = <S extends SyntaxComponent>(
         return x;
     }
     if (input instanceof Identifier) {
-        return IdentifierCompiler(input, scope);
+        const stored = IdentifierCompiler(input, scope);
+        optionalChecks.cloneDepsFrom(stored.optionalChecks);
+        return stored.value;
     }
     return input;
 };

@@ -11,6 +11,6 @@ export const InterfaceStatementCompiler: Compiler<InterfaceStatement> = (
             item,
             `Cannot override ${item.name} already in scope`
         );
-    scope[item.name] = item.content;
+    scope[item.name] = { value: item.content };
     return { scope };
 };

@@ -17,8 +17,10 @@ export const MatchStatementCompiler = (
     item.path.forEach(p => {
         if (!p.wildcard) return;
         newScope[p.name] = {
-            key: p.name,
-            castAs: new TypeLiteral(-1, "string")
+            value: {
+                key: p.name,
+                castAs: new TypeLiteral(-1, "string")
+            }
         };
     });
     const body = item.rules

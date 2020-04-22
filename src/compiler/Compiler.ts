@@ -6,8 +6,7 @@ import SyntaxComponent from "../types/SyntaxComponent";
 export interface DatabaseLocation {
     key: string;
     castAs?: InterfaceLiteral | TypeLiteral;
-    // The cast might be optional
-    optionalCast?: boolean;
+    optional?: boolean;
     // We may have some shortcut children
     children?: { [index: string]: DatabaseLocation };
     // Do we need to do .data before accessing data?
@@ -25,7 +24,7 @@ export const isDatabaseLocation = (
                 k !== "castAs" &&
                 k !== "children" &&
                 k !== "needsDotData" &&
-                k !== "optionalCast"
+                k !== "optional"
         )
     )
         return false;
@@ -37,6 +36,8 @@ export const isDatabaseLocation = (
             input.castAs instanceof TypeLiteral
         )
     )
+        return false;
+    if (input.optional && typeof input.optional !== "boolean")
         return false;
     if (input.needsDotData && typeof input.needsDotData !== "boolean")
         return false;
