@@ -126,7 +126,12 @@ const extractValueForProperty = (
         object = { ...object };
         // If the castAs is undefined, ?. should be used to access it
         if (object.castAs === undefined) {
-            // If this object is not cast we assume it's optional
+            // If this object is not cast we must assume it's optional
+            if (!item.optional)
+                throw new CompilerError(
+                    item,
+                    "You must use ?. when accessing optional properties"
+                );
             optionalChecks.addDep(object, key);
 
             if (object.needsDotData) {
