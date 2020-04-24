@@ -42,7 +42,8 @@ export const wordTokens = [
     "if",
     "else",
     "match",
-    "interface"
+    "interface",
+    "extends"
 ] as const;
 export const typeTokens = [
     "string",

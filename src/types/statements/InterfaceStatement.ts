@@ -1,11 +1,13 @@
 import { InterfaceLiteral } from "../literals";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
+import { Identifier } from "../Identifier";
 
 export class InterfaceStatement extends SyntaxComponent {
     constructor(
         position: Position,
         private _name: string,
-        private _content: InterfaceLiteral
+        private _content: InterfaceLiteral,
+        private _extensions: Identifier[] = []
     ) {
         super(position);
     }
@@ -16,6 +18,10 @@ export class InterfaceStatement extends SyntaxComponent {
 
     public get content(): InterfaceLiteral {
         return this._content;
+    }
+
+    public get extensions() {
+        return this._extensions;
     }
 
     protected internalEquals(other: SyntaxComponent): boolean {

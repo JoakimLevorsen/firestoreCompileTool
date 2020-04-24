@@ -21,19 +21,20 @@ export const LogicalExpressionCompiler = (
     scope: Scope
 ): string => {
     // For this we just need to make sure no Interfaces or Types are involved, and check the comparison types return boolean values
-    const optionals = new OptionalDependecyTracker();
+    const leftOptionals = new OptionalDependecyTracker();
+    const rightOptionals = new OptionalDependecyTracker();
     const left = IdentifierMemberExtractor(
         input.left,
         scope,
-        optionals
+        leftOptionals
     );
     const right = IdentifierMemberExtractor(
         input.right,
         scope,
-        optionals
+        rightOptionals
     );
     // Now we make sure the comparison isn't non boolean
-    const [safeRight, safeLeft] = [right, left].map(v => {
+    const [safeRight, safeLeft] = [right, left].map((v, i) => {
         if (v instanceof Literal) {
             if (!(v instanceof BooleanLiteral))
                 throw new CompilerError(
@@ -51,7 +52,7 @@ export const LogicalExpressionCompiler = (
             const compiled = CallExpressionCompiler(
                 v,
                 scope,
-                optionals
+                i === 0 ? rightOptionals : leftOptionals
             );
             if (compiled.returnType === "boolean") return compiled;
             throw new CompilerError(
@@ -76,13 +77,13 @@ export const LogicalExpressionCompiler = (
         return v;
     });
     // Now we can compile the two sides and return them
-    const [compiledRight, compiledLeft] = [safeRight, safeLeft].map(
-        v => {
+    let [compiledRight, compiledLeft] = [safeRight, safeLeft].map(
+        (v, i) => {
             if (v instanceof ComparisonExpression) {
                 return ComparisonExpressionCompiler(
                     v,
                     scope,
-                    optionals
+                    i === 0 ? rightOptionals : leftOptionals
                 );
             }
             if (v instanceof BooleanLiteral) {
@@ -92,9 +93,13 @@ export const LogicalExpressionCompiler = (
             return v.value;
         }
     );
-    const prefix = optionals.export();
-    if (prefix) {
-        return `(${prefix} && (${compiledLeft} ${input.operator} ${compiledRight}))`;
+    const leftPrefix = leftOptionals.export();
+    const rightPrefix = rightOptionals.export();
+    if (leftPrefix) {
+        compiledLeft = `(${leftPrefix} && ${compiledLeft})`;
+    }
+    if (rightPrefix) {
+        compiledRight = `(${rightPrefix} && ${compiledRight})`;
     }
     return `(${compiledLeft} ${input.operator} ${compiledRight})`;
 };

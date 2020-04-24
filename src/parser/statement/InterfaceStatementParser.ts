@@ -1,21 +1,33 @@
-import { spaceTokens, Token, tokenHasType } from "../../types";
+import {
+    spaceTokens,
+    Token,
+    tokenHasType,
+    Identifier
+} from "../../types";
 import { InterfaceLiteral } from "../../types/literals";
 import { InterfaceStatement } from "../../types/statements";
 import { InterfaceLiteralParser } from "../literal";
 import Parser from "../Parser";
+import { IdentifierExtractor } from "../IdentifierExtractor";
 
 export class InterfaceStatementParser extends Parser {
     private start = NaN;
     private state:
         | "awaiting keyword"
         | "awaiting name"
-        | "awaiting value"
+        | "awaiting valueOrExtends"
+        | "awaiting extension"
+        | "awaiting valueOrSeperator"
         | "parsing value" = "awaiting keyword";
     private name?: string;
     private value?: InterfaceLiteral;
+    private extensions: Identifier[] = [];
     private subParser = new InterfaceLiteralParser(this.errorCreator);
 
-    public addToken(token: Token): InterfaceStatement | null {
+    public addToken(
+        token: Token,
+        selfCall = false
+    ): InterfaceStatement | null {
         if (
             isNaN(this.start) &&
             !tokenHasType(token, [...spaceTokens])
@@ -34,11 +46,15 @@ export class InterfaceStatementParser extends Parser {
                 if (token.type !== "Keyword")
                     throw error("Unexpected token");
                 this.name = token.value;
-                this.state = "awaiting value";
+                this.state = "awaiting valueOrExtends";
                 return null;
-            case "awaiting value":
+            case "awaiting valueOrExtends":
                 if (tokenHasType(token, [...spaceTokens]))
                     return null;
+                if (token.type === "extends") {
+                    this.state = "awaiting extension";
+                    return null;
+                }
             case "parsing value":
                 this.state = "parsing value";
                 if (this.subParser.canAccept(token)) {
@@ -53,7 +69,8 @@ export class InterfaceStatementParser extends Parser {
                         return new InterfaceStatement(
                             { start: this.start, end },
                             this.name!,
-                            this.value!
+                            this.value!,
+                            this.extensions
                         );
                     }
                     return null;
@@ -64,8 +81,33 @@ export class InterfaceStatementParser extends Parser {
                 return new InterfaceStatement(
                     { start: this.start, end: token.location },
                     this.name!,
-                    this.value!
+                    this.value!,
+                    this.extensions
                 );
+            case "awaiting extension":
+                if (tokenHasType(token, [...spaceTokens]))
+                    return null;
+                if (token.type === "Keyword") {
+                    this.extensions.push(
+                        IdentifierExtractor(token, this.errorCreator)
+                    );
+                    this.state = "awaiting valueOrSeperator";
+                    return null;
+                }
+                throw error("Unexpected token");
+            case "awaiting valueOrSeperator":
+                if (tokenHasType(token, [...spaceTokens]))
+                    return null;
+                if (token.type === ",") {
+                    this.state = "awaiting extension";
+                    return null;
+                }
+                // This probably means we got a value, so we send it around
+                this.state = "parsing value";
+                if (!selfCall) {
+                    return this.addToken(token, true);
+                }
+                throw error("Internal error");
         }
     }
 
@@ -77,13 +119,25 @@ export class InterfaceStatementParser extends Parser {
                 if (tokenHasType(token, [...spaceTokens]))
                     return true;
                 return token.type === "Keyword";
-            case "awaiting value":
-                if (tokenHasType(token, [...spaceTokens]))
+            case "awaiting valueOrExtends":
+                if (tokenHasType(token, [...spaceTokens, "extends"]))
+                    return true;
+            case "awaiting valueOrSeperator":
+                // We do this so we can still fall through from the above case to the below.
+                if (
+                    this.state === "awaiting valueOrSeperator" &&
+                    tokenHasType(token, [...spaceTokens, ","])
+                )
                     return true;
             case "parsing value":
                 if (this.subParser.canAccept(token)) return true;
                 if (!this.value) return false;
                 return token.type === ";";
+            case "awaiting extension":
+                if (tokenHasType(token, [...spaceTokens]))
+                    return true;
+                if (token.type === "Keyword") return true;
+                return false;
         }
     }
 }

@@ -1,6 +1,7 @@
 import Literal from ".";
 import { Identifier } from "..";
 import SyntaxComponent, { Position } from "../SyntaxComponent";
+import CompilerError from "../../compiler/CompilerError";
 
 export type InterfaceLiteralValues = Map<
     string,
@@ -55,6 +56,28 @@ export class InterfaceLiteral extends Literal {
 
     get optionals(): InterfaceLiteralValues {
         return this._optionalValues;
+    }
+
+    public extendWith(other: InterfaceLiteral) {
+        for (const [key, value] of other.value) {
+            if (this.value.has(key)) {
+                throw new CompilerError(
+                    this,
+                    `${key} present on both interfaces`
+                );
+            }
+            this.value.set(key, value);
+        }
+        for (const [key, value] of other.optionals) {
+            if (this.optionals.has(key)) {
+                throw new CompilerError(
+                    this,
+                    `${key} present on both interfaces`
+                );
+            }
+            this.optionals.set(key, value);
+        }
+        return this;
     }
 
     public allValuesPresentIn(other: InterfaceLiteral): boolean {
