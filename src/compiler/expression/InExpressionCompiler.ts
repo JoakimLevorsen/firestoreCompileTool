@@ -23,9 +23,14 @@ export const InExpressionCompiler = (
     item: InExpression,
     scope: Scope
 ): string => {
-    const optionals = new OptionalDependecyTracker();
-    const [left, right] = [item.left, item.right].map(i =>
-        IdentifierMemberExtractor(i, scope, optionals)
+    const leftOps = new OptionalDependecyTracker();
+    const rightOps = new OptionalDependecyTracker();
+    const [left, right] = [item.left, item.right].map((l, i) =>
+        IdentifierMemberExtractor(
+            l,
+            scope,
+            i === 0 ? leftOps : rightOps
+        )
     );
     // We verify the right one is an array
     if (!isDatabaseLocation(right))
@@ -52,25 +57,28 @@ export const InExpressionCompiler = (
             left.needsDotData ? `${left.key}.data` : left.key,
             rightC,
             item.operator,
-            optionals
+            leftOps,
+            rightOps
         );
     }
     if (left instanceof OutsideFunctionDeclaration)
         throw new CompilerError(left, "Cannot use function referece");
     if (left instanceof CallExpression) {
         return getOutput(
-            CallExpressionCompiler(left, scope, optionals).value,
+            CallExpressionCompiler(left, scope, leftOps).value,
             rightC,
             item.operator,
-            optionals
+            leftOps,
+            rightOps
         );
     }
     if (left instanceof ComparisonExpression) {
         return getOutput(
-            ComparisonExpressionCompiler(left, scope, optionals),
+            ComparisonExpressionCompiler(left, scope, leftOps),
             rightC,
             item.operator,
-            optionals
+            leftOps,
+            rightOps
         );
     }
     if (
@@ -85,7 +93,8 @@ export const InExpressionCompiler = (
         NonTypeLiteralCompiler(left as StringLiteral),
         rightC,
         item.operator,
-        optionals
+        leftOps,
+        rightOps
     );
 };
 
@@ -93,12 +102,16 @@ const getOutput = (
     left: string,
     right: string,
     operator: InOperator,
-    optionals: OptionalDependecyTracker
+    leftOps: OptionalDependecyTracker,
+    rightOps: OptionalDependecyTracker
 ) =>
-    optionals.export()
-        ? operator === "in"
-            ? `(${optionals.export()} && ${left} in ${right})`
-            : `(${optionals.export()} && !(${left} in ${right}))`
-        : operator === "in"
-        ? `${left} in ${right}`
-        : `!(${left} in ${right})`;
+    // If this is an inn't expression, it's okay the optionals fail
+    `(${leftOps.export(left)} != null) ${
+        operator === "in" ? "&&" : "||"
+    } (${rightOps.export(right)}) ${
+        operator === "in" ? "&&" : "||"
+    } ${
+        operator === "in"
+            ? `${left} in ${right}`
+            : `!(${left} in ${right})`
+    }`;

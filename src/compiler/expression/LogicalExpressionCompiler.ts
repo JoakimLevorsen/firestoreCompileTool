@@ -77,7 +77,7 @@ export const LogicalExpressionCompiler = (
         return v;
     });
     // Now we can compile the two sides and return them
-    let [compiledRight, compiledLeft] = [safeRight, safeLeft].map(
+    const [compiledRight, compiledLeft] = [safeRight, safeLeft].map(
         (v, i) => {
             if (v instanceof ComparisonExpression) {
                 return ComparisonExpressionCompiler(
@@ -93,13 +93,7 @@ export const LogicalExpressionCompiler = (
             return v.value;
         }
     );
-    const leftPrefix = leftOptionals.export();
-    const rightPrefix = rightOptionals.export();
-    if (leftPrefix) {
-        compiledLeft = `(${leftPrefix} && ${compiledLeft})`;
-    }
-    if (rightPrefix) {
-        compiledRight = `(${rightPrefix} && ${compiledRight})`;
-    }
-    return `(${compiledLeft} ${input.operator} ${compiledRight})`;
+    return `(${leftOptionals.export(compiledLeft)} ${
+        input.operator
+    } ${rightOptionals.export(compiledRight)})`;
 };

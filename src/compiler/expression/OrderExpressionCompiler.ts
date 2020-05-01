@@ -25,9 +25,10 @@ export const OrderExpressionCompiler = (
     scope: Scope
 ): string => {
     // First we check for the types. We can only compare numbers to numbers, strings to strings, and DatabaseLocations of those matching types.
-    const optionals = new OptionalDependecyTracker();
-    const [left, right] = [input.left, input.right].map(v =>
-        extractType(v, scope, optionals)
+    const leftOps = new OptionalDependecyTracker();
+    const rightOps = new OptionalDependecyTracker();
+    const [left, right] = [input.left, input.right].map((v, i) =>
+        extractType(v, scope, i === 0 ? leftOps : rightOps)
     );
     if (left instanceof StringLiteral) {
         return compileLeftString(left, right, input);
@@ -41,7 +42,8 @@ export const OrderExpressionCompiler = (
             right,
             input,
             scope,
-            optionals
+            leftOps,
+            rightOps
         );
     }
     if (!isDatabaseLocation(left) && left.returnType === "string")
@@ -52,7 +54,8 @@ export const OrderExpressionCompiler = (
             right,
             input,
             scope,
-            optionals
+            leftOps,
+            rightOps
         );
     // This means left is a Database location, so depending on the castAs we'll compile
     const rightC =
@@ -61,22 +64,26 @@ export const OrderExpressionCompiler = (
                   right as StringLiteral | NumericLiteral
               )
             : right instanceof MathExpression
-            ? MathExpressionCompiler(right, scope, optionals)
+            ? MathExpressionCompiler(right, scope, rightOps)
             : right;
     // This will never happen since both string and numeric function returns were caught above
-    let baseReturn: string | undefined;
     if (!isDatabaseLocation(left))
         throw new Error("Should not be possible");
+    const leftWrapped = leftOps.export(left.key);
     if (left.castAs === undefined) {
         // This means right is fine no matter what
         if (isDatabaseLocation(rightC))
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.key
-            }`;
+            )}`;
         else
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.value
-            }`;
+            )}`;
     } else if (left.castAs.value === "string") {
         if (right instanceof StringLiteral)
             throw new CompilerError(
@@ -84,13 +91,17 @@ export const OrderExpressionCompiler = (
                 `Cannot compare number and string with ${input.operator}`
             );
         if (isDatabaseLocation(rightC))
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.key
-            }`;
+            )}`;
         else
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.value
-            }`;
+            )}`;
     } else if (left.castAs.value === "number") {
         if (right instanceof NumericLiteral)
             throw new CompilerError(
@@ -98,18 +109,17 @@ export const OrderExpressionCompiler = (
                 `Cannot compare number and string with ${input.operator}`
             );
         if (isDatabaseLocation(rightC))
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.key
-            }`;
+            )}`;
         else
-            baseReturn = `${left.key} ${input.operator} ${
+            return `${leftWrapped} ${
+                input.operator
+            } ${rightOps.export(
                 typeof rightC === "string" ? rightC : rightC.value
-            }`;
-    }
-    if (baseReturn) {
-        const prefix = optionals.export();
-        if (prefix) return `(${prefix} && ${baseReturn})`;
-        return baseReturn;
+            )}`;
     }
     throw new CompilerError(input, "Internal error");
 };
@@ -156,13 +166,18 @@ const compileLeftNumeric = (
         | ReturnType<typeof CallExpressionCompiler>,
     input: OrderExpression,
     scope: Scope,
-    optionals: OptionalDependecyTracker
+    leftOps: OptionalDependecyTracker,
+    rightOps: OptionalDependecyTracker
 ): string => {
-    const [leftC, rightC] = [left, right].map(v => {
+    const [leftC, rightC] = [left, right].map((v, i) => {
         if (typeof v === "string") return v;
         if (v instanceof Literal) return NonTypeLiteralCompiler(v);
         if (v instanceof MathExpression)
-            return MathExpressionCompiler(v, scope, optionals);
+            return MathExpressionCompiler(
+                v,
+                scope,
+                i === 0 ? leftOps : rightOps
+            );
         if (isDatabaseLocation(v)) return v.key;
         return v.value;
     });

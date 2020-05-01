@@ -25,7 +25,7 @@ export const ReturnStatementCompiler = (
             scope,
             optionals
         );
-        return optionals.returnFor(subReturn);
+        return optionals.export(subReturn);
     }
     if (body instanceof Identifier) {
         const rawExtracted = IdentifierCompiler(body, scope);
@@ -45,7 +45,7 @@ export const ReturnStatementCompiler = (
                 scope,
                 optionals
             );
-            return optionals.returnFor(subReturn);
+            return optionals.export(subReturn);
         }
         if (extracted instanceof CallExpression) {
             const subReturn = CallExpressionCompiler(
@@ -53,7 +53,7 @@ export const ReturnStatementCompiler = (
                 scope,
                 optionals
             ).value;
-            return optionals.returnFor(subReturn);
+            return optionals.export(subReturn);
         }
         return extracted.key;
     }
@@ -63,7 +63,7 @@ export const ReturnStatementCompiler = (
             scope,
             optionals
         ).value;
-        return optionals.returnFor(subReturn);
+        return optionals.export(subReturn);
     }
     throw new CompilerError(item, "Internal error");
 };

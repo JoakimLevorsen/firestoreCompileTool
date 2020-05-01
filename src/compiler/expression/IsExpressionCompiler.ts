@@ -149,11 +149,7 @@ const extractRules = (
             .reduce((pV, v) => `${pV} || ${v}`)})`;
     });
     // If we have optionals we return slightly different rules
-    const rulePrefix = optionals?.export();
-    if (rulePrefix) {
-        return `(${rulePrefix} && ${rule})`;
-    }
-    return rule;
+    return optionals?.export(rule) ?? rule;
 };
 
 const extractRight = (

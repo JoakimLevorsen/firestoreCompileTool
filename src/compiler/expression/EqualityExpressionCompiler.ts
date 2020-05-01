@@ -28,8 +28,10 @@ export const EqualityExpressionCompiler = (
 ): string => {
     // For equality, we need to make sure we have no InterfaceLiterals or TypeLiterals, and that comparison types are compatible.
     // First we check for no Interfaces
-    const optionals = new OptionalDependecyTracker();
-    const [left, right] = [input.left, input.right].map(v => {
+    const leftOps = new OptionalDependecyTracker();
+    const rightOps = new OptionalDependecyTracker();
+    const [left, right] = [input.left, input.right].map((v, i) => {
+        const optionals = i === 0 ? leftOps : rightOps;
         const nonIden = IdentifierMemberExtractor(
             v,
             scope,
@@ -59,11 +61,11 @@ export const EqualityExpressionCompiler = (
     const {
         type: leftType,
         value: leftCompiled
-    } = extractTypeAndValue(left, input, scope, optionals);
+    } = extractTypeAndValue(left, input, scope, leftOps);
     const {
         type: rightType,
         value: rightCompiled
-    } = extractTypeAndValue(right, input, scope, optionals);
+    } = extractTypeAndValue(right, input, scope, rightOps);
     if (
         leftType !== rightType &&
         leftType !== "ANY" &&
@@ -75,10 +77,9 @@ export const EqualityExpressionCompiler = (
         );
     // Now we know everything is groovy so we can return
     // If we do have optionals we return something else however
-    const optionalString = optionals.export();
-    if (optionalString)
-        return `(${optionalString} && ${leftCompiled} ${input.operator} ${rightCompiled})`;
-    return `${leftCompiled} ${input.operator} ${rightCompiled}`;
+    const leftWrapped = leftOps.export(leftCompiled);
+    const rightWrapped = rightOps.export(rightCompiled);
+    return `${leftWrapped} ${input.operator} ${rightWrapped}`;
 };
 
 const extractTypeAndValue = (
@@ -124,6 +125,9 @@ const extractTypeAndValue = (
             );
         }
         return { type: from.castAs?.value ?? "ANY", value: from.key };
+    }
+    if (typeof from === undefined) {
+        throw new Error("Internal error");
     }
     return { type: from.returnType, value: from.value };
 };

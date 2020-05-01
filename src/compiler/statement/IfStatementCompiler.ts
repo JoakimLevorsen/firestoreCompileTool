@@ -123,8 +123,7 @@ export const IfStatementCompiler = (
         }
     }
     // Now if we have any optionals for the test, we just add them first
-    const testExport = testOptionals.export();
-    if (testExport) test = `(${testExport} && ${test})`;
+    test = testOptionals.export(test);
     const consequent = BlockStatementCompiler(item.consequent, scope);
     if (item.alternate) {
         let alternate;

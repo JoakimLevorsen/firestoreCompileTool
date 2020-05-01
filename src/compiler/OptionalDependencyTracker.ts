@@ -29,29 +29,29 @@ export default class OptionalDependecyTracker {
         if (other) this.deps = [...this.deps, ...other.deps];
     };
 
-    private reduceSelf = () =>
-        this.deps.reduce((total, item) => {
-            if (item.type === "Exist") {
-                const { needsDotData, key } = item.value;
-                const output = `${
-                    needsDotData ? `${key}.data` : key
-                } != null`;
-                if (total === "(") return "(" + output;
-                return `${total} && ${output}`;
-            }
-            const { value, key } = item;
-            const ref = value.needsDotData
-                ? `${value.key}.data`
-                : value.key;
-            const output = `"${key}" in ${ref}`;
-            if (total === "(") return "(" + output;
-            return `${total} && ${output}`;
-        }, "(") + ")";
-
-    public export = () =>
-        this.deps.length === 0 ? null : this.reduceSelf();
-
-    //   Return expression with dependencies
-    public returnFor = (other: string) =>
-        this.deps.length === 0 ? other : this.reduceSelf();
+    public export = (successReturn: string) =>
+        /*
+    When we reduce we use tenerary chains to return either null, or the optional value
+    So a?.b?.c turns into a != null ? (a.b != null ? (a.b.c != null ? a.b.c : null) : null ) : null
+    */
+        {
+            return this.deps.reduceRight((total, item) => {
+                if (item.type === "Exist") {
+                    // Then we need to make sure this value is not null
+                    const { needsDotData, key } = item.value;
+                    const output = `${
+                        needsDotData ? `${key}.data` : key
+                    } != null`;
+                    return `(${output} ? ${total} : null)`;
+                } else {
+                    // Otherwise we need to check if a key is present on an object
+                    const { value, key } = item;
+                    const ref = value.needsDotData
+                        ? `${value.key}.data`
+                        : value.key;
+                    const output = `"${key}" in ${ref}`;
+                    return `(${output} ? ${total} : null)`;
+                }
+            }, successReturn);
+        };
 }

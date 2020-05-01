@@ -74,16 +74,9 @@ const extractRule = (
     }
     const optionals = new OptionalDependecyTracker();
     if (rule instanceof ComparisonExpression) {
-        const subReturn = ComparisonExpressionCompiler(
-            rule,
-            scope,
-            optionals
+        return optionals.export(
+            ComparisonExpressionCompiler(rule, scope, optionals)
         );
-        const opReturn = optionals.export();
-        if (opReturn) {
-            return `(${opReturn} && ${subReturn})`;
-        }
-        return subReturn;
     }
     const safe = IdentifierMemberExtractor(rule, scope, optionals);
     let subReturn: string | undefined;
@@ -126,9 +119,7 @@ const extractRule = (
             optionals
         );
     if (subReturn) {
-        const opReturn = optionals.export();
-        if (opReturn) return `(${opReturn} && ${subReturn})`;
-        return subReturn;
+        return optionals.export(subReturn);
     }
     throw new Error("Did not expect this to happen");
 };
