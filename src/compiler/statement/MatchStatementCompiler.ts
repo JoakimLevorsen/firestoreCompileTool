@@ -25,12 +25,12 @@ export const MatchStatementCompiler = (
     });
     const body = item.rules
         .map(r => RuleStatementCompiler(r, newScope))
-        .reduce((pV, v) => `${pV}\n${v}`);
+        .reduce((pV, v) => `${pV}\n${v}`, "");
     if (item.subStatements.length === 0) {
         return `match ${path} {\n ${body} \n  }`;
     }
     const sub = item.subStatements
         .map(s => MatchStatementCompiler(s, newScope))
-        .reduce((pV, v) => `${pV}\n${v}`);
+        .reduce((pV, v) => `${pV}\n${v}`, "");
     return `match ${path} {\n ${body} \n ${sub} \n }`;
 };

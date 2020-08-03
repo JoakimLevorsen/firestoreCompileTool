@@ -18,3 +18,16 @@ export const LiteralFunctions: {
     Map: {},
     Array: {}
 };
+
+export const getLiteralFunction = (
+    name: string
+): OutsideFunctionDeclaration | null => {
+    for (const key in LiteralFunctions) {
+        if ((LiteralFunctions as any)[key]?.[name]) {
+            return (LiteralFunctions as any)[key]?.[
+                name
+            ] as OutsideFunctionDeclaration;
+        }
+    }
+    return null;
+};

@@ -1,60 +1,148 @@
-//test
-// Test gni asdaio dsfj oa
-
 interface User {
-    name: string;
+    avatar: {
+        color: string;
+        animal: string;
+    };
     displayName?: string;
-}/* das fjosad
-asd 
-ag 
-df 
-dh sghkaps df*/
-
-interface Resturant {
-    name: string; // More testins
-    url?: string;
-    owner: string;
 }
-
-interface Review {
-    title: string;
-    stars: number;
-    imageURL?: number;
-    user: string;
-}
-
-const minStars = 4
 
 match /users/{user} {
-    read: (_, doc) => auth.token.admin;
-    write: (newDoc) => {
-        if newDoc.ud == newDoc.id {
+    read: () => (auth?.uid) == user;
+    create, update: (newDoc) => {
+        if (auth?.uid) == user {
             return newDoc isOnly User;
         }
         return false;
     }
 }
 
-match /resturants/{resturant} {
-    create: (newDoc) => {
-        if newDoc isOnly Resturant {
-            return newDoc.owner == newDoc.id;
+interface Event {
+    title: string,
+    description: string,
+    start: timestamp,
+    end: timestamp,
+    youtubeID: string,
+}
+
+interface Message {
+    content: string,
+    date: timestamp,
+    displayName: string,
+    avatar: {
+        color: string,
+        animal: string
+    }
+}
+
+match /mainStage/{eventID} {
+    read: () => auth != null;
+    match /chat/{message} {
+        read: () => auth != null;
+        create: (newDoc) => auth != null && newDoc isOnly Message;
+    }
+}
+
+interface MainStageStatic {
+    youtubeID: string
+    title: string
+}
+
+match /mainStageStatic/{item} {
+    read: () => auth != null;
+}
+
+interface Lounge {
+    title: string,
+    imgUrl: string,
+    lastMessage: timestamp
+    sortOrder: number
+}
+
+interface Topic {
+    title: string,
+    description: string,
+    lastMessage: timestamp,
+    messageCount: number
+}
+
+match /lounges/{lounge} {
+    read: () => auth != null;
+    // Users can update this document to set the lastMessage
+    update: (newDoc, doc) => {
+        if (auth != null && newDoc isOnly Lounge) {
+            return newDoc?.title == doc?.title
+                && newDoc?.icon == doc?.icon
+                && newDoc?.sortOrder == doc?.sortOrder;
         }
         return false;
     }
-    write: (newDoc) => {
-        if newDoc.owner == newDoc.id {
-            return newDoc isOnly Resturant;
-        }
-        return false;
-    }
-    match /reviews/{review} {
-        create: (newDoc) => {
-            if newDoc isOnly Review {
-                return newDoc.user == newDoc.uid && newDoc.stars - 1 >= minStars;
+    match /topics/{topic} {
+        read: () => auth != null;
+        create: (newDoc) => auth != null && newDoc isOnly Topic
+        update: (newDoc, doc) => {
+            if (auth != null && newDoc isOnly Topic) {
+                return newDoc?.title == doc?.title
+                    && newDoc?.description == doc?.description
             }
-            return false;
+            return false
         }
-        delete: (doc) => doc.user == doc.id;
+        match /chat/{message} {
+            read: () => auth != null;
+            create: (newDoc) => auth != null && newDoc isOnly Message;
+        }
+    }
+}
+
+match /boothTags/{tag} {
+    read: () => auth != null;
+    // Only admins can write this
+}
+
+interface Booth {
+    title: string,
+    description: string,
+    tags: Array,
+    contactInfo: {
+        phone?: string,
+        email?: string,
+        address?: string
+    },
+    link: string,
+    start: timestamp,
+    end: timestamp,
+    logoUrl: string,
+    boothHolder: string
+}
+
+interface BoothEvent {
+    title: string,
+    description: string,
+    start: timestamp,
+    end: timestamp
+}
+
+match /booths/{booth} {
+    read: () => auth != null;
+    // Users cannot change booths
+}
+
+interface EmailSignup {
+    email: string,
+    signUpTime: timestamp,
+    firstName: string,
+    lastName: string,
+    wantsUpdates: boolean,
+    uid: string
+}
+
+const emailRegex = '(?:[a-z0-9!#$%&*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])'
+
+match /emailSignup/{signUp} {
+    create: (newDoc) => {
+        if (newDoc isOnly EmailSignup && auth?.uid == newDoc?.uid) {
+            // The doc ID must be the same as the email in the doc
+            return newDoc?.email == signUp 
+        }
+        return false
     }
 }

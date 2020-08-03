@@ -12,12 +12,19 @@ const [, , inputFile, outputFile] = process.argv;
 console.log(chalk.hex("#795548")(figlet.textSync("Kakao")));
 
 const doCompile = (input: string, output: string, debug = false) => {
+    console.time("File read");
     const file = fs.readFileSync(input).toString();
+    console.timeEnd("File read");
+    console.time("Parse");
 
     // const Oldb = extractBlock(file);
     const asp = parse(file);
+    console.timeEnd("Parse");
+
     if (asp) {
+        console.time("Compile");
         const compiled = compile(asp, file, debug);
+        console.timeEnd("Compile");
         if (!compiled) return;
         fs.writeFileSync(output, formatFile(compiled));
         console.log(

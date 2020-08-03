@@ -23,7 +23,11 @@ export class StringLiteralParser extends LiteralParser {
             case "Open": {
                 if (token.type === this.openToken) {
                     this.state = "Closed";
-                    return new StringLiteral(this.start, this.value);
+                    return new StringLiteral(
+                        this.start,
+                        this.value,
+                        this.openToken!
+                    );
                 }
                 if (token.type === "Keyword") {
                     this.value += token.value;

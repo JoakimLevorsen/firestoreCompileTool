@@ -10,19 +10,43 @@ import Literal, {
 } from "../../types/literals";
 import { NonTypeLiteralCompiler } from "../literal";
 import { ValueType } from "../../types";
-import { isDatabaseLocation } from "../Compiler";
+import { isDatabaseLocation, DatabaseLocation } from "../Compiler";
 import OptionalDependecyTracker from "../OptionalDependencyTracker";
+import { getLiteralFunction } from "../scope/literalFunctions";
+
+const getDatabaseFunction = (
+    data: DatabaseLocation
+): OutsideFunctionDeclaration | null => {
+    const match = data.key.match(/^(.*)\.(.*)$/);
+    if (match && match.length >= 3) {
+        const functionName = match[2];
+        // Now we check if the function exists
+        return getLiteralFunction(functionName);
+    }
+    return null;
+};
 
 export const CallExpressionCompiler = (
     input: CallExpression,
     scope: Scope,
     optionalChecks: OptionalDependecyTracker
 ): { value: string; returnType: ValueType } => {
-    const target = IdentifierMemberExtractor(
+    let target = IdentifierMemberExtractor(
         input.target,
         scope,
         optionalChecks
     );
+    const rawTarget = target;
+    if (isDatabaseLocation(target)) {
+        const functionToUse = getDatabaseFunction(target);
+        if (!functionToUse) {
+            throw new CompilerError(
+                input.target,
+                "Could not find literal function"
+            );
+        }
+        target = functionToUse;
+    }
     if (!(target instanceof OutsideFunctionDeclaration))
         throw new CompilerError(
             input.target,
@@ -76,6 +100,11 @@ export const CallExpressionCompiler = (
         )})`;
     } else if (isDatabaseLocation(callee)) {
         value = `${callee.key}.${target.name}(${stringParams.reduce(
+            (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
+            ""
+        )})`;
+    } else if (isDatabaseLocation(rawTarget)) {
+        value = `${rawTarget.key}(${stringParams.reduce(
             (pV, v) => (pV === "" ? v : `${pV}, ${v}`),
             ""
         )})`;
